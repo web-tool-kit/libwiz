@@ -1,0 +1,18 @@
+{
+  "include": ["src/**/*.ts"],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "preserveConstEnums": true,
+    "strict": false,
+    "target": "ES5",
+    "module": "NodeNext",
+    "outDir": "./dist",
+    "declaration": true,
+    "removeComments": false,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "incremental": true,
+    "preserveSymlinks": true,
+    "isolatedModules": true
+  }
+}
