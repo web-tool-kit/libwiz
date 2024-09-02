@@ -27,18 +27,11 @@ async function types() {
 
     throw new Error(
       `The package root needs to contain a 'tsconfig.build.json' or 'tsconfig.json'. ` +
-      `The package is '${packageJson.name}'`,
+        `The package is '${packageJson.name}'`,
     );
   }
 
-  const { stderr } = await exec(
-    [
-      'npx',
-      'tsc',
-      '-b',
-      tsconfigPath,
-    ].join(' '),
-  );
+  const { stderr } = await exec(['npx', 'tsc', '-b', tsconfigPath].join(' '));
 
   if (stderr) {
     throw new Error(`TS build types failed with \n${stderr}`);
@@ -67,9 +60,10 @@ async function types() {
       try {
         await removeUnWantedImports(declarationFile);
         console.log(
-          `${picocolors.bgGreen(`OK`)} '${declarationFile.split('packages/')[1] ||
-          declarationFile.split('apps/')[1] ||
-          declarationFile
+          `${picocolors.bgGreen(`OK`)} '${
+            declarationFile.split('packages/')[1] ||
+            declarationFile.split('apps/')[1] ||
+            declarationFile
           }'`,
         );
       } catch (error) {

@@ -12,7 +12,7 @@ function getPackageVersion() {
     const packageJsonPath = join(__dirname, './package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
     return packageJson.version;
-  } catch (e) { }
+  } catch (e) {}
 }
 
 const version = getPackageVersion();
@@ -87,15 +87,15 @@ initConfig({
     esm: {
       output: {
         comments: false,
-        sourceMap: Boolean(cliProps.sourceMaps)
-      }
+        sourceMap: Boolean(cliProps.sourceMaps),
+      },
     },
     cjs: {
       output: {
         comments: false,
-        sourceMap: Boolean(cliProps.sourceMaps)
-      }
-    }
+        sourceMap: Boolean(cliProps.sourceMaps),
+      },
+    },
   },
 });
 

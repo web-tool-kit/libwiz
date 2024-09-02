@@ -47,15 +47,15 @@ export function initConfig(localConfig?: Config): Config {
       esm: {
         output: {
           comments: false,
-          sourceMap: false
-        }
+          sourceMap: false,
+        },
       },
       cjs: {
         output: {
           comments: false,
-          sourceMap: false
-        }
-      }
+          sourceMap: false,
+        },
+      },
     },
     ...localConfig,
   };
@@ -91,7 +91,7 @@ export function initConfig(localConfig?: Config): Config {
 
       if (validConfig.lib) {
         if (!config.lib) {
-          config.lib = {}
+          config.lib = {};
         }
         if (validConfig.lib.esm) {
           if (config.lib.esm) {
@@ -100,8 +100,8 @@ export function initConfig(localConfig?: Config): Config {
               output: {
                 ...config.lib.esm.output,
                 ...validConfig.lib.esm.output,
-              }
-            }
+              },
+            };
           } else {
             config.lib.esm = validConfig.lib.esm;
           }
@@ -112,8 +112,8 @@ export function initConfig(localConfig?: Config): Config {
               output: {
                 ...config.lib.cjs.output,
                 ...validConfig.lib.cjs.output,
-              }
-            }
+              },
+            };
           } else {
             config.lib.cjs = validConfig.lib.cjs;
           }

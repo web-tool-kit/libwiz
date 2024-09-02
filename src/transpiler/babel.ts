@@ -1,10 +1,12 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
-import * as babel from '@babel/core';
 import useBabelConfig, { type UseBabelConfigProps } from './useBabelConfig';
 import { getConfig, type ModuleConfig } from '../config';
 import type { Bundles } from '../config';
+import { magicImport } from '../utils';
+
+const babel = magicImport<typeof import('@babel/core')>('@babel/core');
 
 export interface BuildProps {
   outDir: string;

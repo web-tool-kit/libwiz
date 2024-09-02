@@ -1,5 +1,6 @@
 import type { TransformOptions } from '@babel/core';
 import { getConfig, type Config, type Bundles } from '../config';
+import { magicImport } from '../utils';
 
 const { babel: rootBabelConfig, ignore } = getConfig();
 
@@ -70,11 +71,11 @@ function resolvePreset(rootBabelConfig: Config['babel'], env: Bundles) {
   }
 
   const presets: TransformOptions['presets'] = [
-    ['@babel/preset-env', defaultPreset['@babel/preset-env']],
-    ['@babel/preset-react', defaultPreset['@babel/preset-react']],
+    [magicImport('@babel/preset-env'), defaultPreset['@babel/preset-env']],
+    [magicImport('@babel/preset-react'), defaultPreset['@babel/preset-react']],
     Boolean(Object.keys(defaultPreset['@babel/preset-typescript']).length)
-      ? ['@babel/preset-typescript', defaultPreset['@babel/preset-typescript']]
-      : '@babel/preset-typescript',
+      ? [magicImport('@babel/preset-typescript'), defaultPreset['@babel/preset-typescript']]
+      : magicImport('@babel/preset-typescript'),
   ];
 
   Object.keys(presetMap).forEach(plugin => {
@@ -94,7 +95,7 @@ function resolvePlugins(rootBabelConfig: TransformOptions, env: Bundles) {
   const defaultPlugins = {
     '@babel/plugin-transform-react-jsx': {},
     '@babel/plugin-transform-runtime': {
-      version: '^7.25.2',
+      version: '^7.25.4',
       useESModules: modern,
     },
   };
@@ -126,12 +127,12 @@ function resolvePlugins(rootBabelConfig: TransformOptions, env: Bundles) {
       Object.keys(defaultPlugins['@babel/plugin-transform-react-jsx']).length,
     )
       ? [
-        '@babel/plugin-transform-react-jsx',
+        magicImport('@babel/plugin-transform-react-jsx').default,
         defaultPlugins['@babel/plugin-transform-react-jsx'],
       ]
-      : '@babel/plugin-transform-react-jsx',
+      : magicImport('@babel/plugin-transform-react-jsx').default,
     [
-      '@babel/plugin-transform-runtime',
+      magicImport('@babel/plugin-transform-runtime'),
       defaultPlugins['@babel/plugin-transform-runtime'],
     ],
   ];
