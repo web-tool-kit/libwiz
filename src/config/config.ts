@@ -80,48 +80,55 @@ export function initConfig(localConfig?: Config): Config {
 
     // handle libwiz config and merge that into main config
     if (configPath) {
-      let conf = {};
+      let rootConfig: Config = {};
       if (configPath.endsWith('.js')) {
-        conf = require(configPath) || {};
+        rootConfig = (require(configPath) || {}) as Config;
       } else {
-        conf = JSON.parse(fse.readFileSync(configPath, { encoding: 'utf8' }));
+        rootConfig = JSON.parse(
+          fse.readFileSync(configPath, { encoding: 'utf8' }),
+        ) as Config;
       }
-      let validConfig = validateConfigSchema(conf as Config);
-      validConfig = { ...validConfig, ...config };
+      rootConfig = validateConfigSchema(rootConfig);
 
-      if (validConfig.lib) {
+      if (rootConfig.lib) {
         if (!config.lib) {
           config.lib = {};
         }
-        if (validConfig.lib.esm) {
+        if (rootConfig.lib.esm) {
           if (config.lib.esm) {
             config.lib.esm = {
               ...config.lib.esm,
               output: {
                 ...config.lib.esm.output,
-                ...validConfig.lib.esm.output,
+                ...rootConfig.lib.esm.output,
               },
             };
           } else {
-            config.lib.esm = validConfig.lib.esm;
+            config.lib.esm = rootConfig.lib.esm;
           }
+        }
 
+        if (rootConfig.lib.cjs) {
           if (config.lib.cjs) {
             config.lib.cjs = {
               ...config.lib.cjs,
               output: {
                 ...config.lib.cjs.output,
-                ...validConfig.lib.cjs.output,
+                ...rootConfig.lib.cjs.output,
               },
             };
           } else {
-            config.lib.cjs = validConfig.lib.cjs;
+            config.lib.cjs = rootConfig.lib.cjs;
           }
         }
+        // delete lib from root config as its already added in config
+        // above keeping this can overwrite above resolved config
+        delete rootConfig.lib;
       }
 
-      for (let key in validConfig) {
-        config[key] = validConfig[key];
+      rootConfig = { ...rootConfig, ...config };
+      for (let key in rootConfig) {
+        config[key] = rootConfig[key];
       }
     }
 
@@ -254,7 +261,6 @@ export function initConfig(localConfig?: Config): Config {
   }
 
   config.root = root;
-
   ccm.setConfig(config);
   return config as Config;
 }

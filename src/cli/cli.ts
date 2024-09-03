@@ -1,10 +1,10 @@
 import { getConfig } from '../config';
 import watchRun from '../core/watch';
 import prebuildRun from '../core/prebuild';
-import buildRun from '../core/build';
+import buildRun, { type BuildProps } from '../core/build';
 import typesRun from '../core/types';
 import postbuild from '../core/postbuild';
-import type { BuildProps } from '../core/build';
+import { clearConsole } from '../utils';
 
 export interface CliProps extends BuildProps {
   build: boolean;
@@ -42,7 +42,7 @@ async function run(argv: CliProps) {
   };
 
   if (watch) {
-    console.clear();
+    clearConsole();
     watchRun({ ...buildProps });
     return;
   }
@@ -52,7 +52,6 @@ async function run(argv: CliProps) {
   }
 
   if (build) {
-    console.clear();
     await buildRun(buildProps);
   }
 

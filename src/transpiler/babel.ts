@@ -79,17 +79,22 @@ export async function transpileAsync(
     if (signal && signal.aborted) {
       break;
     }
+    // files relative paths
+    const sourceFileRelPath = sourceFiles[i];
+    const outputFileRelPath = sourceFiles[i].replace(/\.tsx?/, '.js');
 
-    const sourceFilePath = path.resolve(srcDir, sourceFiles[i]);
+    // files absolute paths
+    const sourceFileAbsPath = path.resolve(srcDir, sourceFileRelPath);
+    const outputFileAbsPath = path.resolve(outDir, outputFileRelPath);
 
-    if (!fse.existsSync(sourceFilePath)) {
+    if (!fse.existsSync(sourceFileAbsPath)) {
       fse.removeSync(path.resolve(outDir, sourceFiles[i]));
       continue;
     }
 
     opsAsync.push(
       new Promise<void>(async res => {
-        const transformedCode = await babel.transformFileAsync(sourceFilePath, {
+        const transformedCode = await babel.transformFileAsync(sourceFileAbsPath, {
           sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
           comments: Boolean(moduleConfig?.output?.comments),
           ...useBabelConfig({
@@ -100,10 +105,18 @@ export async function transpileAsync(
         // [Restart](phase 2) avoid save if signal aborted
         if (signal && signal.aborted) res();
 
-        fse.outputFileSync(
-          path.resolve(outDir, sourceFiles[i].replace(/\.tsx?/, '.js')),
-          transformedCode.code || '',
-        );
+        if (transformedCode.map) {
+          transformedCode.code += `\n//# sourceMappingURL=${outputFileRelPath}.map`;
+        }
+
+        fse.outputFileSync(outputFileAbsPath, transformedCode.code || '');
+
+        if (transformedCode.map) {
+          fse.outputFileSync(
+            `${outputFileAbsPath}.map`,
+            JSON.stringify(transformedCode.map),
+          );
+        }
         res();
       }),
     );

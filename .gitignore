@@ -10,7 +10,7 @@ temp_*
 pnpm-lock.yaml
 
 # build
-# dist/
+dist/
 
 # Compiled Java class files
 *.class

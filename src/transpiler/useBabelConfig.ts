@@ -74,7 +74,10 @@ function resolvePreset(rootBabelConfig: Config['babel'], env: Bundles) {
     [magicImport('@babel/preset-env'), defaultPreset['@babel/preset-env']],
     [magicImport('@babel/preset-react'), defaultPreset['@babel/preset-react']],
     Boolean(Object.keys(defaultPreset['@babel/preset-typescript']).length)
-      ? [magicImport('@babel/preset-typescript'), defaultPreset['@babel/preset-typescript']]
+      ? [
+          magicImport('@babel/preset-typescript'),
+          defaultPreset['@babel/preset-typescript'],
+        ]
       : magicImport('@babel/preset-typescript'),
   ];
 
@@ -127,9 +130,9 @@ function resolvePlugins(rootBabelConfig: TransformOptions, env: Bundles) {
       Object.keys(defaultPlugins['@babel/plugin-transform-react-jsx']).length,
     )
       ? [
-        magicImport('@babel/plugin-transform-react-jsx').default,
-        defaultPlugins['@babel/plugin-transform-react-jsx'],
-      ]
+          magicImport('@babel/plugin-transform-react-jsx').default,
+          defaultPlugins['@babel/plugin-transform-react-jsx'],
+        ]
       : magicImport('@babel/plugin-transform-react-jsx').default,
     [
       magicImport('@babel/plugin-transform-runtime'),
