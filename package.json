@@ -11,7 +11,7 @@
     "url": "git+hhttps://github.com/ui-tool-kit/libwiz.git"
   },
   "scripts": {
-    "prepare": "pnpm build",
+    "prepare": "husky",
     "build": "rimraf dist && tsc && node scripts/postbuild.mjs && rimraf */*.tsbuildinfo",
     "prettier": "prettier --write ./"
   },
@@ -39,9 +39,19 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.16.2",
     "@types/yargs": "^17.0.33",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "rimraf": "^5.0.10",
     "typescript": "^5.5.4"
+  },
+  "lint-staged": {
+    "src/**/*": [
+      "prettier --write"
+    ],
+    "scripts/**/*": [
+      "prettier --write"
+    ]
   },
   "keywords": []
 }
