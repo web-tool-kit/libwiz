@@ -37,6 +37,7 @@ export type Config = Partial<{
     plugins: TransformOptions['plugins'];
     browsers: string | string[];
   };
+  assets: string | string[] | null;
 }>;
 
 const VALID_BUNDLE_ENUM = z.enum(['modern', 'common']);
@@ -96,6 +97,7 @@ export const ConfigSchema = z
     validBundles: z.array(VALID_BUNDLE_ENUM).optional(),
     target: z.union([VALID_BUNDLE_ENUM, z.array(VALID_BUNDLE_ENUM)]).optional(),
     babel: BabelConfigSchema.optional(),
+    assets: z.union([z.string(), z.array(z.string()), z.null()]).optional(),
   })
   .strict();
 

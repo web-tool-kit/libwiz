@@ -15,3 +15,19 @@ export function clearConsole() {
     );
   }
 }
+
+export function parallel(promises: Promise<unknown>[]) {
+  return Promise.all(promises);
+}
+
+export async function sequential(fxnArr: (unknown | Promise<unknown>)[]) {
+  const results = [];
+  for (const fn of fxnArr) {
+    if (fn instanceof Promise) {
+      results.push(await fn);
+    } else {
+      results.push(fn);
+    }
+  }
+  return results;
+}

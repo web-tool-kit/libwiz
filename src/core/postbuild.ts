@@ -2,47 +2,49 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import glob from 'fast-glob';
-import pc from 'picocolors';
+import { log, parallel, sequential } from '../utils';
 import { getConfig } from '../config';
 
-const { root } = getConfig();
+const { root, assets } = getConfig();
 
 const buildPath = path.join(root, './dist');
 const srcPath = path.join(root, './src');
 
-async function includeFileInBuild(file: string) {
-  const sourcePath = path.resolve(root, file);
-  if (fse.existsSync(sourcePath)) {
-    const targetPath = path.resolve(buildPath, path.basename(file));
-    await fse.copy(sourcePath, targetPath);
-    console.log(`Copied ${sourcePath} to ${targetPath}`);
-  }
+/**
+ * Following function help to move project files like
+ * README, LICENCE into dist if exist from root
+ */
+async function copyLibraryFiles() {
+  await Promise.all(
+    ['./README.md', './LICENSE'].map(file => {
+      const sourcePath = path.resolve(root, file);
+      if (fse.existsSync(sourcePath)) {
+        const targetPath = path.resolve(buildPath, path.basename(file));
+        fse.copyFileSync(sourcePath, targetPath);
+      }
+    }),
+  );
 }
 
 /**
  * used to create tree-shakeable package.json in each module of project
- * @param {object} param0
- * @param {string} param0.from
- * @param {string} param0.to
  */
-async function createModulePackages({
-  from,
-  to,
-}: {
-  from: string;
-  to: string;
-}) {
+async function createModulePackages() {
   const packageData = JSON.parse(
     await fse.readFile(path.resolve(root, './package.json'), 'utf8'),
   );
 
   const directoryPackages = glob
-    .sync('*/index.{js,ts,tsx}', { cwd: from })
+    .sync('*/index.{js,ts,tsx}', { cwd: srcPath })
     .map(path.dirname);
 
   await Promise.all(
     directoryPackages.map(async directoryPackage => {
-      const packageJsonPath = path.join(to, directoryPackage, 'package.json');
+      const packageJsonPath = path.join(
+        buildPath,
+        directoryPackage,
+        'package.json',
+      );
       const topLevelPathImportsAreCommonJSModules = await fse.pathExists(
         path.resolve(path.dirname(packageJsonPath), '../esm'),
       );
@@ -101,55 +103,65 @@ async function ensureBuildDirExists() {
 
 /**
  * Copy type definition if exist in module files
- * @param {object} param
- * @param {string} param.from
- * @param {string} param.to
  */
-async function typescriptCopy({ from, to }: { from: string; to: string }) {
-  if (!(await fse.pathExists(to))) {
-    console.log(pc.yellow(`typescriptCopy: path ${to} does not exists`));
+async function typescriptCopy() {
+  if (!(await fse.pathExists(buildPath))) {
+    log.warn(`[types] path ${buildPath} does not exists`);
     return [];
   }
-  const files = await glob('**/*.d.ts', { cwd: from });
-  return Promise.all(
+  const files = await glob('**/*.d.ts', { cwd: srcPath });
+  await Promise.all(
     files.map(file =>
-      fse.copy(path.resolve(from, file), path.resolve(to, file)),
+      fse.copy(path.resolve(srcPath, file), path.resolve(buildPath, file)),
     ),
   );
 }
 
 /**
  * Copy required files of module in there folder
- * @param {object} param
- * @param {string} param.from
- * @param {string} param.to
  */
-async function copyRequiredFiles({ from, to }: { from: string; to: string }) {
-  if (!(await fse.pathExists(to))) {
-    console.log(pc.yellow(`CopyRequired: path ${to} does not exists`));
+async function copyRequiredFiles() {
+  if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
+    return;
+  }
+
+  if (!(await fse.pathExists(buildPath))) {
+    log.warn(`[assets] path ${buildPath} does not exists to copy`);
     return [];
   }
-  const hasCJS = await fse.pathExists(`${to}/cjs`);
-  const hasESM = await fse.pathExists(`${to}/esm`);
-  const files = await glob(`**/*.{png,jpg,jpeg,gif,svg,css,json}`, {
-    cwd: from,
+
+  const hasCJS = await fse.pathExists(`${buildPath}/cjs`);
+  const hasESM = await fse.pathExists(`${buildPath}/esm`);
+
+  const files = await glob(assets, {
+    cwd: srcPath,
     dot: true,
   });
+
   const task: Promise<void>[] = [];
+
   files.forEach(file => {
     if (hasCJS) {
       task.push(
-        fse.copy(path.resolve(from, file), path.resolve(`${to}/cjs`, file)),
+        fse.copy(
+          path.resolve(srcPath, file),
+          path.resolve(`${buildPath}/cjs`, file),
+        ),
       );
     }
     if (hasESM) {
       task.push(
-        fse.copy(path.resolve(from, file), path.resolve(`${to}/esm`, file)),
+        fse.copy(
+          path.resolve(srcPath, file),
+          path.resolve(`${buildPath}/esm`, file),
+        ),
       );
     }
-    task.push(fse.copy(path.resolve(from, file), path.resolve(to, file)));
+    task.push(
+      fse.copy(path.resolve(srcPath, file), path.resolve(buildPath, file)),
+    );
   });
-  return Promise.all(task);
+  await Promise.all(task);
 }
 
 async function createPackageFile() {
@@ -160,7 +172,7 @@ async function createPackageFile() {
     publishConfig,
     ...restPackageData
   } = JSON.parse(
-    await fse.readFile(path.resolve(root, './package.json'), 'utf8'),
+    fse.readFileSync(path.resolve(root, './package.json'), 'utf8'),
   );
 
   const newPackageData = {
@@ -186,14 +198,14 @@ async function createPackageFile() {
     delete newPackageData.main;
   }
 
-  const hasDefinitionsFile = await fse.pathExists(
+  const hasDefinitionsFile = fse.pathExistsSync(
     path.resolve(buildPath, './index.d.ts'),
   );
 
   if (hasDefinitionsFile) {
     newPackageData.types = './index.d.ts';
   }
-  await fse.writeFile(
+  fse.writeFileSync(
     path.resolve(buildPath, './package.json'),
     JSON.stringify(newPackageData, null, 2),
     'utf8',
@@ -202,14 +214,15 @@ async function createPackageFile() {
 
 async function postbuild() {
   try {
-    ensureBuildDirExists();
-    await typescriptCopy({ from: srcPath, to: buildPath });
-    await copyRequiredFiles({ from: srcPath, to: buildPath });
-    await createModulePackages({ from: srcPath, to: buildPath });
-    await createPackageFile();
-    await Promise.all(['./README.md'].map(file => includeFileInBuild(file)));
+    const data = await sequential([
+      ensureBuildDirExists(),
+      typescriptCopy(),
+      copyRequiredFiles(),
+      parallel([createModulePackages(), createPackageFile()]),
+      copyLibraryFiles(),
+    ]);
   } catch (err) {
-    console.log(pc.red(err));
+    console.error(err);
     process.exit(1);
   }
 }

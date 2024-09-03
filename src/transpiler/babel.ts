@@ -94,13 +94,16 @@ export async function transpileAsync(
 
     opsAsync.push(
       new Promise<void>(async res => {
-        const transformedCode = await babel.transformFileAsync(sourceFileAbsPath, {
-          sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
-          comments: Boolean(moduleConfig?.output?.comments),
-          ...useBabelConfig({
-            env: target,
-          } as UseBabelConfigProps),
-        });
+        const transformedCode = await babel.transformFileAsync(
+          sourceFileAbsPath,
+          {
+            sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
+            comments: Boolean(moduleConfig?.output?.comments),
+            ...useBabelConfig({
+              env: target,
+            } as UseBabelConfigProps),
+          },
+        );
 
         // [Restart](phase 2) avoid save if signal aborted
         if (signal && signal.aborted) res();
