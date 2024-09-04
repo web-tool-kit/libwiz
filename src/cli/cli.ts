@@ -4,7 +4,6 @@ import prebuildRun from '../core/prebuild';
 import buildRun, { type BuildProps } from '../core/build';
 import typesRun from '../core/types';
 import postbuild from '../core/postbuild';
-import { clearConsole } from '../utils';
 
 export interface CliProps extends BuildProps {
   build: boolean;
@@ -42,7 +41,6 @@ async function run(argv: CliProps) {
   };
 
   if (watch) {
-    clearConsole();
     watchRun({ ...buildProps });
     return;
   }
@@ -63,7 +61,8 @@ async function run(argv: CliProps) {
     }
   }
 
-  postbuild();
+  await postbuild();
+  // loader.stop();
 }
 
 export default run;

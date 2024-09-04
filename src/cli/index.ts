@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
+import { initCli } from '../utils';
 import { initConfig } from '../config';
 import type { CliProps } from './cli';
 import cli from './cli';
@@ -81,6 +82,7 @@ if (task === 'build') {
 
 const cliProps = argv as unknown as CliProps;
 
+initCli();
 initConfig({
   debug: cliProps.verbose,
   lib: {

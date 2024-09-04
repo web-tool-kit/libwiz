@@ -214,13 +214,14 @@ async function createPackageFile() {
 
 async function postbuild() {
   try {
-    const data = await sequential([
+    await sequential([
       ensureBuildDirExists(),
       typescriptCopy(),
       copyRequiredFiles(),
       parallel([createModulePackages(), createPackageFile()]),
       copyLibraryFiles(),
     ]);
+    log.success(`Build completed successfully\n`);
   } catch (err) {
     console.error(err);
     process.exit(1);

@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { globSync } from 'fast-glob';
 import chokidar from 'chokidar';
-import pc from 'picocolors';
+import { log, clearConsole } from '../utils';
 import configManager from '../config';
 import build from './build';
 import type { BuildProps } from './build';
@@ -47,6 +47,9 @@ function debounce<T extends (...args: readonly any[]) => unknown>(
   };
 }
 
+// to keep status of first init
+let isInit = false;
+
 const actionOnWatch = debounce(
   async (
     event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
@@ -80,14 +83,15 @@ const actionOnWatch = debounce(
       });
     }
 
-    async function runBuildProcess(copy?: boolean) {
+    async function runBuildProcess() {
+      if (isInit) {
+        log.success(`Change detected. Restarting build...`);
+      }
       try {
+        isInit = true;
         await build(buildProps, signal);
       } catch (err) {
         if (err.name === 'AbortError') {
-          console.log(
-            `${pc.bgBlue(pc.white('Restart'))} New changes detected...`,
-          );
           return;
         }
         throw err;
@@ -111,7 +115,7 @@ const actionOnWatch = debounce(
           }
         }
         if (changeFound) {
-          await runBuildProcess(copy);
+          await runBuildProcess();
         }
         break;
       case 'unlink':
@@ -124,6 +128,8 @@ const actionOnWatch = debounce(
 );
 
 async function watch(watchProps: WatchProps) {
+  clearConsole();
+  log.success(`Running LibWiz in watch mode...`);
   const watcher = chokidar.watch(`${path.resolve(config.root, './src')}/**/*`, {
     ignored: config.ignore,
     persistent: true,

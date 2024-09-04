@@ -72,7 +72,7 @@ export async function transpileAsync(
     });
   }
 
-  const opsAsync = [];
+  const opsAsync: Promise<unknown>[] = [];
 
   for (let i = 0; i < sourceFiles.length; i++) {
     // [Restart](phase 1) break loop if signal aborted
@@ -130,5 +130,5 @@ export async function transpileAsync(
     return;
   }
 
-  await Promise.all(opsAsync);
+  return opsAsync;
 }

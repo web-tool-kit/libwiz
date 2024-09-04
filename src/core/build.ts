@@ -1,9 +1,9 @@
 import path from 'node:path';
 import glob from 'fast-glob';
-import pc from 'picocolors';
 import * as babel from '../transpiler/babel';
-import { getConfig } from '../config';
-import type { Bundles } from '../config';
+import createProgressLoader from '../utils/loader';
+import { trackProgress, type TrackProgressCallback } from '../utils';
+import { getConfig, type Bundles } from '../config';
 
 export interface BuildProps {
   sourceMaps: boolean;
@@ -31,33 +31,41 @@ async function build(argv: BuildProps, signal?: AbortSignal) {
   const { target } = argv;
 
   const sourceFiles = getAllSourceFiles();
-  function runBuildProcess(props: BuildProps) {
-    return babel.transpileAsync(props, sourceFiles, signal);
+  const loader = createProgressLoader(sourceFiles.length);
+  loader.updateProgressText('Building library...');
+
+  async function runBuildProcess(props: BuildProps) {
+    const transpiles = await babel.transpileAsync(props, sourceFiles, signal);
+    await trackProgress(transpiles, ({ completed }) => {
+      loader.track(completed);
+    });
   }
 
-  if (target) {
-    console.log(pc.green(`Build: ${target} mode`));
-    await runBuildProcess({ ...argv, target });
-  } else if (config.target) {
-    if (!Array.isArray(config.target)) {
-      console.log(pc.green(`Build: ${config.target} mode`));
+  try {
+    if (target) {
       await runBuildProcess({ ...argv, target });
+    } else if (config.target) {
+      if (!Array.isArray(config.target)) {
+        await runBuildProcess({ ...argv, target });
+      } else {
+        await Promise.all(
+          [...config.target].map(trgt => {
+            return runBuildProcess({ ...argv, target: trgt });
+          }),
+        );
+      }
     } else {
-      console.log(pc.green(`Build: ${config.target.join(',')} mode`));
       await Promise.all(
-        [...config.target].map(trgt => {
+        (['modern', 'common'] as Bundles[]).map(trgt => {
           return runBuildProcess({ ...argv, target: trgt });
         }),
       );
     }
-  } else {
-    console.log(pc.green('Build: common and modern mode'));
-    await Promise.all(
-      (['common', 'modern'] as Bundles[]).map(trgt => {
-        return runBuildProcess({ ...argv, target: trgt });
-      }),
-    );
+  } catch (err) {
+    loader.stop();
+    throw err;
   }
+  loader.stop();
 }
 
 export default build;

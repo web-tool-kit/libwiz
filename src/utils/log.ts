@@ -1,10 +1,6 @@
 import pc from 'picocolors';
 
-export interface LoggerType {
-  info: (info: string) => void;
-  error: (error: string) => void;
-  warn: (warn: string) => void;
-}
+const isTTY = process.stdin.isTTY;
 
 function spacedStr(str: string) {
   return ` ${str} `;
@@ -29,20 +25,25 @@ function formattedMsg(status: 'INFO' | 'ERROR' | 'WARN', msg: string) {
   return `${statusMsg} ${msg}`.trim();
 }
 
-function Logger(this: LoggerType) {
-  this.info = msg => {
-    console.log(formattedMsg('INFO', msg));
-  };
-
-  this.error = msg => {
-    console.log(formattedMsg('ERROR', msg));
-  };
-
-  this.warn = msg => {
-    console.log(formattedMsg('WARN', msg));
-  };
-}
-
-const log: LoggerType = new Logger();
+export const log = {
+  info: (msg: string) => {
+    isTTY && process.stdout.write(formattedMsg('INFO', msg));
+  },
+  error: (msg: string) => {
+    isTTY && process.stdout.write(formattedMsg('ERROR', msg));
+  },
+  warn: (msg: string) => {
+    isTTY && process.stdout.write(formattedMsg('WARN', msg));
+  },
+  success: (msg: string) => {
+    isTTY && process.stdout.write(`${pc.green('\u2713')} ${msg}`);
+  },
+  fail: (msg: string) => {
+    isTTY && process.stdout.write(`${pc.red('\u2717')} ${msg}`);
+  },
+  progress: (msg: string) => {
+    isTTY && process.stdout.write(`${pc.green('○')} ${msg}`);
+  },
+};
 
 export default log;

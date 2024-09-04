@@ -5,6 +5,7 @@
     "preserveConstEnums": true,
     "strict": false,
     "target": "ES5",
+    "lib": ["es2021"],
     "module": "NodeNext",
     "outDir": "./dist",
     "declaration": true,
