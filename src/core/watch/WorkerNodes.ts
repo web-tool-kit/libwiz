@@ -95,7 +95,7 @@ class WorkerNodes {
     if (this.isReady()) {
       this.manageRestart();
       this.running = true;
-      this.active.postMessage(props);
+      this.active.postMessage({ type: 'build', data: props });
     }
   });
 }

@@ -76,14 +76,22 @@ const actionOnWatch = async (
   }
 };
 
-parentPort.on(
-  'message',
-  (data: {
-    event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir';
-    path: string;
-    props: WatchProps;
-  }) => {
-    const { event, path, props } = data;
-    actionOnWatch(event, path, props);
-  },
-);
+type WorkerMessage = {
+  type: string;
+  data: unknown;
+};
+
+interface BuildWorkerProps {
+  event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir';
+  path: string;
+  props: WatchProps;
+}
+
+if (!isMainThread && parentPort) {
+  parentPort.on('message', ({ type, data }: WorkerMessage) => {
+    if (type === 'build') {
+      const { event, path, props } = data as BuildWorkerProps;
+      actionOnWatch(event, path, props);
+    }
+  });
+}
