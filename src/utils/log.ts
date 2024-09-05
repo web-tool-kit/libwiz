@@ -1,6 +1,22 @@
 import pc from 'picocolors';
+import { isMainThread, parentPort } from 'node:worker_threads';
 
 const isTTY = process.stdin.isTTY;
+
+export function print(msg: string) {
+  if (isMainThread) {
+    if (isTTY) {
+      process.stdout.write(msg);
+      return;
+    }
+  } else {
+    if (parentPort) {
+      parentPort.postMessage({ type: 'log', message: msg });
+      return;
+    }
+  }
+  console.log(msg);
+}
 
 function spacedStr(str: string) {
   return ` ${str} `;
@@ -27,23 +43,34 @@ function formattedMsg(status: 'INFO' | 'ERROR' | 'WARN', msg: string) {
 
 export const log = {
   info: (msg: string) => {
-    isTTY && process.stdout.write(formattedMsg('INFO', msg));
+    print(formattedMsg('INFO', msg));
   },
   error: (msg: string) => {
-    isTTY && process.stdout.write(formattedMsg('ERROR', msg));
+    print(formattedMsg('ERROR', msg));
   },
   warn: (msg: string) => {
-    isTTY && process.stdout.write(formattedMsg('WARN', msg));
+    print(formattedMsg('WARN', msg));
   },
   success: (msg: string) => {
-    isTTY && process.stdout.write(`${pc.green('\u2713')} ${msg}`);
+    print(`${pc.green('\u2713')} ${msg}`);
   },
   fail: (msg: string) => {
-    isTTY && process.stdout.write(`${pc.red('\u2717')} ${msg}`);
+    print(`${pc.red('\u2717')} ${msg}`);
   },
   progress: (msg: string) => {
-    isTTY && process.stdout.write(`${pc.green('○')} ${msg}`);
+    print(`${pc.green('○')} ${msg}`);
   },
 };
+
+export function clearLine() {
+  if (isMainThread) {
+    if (process.stdout.isTTY) {
+      process.stdout.clearLine(0);
+      process.stdout.cursorTo(0);
+    }
+  } else if (parentPort) {
+    parentPort.postMessage({ type: 'clearLine' });
+  }
+}
 
 export default log;

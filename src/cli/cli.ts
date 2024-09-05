@@ -1,20 +1,10 @@
 import { getConfig } from '../config';
 import watchRun from '../core/watch';
 import prebuildRun from '../core/prebuild';
-import buildRun, { type BuildProps } from '../core/build';
+import buildRun from '../core/build';
 import typesRun from '../core/types';
 import postbuild from '../core/postbuild';
-
-export interface CliProps extends BuildProps {
-  build: boolean;
-  types: boolean;
-  watch: boolean;
-  prebuild: boolean;
-  sourceMaps: boolean;
-  outDir: string;
-  bundle: string;
-  verbose: boolean;
-}
+import type { CliProps } from '../types';
 
 const config = getConfig();
 

@@ -2,14 +2,9 @@ import path from 'node:path';
 import glob from 'fast-glob';
 import * as babel from '../transpiler/babel';
 import createProgressLoader from '../utils/loader';
-import { trackProgress, type TrackProgressCallback } from '../utils';
-import { getConfig, type Bundles } from '../config';
-
-export interface BuildProps {
-  sourceMaps: boolean;
-  outDir: string;
-  target: Bundles;
-}
+import { trackProgress } from '../utils';
+import { getConfig } from '../config';
+import type { BuildProps, Bundles } from '../types';
 
 const config = getConfig();
 const { extensions, root, ignore } = config;
@@ -36,7 +31,9 @@ async function build(argv: BuildProps, signal?: AbortSignal) {
 
   async function runBuildProcess(props: BuildProps) {
     const transpiles = await babel.transpileAsync(props, sourceFiles, signal);
+    if (!transpiles.length) return;
     await trackProgress(transpiles, ({ completed }) => {
+      if (signal && signal.aborted) return;
       loader.track(completed);
     });
   }

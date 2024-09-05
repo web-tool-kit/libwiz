@@ -8,7 +8,7 @@ import {
   invalidValueTypeError,
 } from './utils';
 import { validateConfigSchema } from './schema';
-import type { Config } from './schema';
+import type { Config } from '../types';
 
 class ConfigCacheManager {
   private cacheConfig: Config = {};

@@ -2,9 +2,9 @@ import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
 import useBabelConfig, { type UseBabelConfigProps } from './useBabelConfig';
-import { getConfig, type ModuleConfig } from '../config';
-import type { Bundles } from '../config';
+import { getConfig } from '../config';
 import { magicImport } from '../utils';
+import type { ModuleConfig, Bundles } from '../types';
 
 const babel = magicImport<typeof import('@babel/core')>('@babel/core');
 
@@ -127,7 +127,7 @@ export async function transpileAsync(
 
   // [Restart](phase 3) return as no need to wait for all promises
   if (signal && signal.aborted) {
-    return;
+    return [];
   }
 
   return opsAsync;

@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
 import resolveFrom from 'resolve-from';
 
 export function magicImport<T = any>(moduleId: string): T {
@@ -63,6 +65,28 @@ export function trackProgress<T>(
         }),
     ),
   );
+}
+
+export function debounce<T extends (...args: readonly unknown[]) => unknown>(
+  func: T,
+  timeout = 400,
+) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return function (...args: Parameters<T>) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = undefined;
+      func(...args);
+    }, timeout);
+  };
+}
+
+export function createFileHash(path: string) {
+  try {
+    return crypto.createHash('md5').update(fs.readFileSync(path)).digest('hex');
+  } catch (error) {
+    return null;
+  }
 }
 
 export function initCli() {

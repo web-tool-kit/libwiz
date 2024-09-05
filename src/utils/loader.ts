@@ -1,4 +1,4 @@
-import log from './log';
+import log, { clearLine } from './log';
 
 function createProgressLoader(totalSteps: number) {
   let msg = '';
@@ -23,10 +23,7 @@ function createProgressLoader(totalSteps: number) {
 
       if (msg) {
         if (hasStarted) {
-          process.stdout.clearLine(0);
-          process.stdout.cursorTo(0);
-        } else {
-          process.stdout.write('\n');
+          clearLine();
         }
         log.progress(`${msg}${bar}`);
         hasStarted = true;
@@ -34,8 +31,7 @@ function createProgressLoader(totalSteps: number) {
     },
     stop: () => {
       if (hasStarted) {
-        process.stdout.clearLine(0);
-        process.stdout.cursorTo(0);
+        clearLine();
       }
       msg = '';
       hasStarted = false;

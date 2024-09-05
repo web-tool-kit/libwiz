@@ -1,6 +1,7 @@
 import type { TransformOptions } from '@babel/core';
-import { getConfig, type Config, type Bundles } from '../config';
+import { getConfig } from '../config';
 import { magicImport } from '../utils';
+import type { Config, Bundles } from '../types';
 
 const { babel: rootBabelConfig, ignore } = getConfig();
 

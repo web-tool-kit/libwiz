@@ -5,7 +5,7 @@ import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import { initCli } from '../utils';
 import { initConfig } from '../config';
-import type { CliProps } from './cli';
+import type { CliProps } from '../types';
 import cli from './cli';
 
 function getPackageVersion() {
