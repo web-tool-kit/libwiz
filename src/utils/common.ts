@@ -89,6 +89,10 @@ export function createFileHash(path: string) {
   }
 }
 
+export async function delay(time = 200) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
 export function initCli() {
   if (!process.stdin.isTTY) return;
 

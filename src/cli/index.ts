@@ -6,7 +6,6 @@ import { hideBin } from 'yargs/helpers';
 import { initCli } from '../utils';
 import { initConfig } from '../config';
 import type { CliProps } from '../types';
-import cli from './cli';
 
 function getPackageVersion() {
   try {
@@ -44,6 +43,13 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
   })
 
+  .option('watch', {
+    alias: 'w',
+    type: 'boolean',
+    default: false,
+    description: 'Flag to run in watch mode',
+  })
+
   .option('source-maps', {
     default: false,
     alias: 'sourceMaps',
@@ -54,7 +60,7 @@ const argv = yargs(hideBin(process.argv))
   .option('verbose', {
     alias: 'v',
     type: 'boolean',
-    default: true,
+    default: false,
     description: 'Run with verbose logging',
   })
   .help()
@@ -101,4 +107,7 @@ initConfig({
   },
 });
 
-cli(cliProps);
+(function start() {
+  const { default: cli } = require('./cli');
+  cli(cliProps);
+})();

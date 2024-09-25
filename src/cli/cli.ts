@@ -1,14 +1,12 @@
 import { getConfig } from '../config';
-import watchRun from '../core/watch';
 import prebuildRun from '../core/prebuild';
 import buildRun from '../core/build';
 import typesRun from '../core/types';
 import postbuild from '../core/postbuild';
 import type { CliProps } from '../types';
 
-const config = getConfig();
-
 async function run(argv: CliProps) {
+  const config = getConfig();
   const { build, types, watch, prebuild, outDir } = argv;
 
   // setup env before build start
@@ -31,6 +29,7 @@ async function run(argv: CliProps) {
   };
 
   if (watch) {
+    const { default: watchRun } = require('../core/watch');
     watchRun({ ...buildProps });
     return;
   }
@@ -52,7 +51,6 @@ async function run(argv: CliProps) {
   }
 
   await postbuild();
-  // loader.stop();
 }
 
 export default run;

@@ -2,7 +2,7 @@ import { parentPort, isMainThread } from 'node:worker_threads';
 import { globSync } from 'fast-glob';
 import log from '../../utils/log';
 import { createFileHash } from '../../utils';
-import configManager from '../../config';
+import { getConfig } from '../../config';
 import build from '../build';
 import runPostbuild from '../postbuild';
 import type { BuildProps } from '../../types';
@@ -11,7 +11,6 @@ export interface WatchProps extends BuildProps {
   copy?: boolean;
 }
 
-const config = configManager();
 const fileHashes = new Map();
 
 // to keep status of first init
@@ -22,6 +21,7 @@ const actionOnWatch = async (
   path: string,
   props: WatchProps,
 ) => {
+  const config = getConfig();
   const { copy, ...buildProps } = props;
 
   if (event === 'unlink') {

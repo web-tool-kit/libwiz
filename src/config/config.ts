@@ -8,23 +8,8 @@ import {
   invalidValueTypeError,
 } from './utils';
 import { validateConfigSchema } from './schema';
+import store from './store';
 import type { Config } from '../types';
-
-class ConfigCacheManager {
-  private cacheConfig: Config = {};
-
-  public config = () => structuredClone(this.cacheConfig);
-
-  public hasConfig = () => {
-    return Boolean(Object.keys(this.config).length);
-  };
-
-  public setConfig(config: Config): void {
-    this.cacheConfig = config;
-  }
-}
-
-const ccm = new ConfigCacheManager();
 
 export function initConfig(localConfig?: Config): Config {
   const root = process.cwd();
@@ -261,15 +246,15 @@ export function initConfig(localConfig?: Config): Config {
   }
 
   config.root = root;
-  ccm.setConfig(config);
+  store.setConfig(config);
   return config as Config;
 }
 
 export const getConfig = (localConfig?: Config) => {
-  if (!ccm.hasConfig()) {
+  if (!store.hasConfig()) {
     initConfig(localConfig);
   }
-  return ccm.config();
+  return store.config();
 };
 
-export default initConfig;
+export default getConfig;

@@ -2,14 +2,14 @@ import path from 'node:path';
 import chokidar from 'chokidar';
 import log from '../../utils/log';
 import { clearConsole } from '../../utils';
-import configManager from '../../config';
+import { getConfig } from '../../config';
 import type { WatchProps } from '../../types';
 import WorkerNodes from './WorkerNodes';
 
-const config = configManager();
 const watchWorker = new WorkerNodes();
 
 async function watch(props: WatchProps) {
+  const config = getConfig();
   clearConsole();
   log.success(`Running in watch mode...\n`);
 

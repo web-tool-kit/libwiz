@@ -1,15 +1,20 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
-import picocolors from 'picocolors';
-import { exec, removeBuildInfoFiles } from '../utils';
-import configManager from '../config';
-
-const config = configManager();
+import pc from 'picocolors';
+import { exec, log, delay, removeBuildInfoFiles } from '../utils';
+import createProgressLoader from '../utils/loader';
+import { getConfig } from '../config';
 
 async function types() {
+  const config = getConfig();
   const packageRoot = config.root;
   const tsconfigPath = config.tsConfig;
+
+  let step = 0;
+  const loader = createProgressLoader(5);
+  loader.updateProgressText('Generating types...');
+  loader.track(step++);
 
   if (!fse.existsSync(tsconfigPath)) {
     let packageJsonFile: string | null = path.resolve(
@@ -30,11 +35,14 @@ async function types() {
         `The package is '${packageJson.name}'`,
     );
   }
+  await delay(300);
+  loader.track(step++);
 
   const { stderr } = await exec(['npx', 'tsc', '-b', tsconfigPath].join(' '));
+  loader.track(step++);
 
   if (stderr) {
-    throw new Error(`TS build types failed with \n${stderr}`);
+    log.warn(`[types] ${stderr}`);
   }
 
   const publishDir = path.join(packageRoot, 'dist');
@@ -42,6 +50,8 @@ async function types() {
     absolute: true,
     cwd: publishDir,
   });
+  await delay(200);
+  loader.track(step++);
 
   if (declarationFiles.length === 0) {
     throw new Error(`Unable to find declaration files in '${publishDir}'`);
@@ -55,12 +65,13 @@ async function types() {
     await fse.writeFile(declarationFile, fixedCode);
   }
 
+  let output = [];
   await Promise.all(
     declarationFiles.map(async declarationFile => {
       try {
         await removeUnWantedImports(declarationFile);
-        console.log(
-          `${picocolors.bgGreen(`OK`)} '${
+        output.push(
+          `${pc.bgGreen(`OK`)} '${
             declarationFile.split('packages/')[1] ||
             declarationFile.split('apps/')[1] ||
             declarationFile
@@ -71,8 +82,16 @@ async function types() {
       }
     }),
   );
+  await delay(200);
+  loader.track(step++);
 
   await removeBuildInfoFiles(packageRoot);
+  await delay(200);
+  loader.track(step++);
+  loader.stop();
+  if (config.debug) {
+    console.log(output.join('\n'));
+  }
 }
 
 export default types;
