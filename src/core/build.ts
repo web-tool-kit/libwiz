@@ -6,11 +6,9 @@ import { trackProgress } from '../utils';
 import { getConfig } from '../config';
 import type { BuildProps, Bundles } from '../types';
 
-const config = getConfig();
-const { extensions, root, ignore } = config;
-const srcDir = path.resolve(root, './src');
-
 function getAllSourceFiles() {
+  const { root, extensions, ignore } = getConfig();
+  const srcDir = path.resolve(root, './src');
   try {
     return glob.globSync(`**/*{${extensions.join(',')}}`, {
       cwd: srcDir,
@@ -40,21 +38,19 @@ async function build(argv: BuildProps, signal?: AbortSignal) {
 
   try {
     if (target) {
-      await runBuildProcess({ ...argv, target });
-    } else if (config.target) {
-      if (!Array.isArray(config.target)) {
-        await runBuildProcess({ ...argv, target });
+      if (!Array.isArray(target)) {
+        await runBuildProcess({ ...argv, target: target as Bundles });
       } else {
         await Promise.all(
-          [...config.target].map(trgt => {
+          [...target].map(trgt => {
             return runBuildProcess({ ...argv, target: trgt });
           }),
         );
       }
     } else {
       await Promise.all(
-        (['modern', 'common'] as Bundles[]).map(trgt => {
-          return runBuildProcess({ ...argv, target: trgt });
+        (['modern', 'common'] as Bundles[]).map(target => {
+          return runBuildProcess({ ...argv, target });
         }),
       );
     }

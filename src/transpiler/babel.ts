@@ -21,6 +21,9 @@ export async function transpileAsync(
   sourceFiles: string[],
   signal?: AbortSignal,
 ) {
+  const { extensions, root, ignore, lib } = getConfig();
+  const srcDir = path.resolve(root, './src');
+
   const { target, outDir: _outDir } = props;
   const topLevelNonIndexFiles = glob
     .sync(`*{${extensions.join(',')}}`, { cwd: srcDir, ignore })
