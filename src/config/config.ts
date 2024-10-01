@@ -45,11 +45,11 @@ export function initConfig(localConfig?: Config): Config {
     ...localConfig,
     babel: {
       runtime: true,
+      ...localConfig?.babel,
       react: {
         runtime: 'automatic',
         ...localConfig?.babel?.react,
       },
-      ...localConfig?.babel,
     },
   };
 
@@ -82,6 +82,17 @@ export function initConfig(localConfig?: Config): Config {
         ) as Config;
       }
       rootConfig = validateConfigSchema(rootConfig);
+
+      if (rootConfig.babel) {
+        config.babel = {
+          ...config.babel,
+          ...rootConfig.babel,
+          react: {
+            ...config.babel?.react,
+            ...rootConfig.babel?.react,
+          },
+        };
+      }
 
       if (rootConfig.lib) {
         if (!config.lib) {
@@ -119,7 +130,6 @@ export function initConfig(localConfig?: Config): Config {
         delete rootConfig.lib;
       }
 
-      rootConfig = { ...rootConfig, ...config };
       for (let key in rootConfig) {
         config[key] = rootConfig[key];
       }

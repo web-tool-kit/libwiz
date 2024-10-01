@@ -5,8 +5,6 @@ import type { Bundles } from '../types';
 
 export type UseBabelConfigProps = {
   env?: Bundles;
-  runtime?: boolean;
-  version?: string;
 };
 
 function resolvePreset(env: Bundles) {
@@ -99,10 +97,6 @@ function resolvePlugins(env: Bundles) {
 
   const defaultPlugins = {
     '@babel/plugin-transform-react-jsx': {},
-    '@babel/plugin-transform-runtime': {
-      version: '^7.25.4',
-      useESModules: modern,
-    },
   };
   const pluginsMap = {};
   if (rootBabelConfig?.plugins?.length) {
@@ -124,8 +118,13 @@ function resolvePlugins(env: Bundles) {
     });
   }
 
-  // overwrite `useESModules` as its can't be change by external config
-  defaultPlugins['@babel/plugin-transform-runtime'].useESModules = modern;
+  if (rootBabelConfig?.runtime) {
+    defaultPlugins['@babel/plugin-transform-runtime'] = {
+      version: '^7.25.4',
+      // overwrite `useESModules` as its can't be change by external config
+      useESModules: modern,
+    };
+  }
 
   const plugins: TransformOptions['plugins'] = [
     Boolean(
