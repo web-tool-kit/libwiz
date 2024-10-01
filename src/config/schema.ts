@@ -26,10 +26,6 @@ export type Config = Partial<{
   extensions: string[];
   ignore: string[];
   lib: LibConfig;
-  /**
-   * validBundles: valid bundles eg: 'modern', 'common'
-   */
-  validBundles: Bundles[];
   target: Bundles | Bundles[];
   babel: {
     runtime: boolean;
@@ -94,7 +90,6 @@ export const ConfigSchema = z
     extensions: z.array(z.string()).optional(),
     ignore: z.array(z.string()).optional(),
     lib: LibConfigSchema,
-    validBundles: z.array(VALID_BUNDLE_ENUM).optional(),
     target: z.union([VALID_BUNDLE_ENUM, z.array(VALID_BUNDLE_ENUM)]).optional(),
     babel: BabelConfigSchema.optional(),
     assets: z.union([z.string(), z.array(z.string()), z.null()]).optional(),

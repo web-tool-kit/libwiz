@@ -13,7 +13,7 @@ export interface BuildProps {
   target: Bundles;
 }
 
-const { validBundles, extensions, root, ignore, lib } = getConfig();
+const { extensions, root, ignore, lib } = getConfig();
 const srcDir = path.resolve(root, './src');
 
 export async function transpileAsync(
@@ -22,10 +22,6 @@ export async function transpileAsync(
   signal?: AbortSignal,
 ) {
   const { target, outDir: _outDir } = props;
-  if (!target || validBundles.indexOf(target) === -1) {
-    throw new TypeError('Unrecognized bundle Config');
-  }
-
   const topLevelNonIndexFiles = glob
     .sync(`*{${extensions.join(',')}}`, { cwd: srcDir, ignore })
     .filter(file => {

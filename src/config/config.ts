@@ -200,32 +200,6 @@ export function initConfig(localConfig?: Config): Config {
       ];
     }
 
-    // Handle ignore
-    if (config.validBundles) {
-      if (!Array.isArray(config.validBundles)) {
-        invalidTypeError('validBundles', config.validBundles, 'Array');
-      }
-
-      if (config.validBundles.length === 0) {
-        log.error(
-          "validBundles can't be empty Array either remove of pass with value",
-        );
-        process.exit(1);
-      }
-
-      for (let i = 0; i < config.validBundles.length; i++) {
-        if (typeof config.validBundles[i] !== 'string') {
-          invalidValueTypeError(
-            'validBundles',
-            config.validBundles[i],
-            'string',
-          );
-        }
-      }
-    } else {
-      config.validBundles = ['modern', 'common'];
-    }
-
     if (config.target) {
       if (typeof config.target !== 'string') {
         if (!Array.isArray(config.target)) {
