@@ -91,16 +91,22 @@ function resolvePreset(env: Bundles) {
 }
 
 function resolvePlugins(env: Bundles) {
-  const { babel: rootBabelConfig } = getConfig();
+  const { babel: rootBabelConfig, ignore } = getConfig();
+  let isRuntime = rootBabelConfig.runtime;
 
   const modern = env === 'modern';
 
   const defaultPlugins = {
     '@babel/plugin-transform-react-jsx': {},
+    '@babel/plugin-transform-runtime': {
+      version: '^7.25.4',
+      useESModules: modern,
+    },
   };
+
   const pluginsMap = {};
   if (rootBabelConfig?.plugins?.length) {
-    rootBabelConfig.plugins.map(plugin => {
+    rootBabelConfig.plugins.forEach(plugin => {
       if (typeof plugin === 'string') {
         // if default plugin then skip as there is no
         // extra config mentioned
@@ -108,22 +114,24 @@ function resolvePlugins(env: Bundles) {
           pluginsMap[plugin] = {};
         }
       } else if (Array.isArray(plugin)) {
+        const pluginName = plugin[0];
+        const pluginConfig = plugin[1] || {};
+
         // here even if default plugin config, can be differ
-        if (defaultPlugins[plugin[0]]) {
-          defaultPlugins[plugin[0]] = plugin[1];
+        if (defaultPlugins[pluginName]) {
+          defaultPlugins[pluginName] = {
+            ...defaultPlugins[pluginName],
+            ...pluginConfig,
+          };
+          if (pluginName === '@babel/plugin-transform-runtime') {
+            isRuntime = true;
+            defaultPlugins[pluginName].useESModules = modern;
+          }
         } else {
-          pluginsMap[plugin[0]] = plugin[1] || {};
+          pluginsMap[pluginName] = pluginConfig;
         }
       }
     });
-  }
-
-  if (rootBabelConfig?.runtime) {
-    defaultPlugins['@babel/plugin-transform-runtime'] = {
-      version: '^7.25.4',
-      // overwrite `useESModules` as its can't be change by external config
-      useESModules: modern,
-    };
   }
 
   const plugins: TransformOptions['plugins'] = [
@@ -136,7 +144,7 @@ function resolvePlugins(env: Bundles) {
         ]
       : magicImport('@babel/plugin-transform-react-jsx').default,
     // use transform runtime to optimize babel utils
-    rootBabelConfig?.runtime && [
+    isRuntime && [
       magicImport('@babel/plugin-transform-runtime'),
       defaultPlugins['@babel/plugin-transform-runtime'],
     ],
@@ -150,7 +158,16 @@ function resolvePlugins(env: Bundles) {
     }
   });
 
-  return plugins;
+  const babelConfig: Pick<TransformOptions, 'ignore' | 'plugins'> = {
+    ignore,
+    plugins,
+  };
+
+  if (isRuntime !== false) {
+    babelConfig.ignore = [...babelConfig.ignore, /@babel[\\|/]runtime/];
+  }
+
+  return babelConfig;
 }
 
 const useBabelConfig = ({ env }: UseBabelConfigProps) => {
@@ -166,7 +183,11 @@ const useBabelConfig = ({ env }: UseBabelConfigProps) => {
   }
 
   babelConfig.presets = resolvePreset(env);
-  babelConfig.plugins = resolvePlugins(env);
+
+  const pluginConfig = resolvePlugins(env);
+  babelConfig.plugins = pluginConfig.plugins;
+  babelConfig.ignore = pluginConfig.ignore;
+
   return babelConfig;
 };
 
