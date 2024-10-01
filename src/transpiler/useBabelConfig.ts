@@ -1,9 +1,7 @@
 import type { TransformOptions } from '@babel/core';
 import { getConfig } from '../config';
 import { magicImport } from '../utils';
-import type { Config, Bundles } from '../types';
-
-const { babel: rootBabelConfig, ignore } = getConfig();
+import type { Bundles } from '../types';
 
 export type UseBabelConfigProps = {
   env?: Bundles;
@@ -11,7 +9,9 @@ export type UseBabelConfigProps = {
   version?: string;
 };
 
-function resolvePreset(rootBabelConfig: Config['babel'], env: Bundles) {
+function resolvePreset(env: Bundles) {
+  const { babel: rootBabelConfig } = getConfig();
+
   const common = env === 'common';
   const modern = env === 'modern';
 
@@ -33,13 +33,16 @@ function resolvePreset(rootBabelConfig: Config['babel'], env: Bundles) {
       },
     },
     '@babel/preset-react': {
-      runtime: 'classic',
+      runtime: 'automatic',
     },
     '@babel/preset-typescript': {},
   };
 
+  defaultPreset['@babel/preset-react'].runtime =
+    rootBabelConfig?.react?.runtime || 'automatic';
+
   const presetMap = {};
-  if (rootBabelConfig.presets?.length) {
+  if (rootBabelConfig?.presets?.length) {
     rootBabelConfig.presets.map(preset => {
       if (typeof preset === 'string') {
         // if default preset then skip as there is no
@@ -61,14 +64,10 @@ function resolvePreset(rootBabelConfig: Config['babel'], env: Bundles) {
   defaultPreset['@babel/preset-env'].modules = common ? 'commonjs' : false;
   defaultPreset['@babel/preset-env'].shippedProposals = modern;
 
-  if (rootBabelConfig.browsers) {
+  if (rootBabelConfig?.browsers) {
     defaultPreset['@babel/preset-env'].targets = {
       browsers: rootBabelConfig.browsers as string[],
     };
-  }
-
-  if (rootBabelConfig.runtime) {
-    defaultPreset['@babel/preset-react'].runtime = 'automatic';
   }
 
   const presets: TransformOptions['presets'] = [
@@ -93,7 +92,9 @@ function resolvePreset(rootBabelConfig: Config['babel'], env: Bundles) {
   return presets;
 }
 
-function resolvePlugins(rootBabelConfig: TransformOptions, env: Bundles) {
+function resolvePlugins(env: Bundles) {
+  const { babel: rootBabelConfig } = getConfig();
+
   const modern = env === 'modern';
 
   const defaultPlugins = {
@@ -104,7 +105,7 @@ function resolvePlugins(rootBabelConfig: TransformOptions, env: Bundles) {
     },
   };
   const pluginsMap = {};
-  if (rootBabelConfig.plugins?.length) {
+  if (rootBabelConfig?.plugins?.length) {
     rootBabelConfig.plugins.map(plugin => {
       if (typeof plugin === 'string') {
         // if default plugin then skip as there is no
@@ -135,11 +136,12 @@ function resolvePlugins(rootBabelConfig: TransformOptions, env: Bundles) {
           defaultPlugins['@babel/plugin-transform-react-jsx'],
         ]
       : magicImport('@babel/plugin-transform-react-jsx').default,
-    [
+    // use transform runtime to optimize babel utils
+    rootBabelConfig?.runtime && [
       magicImport('@babel/plugin-transform-runtime'),
       defaultPlugins['@babel/plugin-transform-runtime'],
     ],
-  ];
+  ].filter(Boolean);
 
   Object.keys(pluginsMap).forEach(plugin => {
     if (Boolean(Object.keys(pluginsMap[plugin]).length)) {
@@ -153,19 +155,19 @@ function resolvePlugins(rootBabelConfig: TransformOptions, env: Bundles) {
 }
 
 const useBabelConfig = ({ env }: UseBabelConfigProps) => {
+  const { babel: rootBabelConfig, ignore } = getConfig();
+
   const babelConfig: TransformOptions = {
     ignore,
     comments: false,
   };
 
-  if (rootBabelConfig) {
-    if (rootBabelConfig.runtime) {
-      babelConfig.ignore = [...babelConfig.ignore, /@babel[\\|/]runtime/];
-    }
-    babelConfig.presets = resolvePreset(rootBabelConfig, env);
-    babelConfig.plugins = resolvePlugins(rootBabelConfig, env);
+  if (rootBabelConfig?.runtime !== false) {
+    babelConfig.ignore = [...babelConfig.ignore, /@babel[\\|/]runtime/];
   }
 
+  babelConfig.presets = resolvePreset(env);
+  babelConfig.plugins = resolvePlugins(env);
   return babelConfig;
 };
 

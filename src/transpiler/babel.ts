@@ -1,7 +1,7 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
-import useBabelConfig, { type UseBabelConfigProps } from './useBabelConfig';
+import useBabelConfig from './useBabelConfig';
 import { getConfig } from '../config';
 import { magicImport } from '../utils';
 import type { ModuleConfig, Bundles } from '../types';
@@ -13,14 +13,7 @@ export interface BuildProps {
   target: Bundles;
 }
 
-const { extensions, root, ignore, lib } = getConfig();
-const srcDir = path.resolve(root, './src');
-
-export async function transpileAsync(
-  props: BuildProps,
-  sourceFiles: string[],
-  signal?: AbortSignal,
-) {
+export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
   const { extensions, root, ignore, lib } = getConfig();
   const srcDir = path.resolve(root, './src');
 
@@ -63,21 +56,9 @@ export async function transpileAsync(
     outPath,
   );
 
-  if (signal) {
-    signal.addEventListener('abort', () => {
-      new Error(
-        '[internal] new process initialized, previous process aborted via signal',
-      );
-    });
-  }
-
   const opsAsync: Promise<unknown>[] = [];
 
   for (let i = 0; i < sourceFiles.length; i++) {
-    // [Restart](phase 1) break loop if signal aborted
-    if (signal && signal.aborted) {
-      break;
-    }
     // files relative paths
     const sourceFileRelPath = sourceFiles[i];
     const outputFileRelPath = sourceFiles[i].replace(/\.tsx?/, '.js');
@@ -92,41 +73,36 @@ export async function transpileAsync(
     }
 
     opsAsync.push(
-      new Promise<void>(async res => {
-        const transformedCode = await babel.transformFileAsync(
-          sourceFileAbsPath,
-          {
-            sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
-            comments: Boolean(moduleConfig?.output?.comments),
-            ...useBabelConfig({
-              env: target,
-            } as UseBabelConfigProps),
-          },
-        );
-
-        // [Restart](phase 2) avoid save if signal aborted
-        if (signal && signal.aborted) res();
-
-        if (transformedCode.map) {
-          transformedCode.code += `\n//# sourceMappingURL=${outputFileRelPath}.map`;
-        }
-
-        fse.outputFileSync(outputFileAbsPath, transformedCode.code || '');
-
-        if (transformedCode.map) {
-          fse.outputFileSync(
-            `${outputFileAbsPath}.map`,
-            JSON.stringify(transformedCode.map),
+      new Promise<void>(async (resolve, reject) => {
+        try {
+          const babelConfig = useBabelConfig({ env: target });
+          const transformedCode = await babel.transformFileAsync(
+            sourceFileAbsPath,
+            {
+              sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
+              comments: Boolean(moduleConfig?.output?.comments),
+              ...babelConfig,
+            },
           );
+
+          if (transformedCode.map) {
+            transformedCode.code += `\n//# sourceMappingURL=${outputFileRelPath}.map`;
+          }
+
+          fse.outputFileSync(outputFileAbsPath, transformedCode.code || '');
+
+          if (transformedCode.map) {
+            fse.outputFileSync(
+              `${outputFileAbsPath}.map`,
+              JSON.stringify(transformedCode.map),
+            );
+          }
+          resolve();
+        } catch (err) {
+          reject(err);
         }
-        res();
       }),
     );
-  }
-
-  // [Restart](phase 3) return as no need to wait for all promises
-  if (signal && signal.aborted) {
-    return [];
   }
 
   return opsAsync;

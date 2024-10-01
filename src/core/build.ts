@@ -20,18 +20,18 @@ function getAllSourceFiles() {
   }
 }
 
-async function build(argv: BuildProps, signal?: AbortSignal) {
-  const { target } = argv;
+async function build(argv: BuildProps) {
+  const config = getConfig();
+  const { target = config.target } = argv;
 
   const sourceFiles = getAllSourceFiles();
   const loader = createProgressLoader(sourceFiles.length);
   loader.updateProgressText('Building library...');
 
   async function runBuildProcess(props: BuildProps) {
-    const transpiles = await babel.transpileAsync(props, sourceFiles, signal);
+    const transpiles = await babel.transpileAsync(props, sourceFiles);
     if (!transpiles.length) return;
     await trackProgress(transpiles, ({ completed }) => {
-      if (signal && signal.aborted) return;
       loader.track(completed);
     });
   }
@@ -56,6 +56,7 @@ async function build(argv: BuildProps, signal?: AbortSignal) {
     }
   } catch (err) {
     loader.stop();
+    console.error(err);
     throw err;
   }
   loader.stop();

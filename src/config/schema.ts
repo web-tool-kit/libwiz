@@ -29,6 +29,9 @@ export type Config = Partial<{
   target: Bundles | Bundles[];
   babel: {
     runtime: boolean;
+    react: {
+      runtime: 'classic' | 'automatic';
+    };
     presets: TransformOptions['presets'];
     plugins: TransformOptions['plugins'];
     browsers: string | string[];
@@ -74,6 +77,11 @@ const PluginAndPresetSchema = z.union([
 const BabelConfigSchema = z
   .object({
     runtime: z.boolean().optional(),
+    react: z
+      .object({
+        runtime: z.enum(['classic', 'automatic']),
+      })
+      .optional(),
     presets: z.array(PluginAndPresetSchema).optional(),
     plugins: z.array(PluginAndPresetSchema).optional(),
     browsers: z.union([z.string(), z.array(z.string())]).optional(),

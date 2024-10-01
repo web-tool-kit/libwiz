@@ -43,6 +43,14 @@ export function initConfig(localConfig?: Config): Config {
       },
     },
     ...localConfig,
+    babel: {
+      runtime: true,
+      react: {
+        runtime: 'automatic',
+        ...localConfig?.babel?.react,
+      },
+      ...localConfig?.babel,
+    },
   };
 
   try {
