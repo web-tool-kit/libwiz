@@ -45,21 +45,23 @@ async function postbuild() {
           directoryPackage,
           'package.json',
         );
-        const topLevelPathImportsAreCommonJSModules = await fse.pathExists(
+        const topLevelPathImportsAreModernModules = await fse.pathExists(
           path.resolve(path.dirname(packageJsonPath), '../esm'),
         );
 
         const packageJson: Record<string, any> = {
           version: packageData.version,
           sideEffects: false,
-          module: topLevelPathImportsAreCommonJSModules
-            ? path.posix.join('../esm', directoryPackage, 'index.js')
-            : './index.js',
-          main: topLevelPathImportsAreCommonJSModules
+          module: topLevelPathImportsAreModernModules
             ? './index.js'
-            : path.posix.join('../cjs', directoryPackage, 'index.js'),
+            : path.posix.join('../esm', directoryPackage, 'index.js'),
+          main: topLevelPathImportsAreModernModules
+            ? path.posix.join('../cjs', directoryPackage, 'index.js')
+            : './index.js',
           types: './index.d.ts',
         };
+
+        console.log(packageJson, '::::::packageJson');
 
         const [moduleEntryExists, mainEntryExists, typingsEntryExist] =
           await Promise.all([
