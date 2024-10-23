@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import { log } from '../utils';
+import { log, mergeDeep } from '../utils';
 import {
   getTSConfigPath,
   getConfigPath,
@@ -42,16 +42,16 @@ export function initConfig(localConfig?: Config): Config {
         },
       },
     },
-    ...localConfig,
     babel: {
       runtime: true,
-      ...localConfig?.babel,
       react: {
         runtime: 'automatic',
-        ...localConfig?.babel?.react,
       },
     },
   };
+
+  // merge localConfig with config
+  mergeDeep(config, localConfig);
 
   try {
     // handle root path
@@ -82,57 +82,7 @@ export function initConfig(localConfig?: Config): Config {
         ) as Config;
       }
       rootConfig = validateConfigSchema(rootConfig);
-
-      if (rootConfig.babel) {
-        config.babel = {
-          ...config.babel,
-          ...rootConfig.babel,
-          react: {
-            ...config.babel?.react,
-            ...rootConfig.babel?.react,
-          },
-        };
-      }
-
-      if (rootConfig.lib) {
-        if (!config.lib) {
-          config.lib = {};
-        }
-        if (rootConfig.lib.esm) {
-          if (config.lib.esm) {
-            config.lib.esm = {
-              ...config.lib.esm,
-              output: {
-                ...config.lib.esm.output,
-                ...rootConfig.lib.esm.output,
-              },
-            };
-          } else {
-            config.lib.esm = rootConfig.lib.esm;
-          }
-        }
-
-        if (rootConfig.lib.cjs) {
-          if (config.lib.cjs) {
-            config.lib.cjs = {
-              ...config.lib.cjs,
-              output: {
-                ...config.lib.cjs.output,
-                ...rootConfig.lib.cjs.output,
-              },
-            };
-          } else {
-            config.lib.cjs = rootConfig.lib.cjs;
-          }
-        }
-        // delete lib from root config as its already added in config
-        // above keeping this can overwrite above resolved config
-        delete rootConfig.lib;
-      }
-
-      for (let key in rootConfig) {
-        config[key] = rootConfig[key];
-      }
+      mergeDeep(config, rootConfig);
     }
 
     // Handle workspace path

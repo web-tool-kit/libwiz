@@ -11,7 +11,7 @@
     "url": "git+hhttps://github.com/ui-tool-kit/libwiz.git"
   },
   "scripts": {
-    "prepare": "husky",
+    "prepare": "husky && npm run build",
     "build": "rimraf dist && tsc && node scripts/postbuild.mjs && rimraf */*.tsbuildinfo",
     "prettier": "prettier --write ./"
   },

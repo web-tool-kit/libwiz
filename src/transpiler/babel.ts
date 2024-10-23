@@ -29,17 +29,13 @@ export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
   let outPath = './';
 
   if (target === 'common') {
-    moduleConfig = lib?.cjs;
-    if (moduleConfig?.output?.path) {
-      outPath = path.resolve(root, lib?.cjs?.output?.path);
-    } else if (hasTopLevelImports) {
+    moduleConfig = lib.cjs;
+    if (hasTopLevelImports) {
       outPath = './cjs';
     }
   } else if (target === 'modern') {
-    moduleConfig = lib?.esm;
-    if (moduleConfig?.output?.path) {
-      outPath = path.resolve(root, lib?.esm?.output?.path);
-    } else if (!hasTopLevelImports) {
+    moduleConfig = lib.esm;
+    if (!hasTopLevelImports) {
       outPath = './esm';
     }
   }

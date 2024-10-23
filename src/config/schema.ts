@@ -9,7 +9,6 @@ export interface ModuleConfig {
   output?: {
     comments?: boolean;
     sourceMap?: boolean;
-    path?: string;
   };
 }
 
@@ -27,7 +26,7 @@ export type Config = Partial<{
   ignore: string[];
   lib: LibConfig;
   target: Bundles | Bundles[];
-  babel: {
+  babel: Partial<{
     runtime: boolean;
     react: {
       runtime: 'classic' | 'automatic';
@@ -35,7 +34,7 @@ export type Config = Partial<{
     presets: TransformOptions['presets'];
     plugins: TransformOptions['plugins'];
     browsers: string | string[];
-  };
+  }>;
   assets: string | string[] | null;
 }>;
 
@@ -47,7 +46,6 @@ export const ModuleConfigSchema = z
       .object({
         comments: z.boolean().optional(),
         sourceMap: z.boolean().optional(),
-        path: z.string().optional(),
       })
       .optional(),
   })

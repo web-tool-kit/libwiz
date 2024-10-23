@@ -105,3 +105,25 @@ export function initCli() {
     process.on(event, restoreCursor);
   });
 }
+
+export function isPlainObject(item: unknown) {
+  return item && typeof item === 'object' && !Array.isArray(item);
+}
+
+export function mergeDeep(
+  target: Record<string, any>,
+  source: Record<string, any>,
+) {
+  for (let key in source) {
+    if (source.hasOwnProperty(key)) {
+      if (isPlainObject(source[key])) {
+        if (!target[key]) {
+          target[key] = {};
+        }
+        mergeDeep(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    }
+  }
+}
