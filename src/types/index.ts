@@ -18,6 +18,7 @@ export interface CliProps extends BuildProps {
   watch: boolean;
   prebuild: boolean;
   sourceMaps: boolean;
+  srcDir: string;
   outDir: string;
   bundle: string;
   verbose: boolean;

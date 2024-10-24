@@ -6,9 +6,7 @@ import { log, parallel, sequential } from '../utils';
 import { getConfig } from '../config';
 
 async function postbuild() {
-  const { root, assets } = getConfig();
-  const buildPath = path.join(root, './dist');
-  const srcPath = path.join(root, './src');
+  const { root, assets, srcPath, buildPath } = getConfig();
 
   /**
    * Following function help to move project files like
@@ -60,8 +58,6 @@ async function postbuild() {
             : './index.js',
           types: './index.d.ts',
         };
-
-        console.log(packageJson, '::::::packageJson');
 
         const [moduleEntryExists, mainEntryExists, typingsEntryExist] =
           await Promise.all([

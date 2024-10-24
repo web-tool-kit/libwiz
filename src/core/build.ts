@@ -7,11 +7,10 @@ import { getConfig } from '../config';
 import type { BuildProps, Bundles } from '../types';
 
 function getAllSourceFiles() {
-  const { root, extensions, ignore } = getConfig();
-  const srcDir = path.resolve(root, './src');
+  const { extensions, ignore, srcPath } = getConfig();
   try {
     return glob.globSync(`**/*{${extensions.join(',')}}`, {
-      cwd: srcDir,
+      cwd: srcPath,
       ignore,
     });
   } catch (err) {

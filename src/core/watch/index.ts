@@ -13,7 +13,7 @@ async function watch(props: WatchProps) {
   clearConsole();
   log.success(`Running in watch mode...\n`);
 
-  const watcher = chokidar.watch(`${path.resolve(config.root, './src')}/**/*`, {
+  const watcher = chokidar.watch(`${config.srcPath}/**/*`, {
     ignored: config.ignore,
     persistent: true,
     alwaysStat: true,

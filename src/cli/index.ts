@@ -25,6 +25,9 @@ const argv = yargs(hideBin(process.argv))
   // specific case like commonjs (cjs) or modernjs (esm)
   .option('target', { type: 'string' })
 
+  // source dir, default it will be src
+  .option('src-dir', { default: './src', type: 'string' })
+
   // output dir, default it will be dist it could be
   // build or something else based on need
   .option('out-dir', { default: './dist', type: 'string' })
@@ -91,6 +94,8 @@ const cliProps = argv as unknown as CliProps;
 initCli();
 initConfig({
   debug: cliProps.verbose,
+  srcPath: cliProps.srcDir,
+  buildPath: cliProps.outDir,
   lib: {
     esm: {
       output: {

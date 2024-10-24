@@ -7,9 +7,9 @@ import createProgressLoader from '../utils/loader';
 import { getConfig } from '../config';
 
 async function types() {
-  const config = getConfig();
-  const packageRoot = config.root;
-  const tsconfigPath = config.tsConfig;
+  const { root, tsConfig, buildPath, debug } = getConfig();
+  const packageRoot = root;
+  const tsconfigPath = tsConfig;
 
   let step = 0;
   const loader = createProgressLoader(5);
@@ -45,16 +45,15 @@ async function types() {
     log.warn(`[types] ${stderr}`);
   }
 
-  const publishDir = path.join(packageRoot, 'dist');
   const declarationFiles = await glob('**/*.d.ts', {
     absolute: true,
-    cwd: publishDir,
+    cwd: buildPath,
   });
   await delay(200);
   loader.track(step++);
 
   if (declarationFiles.length === 0) {
-    throw new Error(`Unable to find declaration files in '${publishDir}'`);
+    throw new Error(`Unable to find declaration files in '${buildPath}'`);
   }
 
   async function removeUnWantedImports(declarationFile) {
@@ -89,7 +88,7 @@ async function types() {
   await delay(200);
   loader.track(step++);
   loader.stop();
-  if (config.debug) {
+  if (debug) {
     console.log(output.join('\n'));
   }
 }

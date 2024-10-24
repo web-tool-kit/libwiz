@@ -14,12 +14,10 @@ export interface BuildProps {
 }
 
 export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
-  const { extensions, root, ignore, lib } = getConfig();
-  const srcDir = path.resolve(root, './src');
-
-  const { target, outDir: _outDir } = props;
+  const { extensions, ignore, lib, srcPath, buildPath } = getConfig();
+  const { target } = props;
   const topLevelNonIndexFiles = glob
-    .sync(`*{${extensions.join(',')}}`, { cwd: srcDir, ignore })
+    .sync(`*{${extensions.join(',')}}`, { cwd: srcPath, ignore })
     .filter(file => {
       return path.basename(file, path.extname(file)) !== 'index';
     });
@@ -41,7 +39,7 @@ export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
   }
 
   const outDir = path.resolve(
-    _outDir,
+    buildPath,
     // It will support top level path
     // `import Component from 'library/Component'`
     // like:
@@ -60,7 +58,7 @@ export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
     const outputFileRelPath = sourceFiles[i].replace(/\.tsx?/, '.js');
 
     // files absolute paths
-    const sourceFileAbsPath = path.resolve(srcDir, sourceFileRelPath);
+    const sourceFileAbsPath = path.resolve(srcPath, sourceFileRelPath);
     const outputFileAbsPath = path.resolve(outDir, outputFileRelPath);
 
     if (!fse.existsSync(sourceFileAbsPath)) {

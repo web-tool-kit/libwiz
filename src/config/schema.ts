@@ -20,6 +20,8 @@ export interface LibConfig {
 export type Config = Partial<{
   debug: boolean;
   root: string;
+  srcPath: string;
+  buildPath: string;
   workspace: string;
   tsConfig: string;
   extensions: string[];
@@ -92,6 +94,8 @@ export const ConfigSchema = z
     debug: z.boolean().optional(),
     root: z.string().optional(),
     workspace: z.string().optional(),
+    srcPath: z.string().optional(),
+    buildPath: z.string().optional(),
     tsConfig: z.string().optional(),
     extensions: z.array(z.string()).optional(),
     ignore: z.array(z.string()).optional(),

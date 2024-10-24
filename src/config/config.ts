@@ -188,6 +188,19 @@ export function initConfig(localConfig?: Config): Config {
   }
 
   config.root = root;
+
+  if (config.srcPath) {
+    config.srcPath = path.resolve(root, config.srcPath);
+  } else {
+    config.srcPath = path.resolve(root, './src');
+  }
+
+  if (config.buildPath) {
+    config.buildPath = path.resolve(root, config.buildPath);
+  } else {
+    config.buildPath = path.resolve(root, './dist');
+  }
+
   store.setConfig(config);
   return config as Config;
 }
