@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import path from 'node:path';
 import fse from 'fs-extra';
 import glob from 'fast-glob';
@@ -44,7 +43,7 @@ async function postbuild() {
           'package.json',
         );
         const topLevelPathImportsAreModernModules = await fse.pathExists(
-          path.resolve(path.dirname(packageJsonPath), '../esm'),
+          path.resolve(path.dirname(packageJsonPath), '../cjs'),
         );
 
         const packageJson: Record<string, any> = {

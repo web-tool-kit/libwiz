@@ -1,4 +1,3 @@
-import path from 'node:path';
 import glob from 'fast-glob';
 import * as babel from '../transpiler/babel';
 import createProgressLoader from '../utils/loader';

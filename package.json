@@ -45,6 +45,14 @@
     "rimraf": "^5.0.10",
     "typescript": "^5.5.4"
   },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
   "lint-staged": {
     "src/**/*": [
       "prettier --write"

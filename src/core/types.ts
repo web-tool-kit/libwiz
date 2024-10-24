@@ -1,26 +1,96 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
-import pc from 'picocolors';
-import { exec, log, delay, removeBuildInfoFiles } from '../utils';
-import createProgressLoader from '../utils/loader';
+import ts, { ParsedCommandLine } from 'typescript';
+import { log, clearLine, removeBuildInfoFiles } from '../utils';
 import { getConfig } from '../config';
 
+function getParsedTSConfig() {
+  const { tsConfig } = getConfig();
+  const configFileText = fse.readFileSync(tsConfig, 'utf8');
+  const result = ts.parseConfigFileTextToJson(tsConfig, configFileText);
+
+  if (result.error) {
+    throw ts.flattenDiagnosticMessageText(result.error.messageText, '\n');
+  }
+
+  const clientConfig = ts.parseJsonConfigFileContent(
+    result.config,
+    ts.sys,
+    path.dirname(tsConfig),
+    undefined,
+    tsConfig,
+  );
+
+  if (clientConfig.errors.length > 0) {
+    throw clientConfig.errors
+      .map(e => ts.flattenDiagnosticMessageText(e.messageText, '\n'))
+      .join('\n');
+  }
+
+  return clientConfig;
+}
+
+function compileDTS() {
+  const { srcPath, buildPath } = getConfig();
+  const config = getParsedTSConfig();
+
+  const finalConfig: ParsedCommandLine = {
+    ...config,
+    options: {
+      ...config.options,
+      composite: true,
+      declaration: true,
+      noEmit: false,
+      emitDeclarationOnly: true,
+      outDir: buildPath,
+      rootDir: srcPath,
+      removeComments: false,
+    },
+  };
+
+  const program = ts.createProgram({
+    rootNames: finalConfig.fileNames,
+    options: finalConfig.options,
+    projectReferences: finalConfig.projectReferences,
+  });
+
+  const emitResult = program.emit();
+
+  const allDiagnostics = ts
+    .getPreEmitDiagnostics(program)
+    .concat(emitResult.diagnostics);
+
+  if (allDiagnostics.length > 0) {
+    allDiagnostics.forEach(diagnostic => {
+      if (diagnostic.file) {
+        const { line, character } =
+          diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        const message = ts.flattenDiagnosticMessageText(
+          diagnostic.messageText,
+          '\n',
+        );
+        console.error(
+          `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`,
+        );
+      } else {
+        const message = ts.flattenDiagnosticMessageText(
+          diagnostic.messageText,
+          '\n',
+        );
+        console.error(message);
+      }
+    });
+    process.exit(1);
+  }
+}
+
 async function types() {
-  const { root, tsConfig, buildPath, debug } = getConfig();
-  const packageRoot = root;
-  const tsconfigPath = tsConfig;
+  log.progress('Generating types...');
+  const { root, tsConfig, buildPath } = getConfig();
 
-  let step = 0;
-  const loader = createProgressLoader(5);
-  loader.updateProgressText('Generating types...');
-  loader.track(step++);
-
-  if (!fse.existsSync(tsconfigPath)) {
-    let packageJsonFile: string | null = path.resolve(
-      packageRoot,
-      'package.json',
-    );
+  if (!fse.existsSync(tsConfig)) {
+    let packageJsonFile: string | null = path.resolve(root, 'package.json');
 
     if (!fse.existsSync(packageJsonFile)) {
       packageJsonFile = null;
@@ -28,33 +98,20 @@ async function types() {
 
     const packageJson = packageJsonFile
       ? JSON.parse(fse.readFileSync(packageJsonFile, { encoding: 'utf8' }))
-      : { name: packageRoot };
+      : { name: root };
 
     throw new Error(
       `The package root needs to contain a 'tsconfig.build.json' or 'tsconfig.json'. ` +
         `The package is '${packageJson.name}'`,
     );
   }
-  await delay(300);
-  loader.track(step++);
 
-  const { stderr } = await exec(['npx', 'tsc', '-b', tsconfigPath].join(' '));
-  loader.track(step++);
-
-  if (stderr) {
-    log.warn(`[types] ${stderr}`);
-  }
+  compileDTS();
 
   const declarationFiles = await glob('**/*.d.ts', {
     absolute: true,
     cwd: buildPath,
   });
-  await delay(200);
-  loader.track(step++);
-
-  if (declarationFiles.length === 0) {
-    throw new Error(`Unable to find declaration files in '${buildPath}'`);
-  }
 
   async function removeUnWantedImports(declarationFile) {
     const code = await fse.readFile(declarationFile, { encoding: 'utf8' });
@@ -64,33 +121,19 @@ async function types() {
     await fse.writeFile(declarationFile, fixedCode);
   }
 
-  let output = [];
   await Promise.all(
     declarationFiles.map(async declarationFile => {
       try {
         await removeUnWantedImports(declarationFile);
-        output.push(
-          `${pc.bgGreen(`OK`)} '${
-            declarationFile.split('packages/')[1] ||
-            declarationFile.split('apps/')[1] ||
-            declarationFile
-          }'`,
-        );
       } catch (error) {
         console.error(error);
+        process.exit(1);
       }
     }),
   );
-  await delay(200);
-  loader.track(step++);
 
-  await removeBuildInfoFiles(packageRoot);
-  await delay(200);
-  loader.track(step++);
-  loader.stop();
-  if (debug) {
-    console.log(output.join('\n'));
-  }
+  await removeBuildInfoFiles(root);
+  clearLine();
 }
 
 export default types;
