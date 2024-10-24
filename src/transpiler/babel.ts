@@ -59,6 +59,7 @@ export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
               sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
               comments: Boolean(moduleConfig?.output?.comments),
               ...babelConfig,
+              configFile: false,
             },
           );
 
