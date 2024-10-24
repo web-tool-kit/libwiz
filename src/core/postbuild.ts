@@ -42,19 +42,12 @@ async function postbuild() {
           directoryPackage,
           'package.json',
         );
-        const topLevelPathImportsAreModernModules = await fse.pathExists(
-          path.resolve(path.dirname(packageJsonPath), '../cjs'),
-        );
 
         const packageJson: Record<string, any> = {
           version: packageData.version,
           sideEffects: false,
-          module: topLevelPathImportsAreModernModules
-            ? './index.js'
-            : path.posix.join('../esm', directoryPackage, 'index.js'),
-          main: topLevelPathImportsAreModernModules
-            ? path.posix.join('../cjs', directoryPackage, 'index.js')
-            : './index.js',
+          module: './index.js',
+          main: path.posix.join('../cjs', directoryPackage, 'index.js'),
           types: './index.d.ts',
         };
 

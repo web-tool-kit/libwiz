@@ -1,5 +1,4 @@
 import path from 'node:path';
-import glob from 'fast-glob';
 import fse from 'fs-extra';
 import useBabelConfig from './useBabelConfig';
 import { getConfig } from '../config';
@@ -14,39 +13,23 @@ export interface BuildProps {
 }
 
 export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
-  const { extensions, ignore, lib, srcPath, buildPath } = getConfig();
+  const { lib, srcPath, buildPath } = getConfig();
   const { target } = props;
-  const topLevelNonIndexFiles = glob
-    .sync(`*{${extensions.join(',')}}`, { cwd: srcPath, ignore })
-    .filter(file => {
-      return path.basename(file, path.extname(file)) !== 'index';
-    });
-  const hasTopLevelImports = topLevelNonIndexFiles.length === 0;
 
   let moduleConfig: ModuleConfig = null;
   let outPath = './';
 
   if (target === 'common') {
     moduleConfig = lib.cjs;
-    if (hasTopLevelImports) {
-      outPath = './cjs';
-    }
+    outPath = './cjs';
   } else if (target === 'modern') {
     moduleConfig = lib.esm;
-    if (!hasTopLevelImports) {
-      outPath = './esm';
-    }
   }
 
   const outDir = path.resolve(
     buildPath,
     // It will support top level path
     // `import Component from 'library/Component'`
-    // like:
-    // {
-    //   common: hasTopLevelImports ? './cjs' : './',
-    //   modern: hasTopLevelImports ? './' : './esm',
-    // }[bundle],
     outPath,
   );
 

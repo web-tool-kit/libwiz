@@ -11,7 +11,10 @@ function getParsedTSConfig() {
   const result = ts.parseConfigFileTextToJson(tsConfig, configFileText);
 
   if (result.error) {
-    throw ts.flattenDiagnosticMessageText(result.error.messageText, '\n');
+    console.error(
+      ts.flattenDiagnosticMessageText(result.error.messageText, '\n'),
+    );
+    process.exit(1);
   }
 
   const clientConfig = ts.parseJsonConfigFileContent(
@@ -23,9 +26,12 @@ function getParsedTSConfig() {
   );
 
   if (clientConfig.errors.length > 0) {
-    throw clientConfig.errors
-      .map(e => ts.flattenDiagnosticMessageText(e.messageText, '\n'))
-      .join('\n');
+    console.error(
+      clientConfig.errors
+        .map(e => ts.flattenDiagnosticMessageText(e.messageText, '\n'))
+        .join('\n'),
+    );
+    process.exit(1);
   }
 
   return clientConfig;
@@ -100,10 +106,11 @@ async function types() {
       ? JSON.parse(fse.readFileSync(packageJsonFile, { encoding: 'utf8' }))
       : { name: root };
 
-    throw new Error(
+    console.error(
       `The package root needs to contain a 'tsconfig.build.json' or 'tsconfig.json'. ` +
         `The package is '${packageJson.name}'`,
     );
+    process.exit(1);
   }
 
   compileDTS();

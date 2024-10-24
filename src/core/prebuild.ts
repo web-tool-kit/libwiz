@@ -1,10 +1,11 @@
 import fse from 'fs-extra';
+import { getConfig } from '../config';
 import { removeBuildInfoFiles } from '../utils';
 
-async function prebuild(argv: { outDir: string }) {
-  const { outDir } = argv;
-  if (fse.existsSync(outDir)) {
-    fse.removeSync(outDir);
+async function prebuild() {
+  const { buildPath } = getConfig();
+  if (fse.existsSync(buildPath)) {
+    fse.removeSync(buildPath);
   }
   await removeBuildInfoFiles(process.cwd());
 }

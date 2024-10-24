@@ -23,6 +23,14 @@ async function build(argv: BuildProps) {
   const { target = config.target } = argv;
 
   const sourceFiles = getAllSourceFiles();
+  if (sourceFiles.length === 0) {
+    console.error(
+      'No source files found which match extension ' +
+        config.extensions.join(','),
+    );
+    process.exit(1);
+  }
+
   const loader = createProgressLoader(sourceFiles.length);
   loader.updateProgressText('Building library...');
 
@@ -55,7 +63,7 @@ async function build(argv: BuildProps) {
   } catch (err) {
     loader.stop();
     console.error(err);
-    throw err;
+    process.exit(1);
   }
   loader.stop();
 }

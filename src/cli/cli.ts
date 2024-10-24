@@ -35,7 +35,7 @@ async function run(argv: CliProps) {
   }
 
   if (prebuild) {
-    await prebuildRun({ outDir });
+    await prebuildRun();
   }
 
   if (build) {
@@ -46,7 +46,8 @@ async function run(argv: CliProps) {
     try {
       await typesRun();
     } catch (err) {
-      throw new Error(`Failed TS build: \n${err}`);
+      console.error(err);
+      process.exit(1);
     }
   }
 
