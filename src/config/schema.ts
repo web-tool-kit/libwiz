@@ -40,69 +40,109 @@ export type Config = Partial<{
   assets: string | string[] | null;
 }>;
 
-const VALID_BUNDLE_ENUM = z.enum(['modern', 'common']);
+const VALID_BUNDLE_ENUM = z
+  .enum(['modern', 'common'])
+  .describe('Valid bundle types');
 
 export const ModuleConfigSchema = z
   .object({
     output: z
       .object({
-        comments: z.boolean().optional(),
-        sourceMap: z.boolean().optional(),
+        comments: z
+          .boolean()
+          .optional()
+          .describe('Include comments in the output'),
+        sourceMap: z.boolean().optional().describe('Generate source maps'),
       })
-      .optional(),
+      .optional()
+      .describe('Output configuration'),
   })
   .strict()
-  .optional();
+  .optional()
+  .describe('Module configuration');
 
 export const LibConfigSchema = z
   .object({
-    esm: ModuleConfigSchema,
-    cjs: ModuleConfigSchema,
+    esm: ModuleConfigSchema.describe('ESM module configuration'),
+    cjs: ModuleConfigSchema.describe('CommonJS module configuration'),
   })
   .strict()
-  .optional();
+  .optional()
+  .describe('Library configuration');
 
 const BabelOverrideSchema = z
   .object({
-    exclude: z.instanceof(RegExp),
-    plugins: z.array(z.string()),
+    exclude: z
+      .instanceof(RegExp)
+      .describe('Regular expression to exclude files'),
+    plugins: z.array(z.string()).describe('Array of Babel plugins'),
   })
-  .strict();
+  .strict()
+  .describe('Babel override configuration');
 
 const PluginAndPresetSchema = z.union([
-  z.string(),
-  z.tuple([z.string(), z.record(z.any())]),
+  z.string().describe('Plugin or preset name'),
+  z
+    .tuple([z.string(), z.record(z.any())])
+    .describe('Plugin or preset with options'),
 ]);
 
 const BabelConfigSchema = z
   .object({
-    runtime: z.boolean().optional(),
+    runtime: z.boolean().optional().describe('Use Babel runtime'),
     react: z
       .object({
-        runtime: z.enum(['classic', 'automatic']),
+        runtime: z
+          .enum(['classic', 'automatic'])
+          .describe('React runtime mode'),
       })
-      .optional(),
-    presets: z.array(PluginAndPresetSchema).optional(),
-    plugins: z.array(PluginAndPresetSchema).optional(),
-    browsers: z.union([z.string(), z.array(z.string())]).optional(),
-    overrides: z.array(BabelOverrideSchema).optional(),
+      .optional()
+      .describe('React configuration'),
+    presets: z
+      .array(PluginAndPresetSchema)
+      .optional()
+      .describe('Babel presets'),
+    plugins: z
+      .array(PluginAndPresetSchema)
+      .optional()
+      .describe('Babel plugins'),
+    browsers: z
+      .union([z.string(), z.array(z.string())])
+      .optional()
+      .describe('Target browsers'),
+    overrides: z
+      .array(BabelOverrideSchema)
+      .optional()
+      .describe('Babel overrides'),
   })
   .strict();
 
 export const ConfigSchema = z
   .object({
-    debug: z.boolean().optional(),
-    root: z.string().optional(),
-    workspace: z.string().optional(),
-    srcPath: z.string().optional(),
-    buildPath: z.string().optional(),
-    tsConfig: z.string().optional(),
-    extensions: z.array(z.string()).optional(),
-    ignore: z.array(z.string()).optional(),
+    debug: z.boolean().optional().describe('Enable debug mode'),
+    root: z.string().optional().describe('Root directory'),
+    workspace: z.string().optional().describe('Workspace directory'),
+    srcPath: z.string().optional().describe('Source path'),
+    buildPath: z.string().optional().describe('Build output path'),
+    tsConfig: z
+      .string()
+      .optional()
+      .describe('TypeScript configuration file path'),
+    extensions: z
+      .array(z.string())
+      .optional()
+      .describe('File extensions to process'),
+    ignore: z.array(z.string()).optional().describe('Patterns to ignore'),
     lib: LibConfigSchema,
-    target: z.union([VALID_BUNDLE_ENUM, z.array(VALID_BUNDLE_ENUM)]).optional(),
+    target: z
+      .union([VALID_BUNDLE_ENUM, z.array(VALID_BUNDLE_ENUM)])
+      .optional()
+      .describe('Build targets'),
     babel: BabelConfigSchema.optional(),
-    assets: z.union([z.string(), z.array(z.string()), z.null()]).optional(),
+    assets: z
+      .union([z.string(), z.array(z.string()), z.null()])
+      .optional()
+      .describe('Assets to include'),
   })
   .strict();
 

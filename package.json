@@ -43,7 +43,8 @@
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "rimraf": "^5.0.10",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "zod-to-json-schema": "^3.23.5"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
