@@ -28,6 +28,12 @@ async function postbuild() {
     );
   });
 
+  restPackageData.publishConfig = {
+    access: 'public',
+    provenance: true,
+    registry: 'https://registry.npmjs.org/',
+  };
+
   await fse.writeFile(
     path.resolve(distPath, 'package.json'),
     JSON.stringify(restPackageData, null, 2),
