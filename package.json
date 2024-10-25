@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+hhttps://github.com/ui-tool-kit/libwiz.git"
+    "url": "https://github.com/ui-tool-kit/libwiz"
   },
   "homepage": "https://github.com/ui-tool-kit/libwiz#readme",
   "scripts": {
