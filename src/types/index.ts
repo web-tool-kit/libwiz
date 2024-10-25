@@ -2,17 +2,7 @@ import type { Bundles } from '../config';
 
 export type { Bundles, ModuleConfig, LibConfig, Config } from '../config';
 
-export interface BuildProps {
-  sourceMaps: boolean;
-  outDir: string;
-  target: Bundles;
-}
-
-export interface WatchProps extends BuildProps {
-  copy?: boolean;
-}
-
-export interface CliProps extends BuildProps {
+export interface CliProps {
   build: boolean;
   types: boolean;
   watch: boolean;
@@ -22,4 +12,5 @@ export interface CliProps extends BuildProps {
   outDir: string;
   bundle: string;
   verbose: boolean;
+  target: Bundles;
 }

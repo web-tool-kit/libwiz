@@ -7,7 +7,7 @@ import type { CliProps } from '../types';
 
 async function run(argv: CliProps) {
   const config = getConfig();
-  const { build, types, watch, prebuild, outDir } = argv;
+  const { build, types, watch, prebuild } = argv;
 
   // setup env before build start
   // production/devlopment can be there
@@ -21,16 +21,9 @@ async function run(argv: CliProps) {
     }
   }
 
-  const buildProps = {
-    target: argv.target,
-    bundle: argv.bundle,
-    outDir: argv.outDir,
-    sourceMaps: argv.sourceMaps,
-  };
-
   if (watch) {
     const { default: watchRun } = require('../core/watch');
-    watchRun({ ...buildProps });
+    watchRun();
     return;
   }
 
@@ -39,7 +32,7 @@ async function run(argv: CliProps) {
   }
 
   if (build) {
-    await buildRun(buildProps);
+    await buildRun();
   }
 
   if (config.tsConfig && types && !watch) {

@@ -12,6 +12,8 @@ async function postbuild() {
   const packageJson = fse.readJsonSync(
     path.resolve(sourcePath, 'package.json'),
   );
+
+  delete packageJson['lint-staged'];
   const { scripts, devDependencies, ...restPackageData } = packageJson;
 
   restPackageData.main = './index.js';

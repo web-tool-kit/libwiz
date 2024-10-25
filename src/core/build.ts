@@ -3,7 +3,7 @@ import * as babel from '../transpiler/babel';
 import createProgressLoader from '../utils/loader';
 import { trackProgress } from '../utils';
 import { getConfig } from '../config';
-import type { BuildProps, Bundles } from '../types';
+import type { Bundles } from '../types';
 
 function getAllSourceFiles() {
   const { extensions, ignore, srcPath } = getConfig();
@@ -18,15 +18,13 @@ function getAllSourceFiles() {
   }
 }
 
-async function build(argv: BuildProps) {
-  const config = getConfig();
-  const { target = config.target } = argv;
+async function build() {
+  const { target, extensions } = getConfig();
 
   const sourceFiles = getAllSourceFiles();
   if (sourceFiles.length === 0) {
     console.error(
-      'No source files found which match extension ' +
-        config.extensions.join(','),
+      'No source files found which match extension ' + extensions.join(','),
     );
     process.exit(1);
   }
@@ -34,8 +32,8 @@ async function build(argv: BuildProps) {
   const loader = createProgressLoader(sourceFiles.length);
   loader.updateProgressText('Building library...');
 
-  async function runBuildProcess(props: BuildProps) {
-    const transpiles = await babel.transpileAsync(props, sourceFiles);
+  async function runBuildProcess(target: Bundles) {
+    const transpiles = await babel.transpileAsync(target, sourceFiles);
     if (!transpiles.length) return;
     await trackProgress(transpiles, ({ completed }) => {
       loader.track(completed);
@@ -45,18 +43,18 @@ async function build(argv: BuildProps) {
   try {
     if (target) {
       if (!Array.isArray(target)) {
-        await runBuildProcess({ ...argv, target: target as Bundles });
+        await runBuildProcess(target as Bundles);
       } else {
         await Promise.all(
           [...target].map(trgt => {
-            return runBuildProcess({ ...argv, target: trgt });
+            return runBuildProcess(trgt as Bundles);
           }),
         );
       }
     } else {
       await Promise.all(
         (['modern', 'common'] as Bundles[]).map(target => {
-          return runBuildProcess({ ...argv, target });
+          return runBuildProcess(target);
         }),
       );
     }

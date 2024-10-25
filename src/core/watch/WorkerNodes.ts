@@ -2,6 +2,7 @@ import path from 'node:path';
 import { Worker } from 'node:worker_threads';
 import { debounce } from '../../utils';
 import log, { print, clearLine } from '../../utils/log';
+import { copyRequiredFiles } from '../postbuild';
 
 class WorkerNodes {
   private active: Worker | null = null;
@@ -23,12 +24,13 @@ class WorkerNodes {
   }
 
   private attachEvents(worker: Worker) {
-    worker.on('message', data => {
+    worker.on('message', async data => {
       if (data.type === 'log') {
         print(data.message);
       } else if (data.type === 'clearLine') {
         clearLine();
       } else if (data.type === 'completed') {
+        await copyRequiredFiles();
         this.running = false;
         this.ready = true;
       }
@@ -95,7 +97,7 @@ class WorkerNodes {
     if (this.isReady()) {
       this.manageRestart();
       this.running = true;
-      this.active.postMessage({ type: 'build', data: props });
+      this.active.postMessage({ type: 'build' });
     }
   });
 }

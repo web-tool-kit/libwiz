@@ -46,13 +46,6 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
   })
 
-  .option('watch', {
-    alias: 'w',
-    type: 'boolean',
-    default: false,
-    description: 'Flag to run in watch mode',
-  })
-
   .option('source-maps', {
     default: false,
     alias: 'sourceMaps',
@@ -96,6 +89,7 @@ initConfig({
   debug: cliProps.verbose,
   srcPath: cliProps.srcDir,
   buildPath: cliProps.outDir,
+  target: cliProps.target,
   lib: {
     esm: {
       output: {

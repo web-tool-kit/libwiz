@@ -4,6 +4,54 @@ import glob from 'fast-glob';
 import { log, parallel, sequential } from '../utils';
 import { getConfig } from '../config';
 
+/**
+ * Copy required files of module in there folder
+ */
+export async function copyRequiredFiles() {
+  const { assets, srcPath, buildPath } = getConfig();
+  if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
+    return;
+  }
+
+  if (!(await fse.pathExists(buildPath))) {
+    log.warn(`[assets] path ${buildPath} does not exists to copy`);
+    return [];
+  }
+
+  const hasCJS = await fse.pathExists(`${buildPath}/cjs`);
+  const hasESM = await fse.pathExists(`${buildPath}/esm`);
+
+  const files = await glob(assets, {
+    cwd: srcPath,
+    dot: true,
+  });
+
+  const task: Promise<void>[] = [];
+
+  files.forEach(file => {
+    if (hasCJS) {
+      task.push(
+        fse.copy(
+          path.resolve(srcPath, file),
+          path.resolve(`${buildPath}/cjs`, file),
+        ),
+      );
+    }
+    if (hasESM) {
+      task.push(
+        fse.copy(
+          path.resolve(srcPath, file),
+          path.resolve(`${buildPath}/esm`, file),
+        ),
+      );
+    }
+    task.push(
+      fse.copy(path.resolve(srcPath, file), path.resolve(buildPath, file)),
+    );
+  });
+  await Promise.all(task);
+}
+
 async function postbuild() {
   const { root, assets, srcPath, buildPath } = getConfig();
 
@@ -105,53 +153,6 @@ async function postbuild() {
         fse.copy(path.resolve(srcPath, file), path.resolve(buildPath, file)),
       ),
     );
-  }
-
-  /**
-   * Copy required files of module in there folder
-   */
-  async function copyRequiredFiles() {
-    if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
-      return;
-    }
-
-    if (!(await fse.pathExists(buildPath))) {
-      log.warn(`[assets] path ${buildPath} does not exists to copy`);
-      return [];
-    }
-
-    const hasCJS = await fse.pathExists(`${buildPath}/cjs`);
-    const hasESM = await fse.pathExists(`${buildPath}/esm`);
-
-    const files = await glob(assets, {
-      cwd: srcPath,
-      dot: true,
-    });
-
-    const task: Promise<void>[] = [];
-
-    files.forEach(file => {
-      if (hasCJS) {
-        task.push(
-          fse.copy(
-            path.resolve(srcPath, file),
-            path.resolve(`${buildPath}/cjs`, file),
-          ),
-        );
-      }
-      if (hasESM) {
-        task.push(
-          fse.copy(
-            path.resolve(srcPath, file),
-            path.resolve(`${buildPath}/esm`, file),
-          ),
-        );
-      }
-      task.push(
-        fse.copy(path.resolve(srcPath, file), path.resolve(buildPath, file)),
-      );
-    });
-    await Promise.all(task);
   }
 
   async function createPackageFile() {

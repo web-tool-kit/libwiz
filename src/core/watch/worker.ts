@@ -5,11 +5,6 @@ import { createFileHash } from '../../utils';
 import { getConfig } from '../../config';
 import build from '../build';
 import runPostbuild from '../postbuild';
-import type { BuildProps } from '../../types';
-
-export interface WatchProps extends BuildProps {
-  copy?: boolean;
-}
 
 const fileHashes = new Map();
 
@@ -19,10 +14,8 @@ let isInit = false;
 const actionOnWatch = async (
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
   path: string,
-  props: WatchProps,
 ) => {
   const config = getConfig();
-  const { copy, ...buildProps } = props;
 
   if (event === 'unlink') {
     fileHashes.delete(path);
@@ -40,7 +33,7 @@ const actionOnWatch = async (
     }
     try {
       isInit = true;
-      await build(buildProps);
+      await build();
     } catch (err) {
       throw err;
     }
@@ -84,14 +77,13 @@ type WorkerMessage = {
 interface BuildWorkerProps {
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir';
   path: string;
-  props: WatchProps;
 }
 
 if (!isMainThread && parentPort) {
   parentPort.on('message', ({ type, data }: WorkerMessage) => {
     if (type === 'build') {
-      const { event, path, props } = data as BuildWorkerProps;
-      actionOnWatch(event, path, props);
+      const { event, path } = data as BuildWorkerProps;
+      actionOnWatch(event, path);
     }
   });
 }

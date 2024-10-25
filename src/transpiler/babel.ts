@@ -7,14 +7,8 @@ import type { ModuleConfig, Bundles } from '../types';
 
 const babel = magicImport<typeof import('@babel/core')>('@babel/core');
 
-export interface BuildProps {
-  outDir: string;
-  target: Bundles;
-}
-
-export async function transpileAsync(props: BuildProps, sourceFiles: string[]) {
+export async function transpileAsync(target: Bundles, sourceFiles: string[]) {
   const { lib, srcPath, buildPath } = getConfig();
-  const { target } = props;
 
   let moduleConfig: ModuleConfig = null;
   let outPath = './';
