@@ -15,7 +15,8 @@
   "scripts": {
     "prepare": "husky && npm run build",
     "build": "rimraf dist && tsc && node scripts/postbuild.mjs && rimraf */*.tsbuildinfo",
-    "publish:dist": "pnpm build && cd dist && npm publish",
+    "release": "pnpm build && cd dist && pnpm publish --access public",
+    "release:dry": "pnpm build && cd dist && pnpm publish --access public --dry-run",
     "prettier": "prettier --write ./"
   },
   "bin": {
