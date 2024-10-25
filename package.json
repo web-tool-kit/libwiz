@@ -1,7 +1,7 @@
 {
   "name": "libwiz-core",
   "private": true,
-  "version": "0.0.0-experimental.3",
+  "version": "0.0.1",
   "description": "Quick library build tool",
   "sideEffects": false,
   "main": "./dist/index.js",
