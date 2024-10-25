@@ -50,9 +50,9 @@ export async function transpileAsync(target: Bundles, sourceFiles: string[]) {
           const transformedCode = await babel.transformFileAsync(
             sourceFileAbsPath,
             {
+              ...babelConfig,
               sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
               comments: Boolean(moduleConfig?.output?.comments),
-              ...babelConfig,
               configFile: false,
             },
           );

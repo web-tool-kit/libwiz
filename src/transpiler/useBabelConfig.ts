@@ -175,7 +175,6 @@ const useBabelConfig = ({ env }: UseBabelConfigProps) => {
 
   const babelConfig: TransformOptions = {
     ignore,
-    comments: false,
   };
 
   if (rootBabelConfig?.runtime !== false) {

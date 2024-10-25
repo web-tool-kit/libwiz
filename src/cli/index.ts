@@ -93,13 +93,13 @@ initConfig({
   lib: {
     esm: {
       output: {
-        comments: false,
+        comments: true,
         sourceMap: Boolean(cliProps.sourceMaps),
       },
     },
     cjs: {
       output: {
-        comments: false,
+        comments: true,
         sourceMap: Boolean(cliProps.sourceMaps),
       },
     },

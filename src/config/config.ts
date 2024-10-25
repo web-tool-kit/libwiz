@@ -31,13 +31,13 @@ export function initConfig(localConfig?: Config): Config {
     lib: {
       esm: {
         output: {
-          comments: false,
+          comments: true,
           sourceMap: false,
         },
       },
       cjs: {
         output: {
-          comments: false,
+          comments: true,
           sourceMap: false,
         },
       },
