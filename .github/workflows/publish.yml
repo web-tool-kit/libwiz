@@ -2,9 +2,23 @@ name: Publish Package
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_type:
+        description: 'Choose publish type: dry-run or actual'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - actual
+      confirm_publish:
+        description: 'Type YES to confirm actual publish'
+        required: false
+        default: ''
 
 jobs:
   publish:
+    if: ${{ (github.event.inputs.publish_type == 'actual' && github.event.inputs.confirm_publish == 'YES' && github.ref_name == 'main') || github.event.inputs.publish_type == 'dry-run' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -14,7 +28,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v2
@@ -24,10 +38,15 @@ jobs:
       - name: Install dependencies
         run: pnpm i
 
-      - name: Build Package
-        run: pnpm build
+      - name: Audit Signatures
+        run: npm audit signatures
 
-      - name: Publish package (Dry Run)
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish package (dry)
+        if: ${{github.event.inputs.publish_type == 'dry-run' }}
         run: pnpm release:dry
+
+      - name: Publish package
+        if: ${{ github.event.inputs.publish_type == 'actual' && github.event.inputs.confirm_publish == 'YES' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm release
