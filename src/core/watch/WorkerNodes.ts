@@ -93,11 +93,11 @@ class WorkerNodes {
     return Boolean(this.active && this.ready);
   }
 
-  run = debounce((props: unknown) => {
+  run = debounce((data: unknown) => {
     if (this.isReady()) {
       this.manageRestart();
       this.running = true;
-      this.active.postMessage({ type: 'build' });
+      this.active.postMessage({ type: 'build', data });
     }
   });
 }

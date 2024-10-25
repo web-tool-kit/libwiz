@@ -65,7 +65,7 @@ const actionOnWatch = async (
   }
 
   if (!isMainThread && parentPort) {
-    parentPort.postMessage({ type: 'completed' });
+    parentPort.postMessage({ type: 'completed', data: { event, path } });
   }
 };
 
