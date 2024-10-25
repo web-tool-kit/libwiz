@@ -14,8 +14,11 @@ async function postbuild() {
   );
 
   delete packageJson['lint-staged'];
+  delete packageJson['private'];
+
   const { scripts, devDependencies, ...restPackageData } = packageJson;
 
+  restPackageData.name = 'libwiz';
   restPackageData.main = './index.js';
   restPackageData.types = './index.d.js';
   Object.keys(restPackageData.bin).forEach(key => {

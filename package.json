@@ -1,5 +1,6 @@
 {
-  "name": "libwiz",
+  "name": "libwiz-core",
+  "private": true,
   "version": "0.0.0-experimental.01",
   "description": "Quick library build tool",
   "sideEffects": false,
@@ -14,6 +15,7 @@
   "scripts": {
     "prepare": "husky && npm run build",
     "build": "rimraf dist && tsc && node scripts/postbuild.mjs && rimraf */*.tsbuildinfo",
+    "publish:dist": "pnpm build && cd dist && npm publish",
     "prettier": "prettier --write ./"
   },
   "bin": {
