@@ -8,7 +8,7 @@ export const transformFilesAsync = async (
   target: Bundles,
   sourceFiles: string[],
 ) => {
-  const { lib, srcPath, buildPath } = getConfig();
+  const { lib, srcPath, buildPath, transpile } = getConfig();
 
   let moduleConfig: ModuleConfig = null;
   let outPath = './';
@@ -52,7 +52,18 @@ export const transformFilesAsync = async (
     opsAsync.push(
       new Promise<void>(async (resolve, reject) => {
         try {
-          const output = babel.transformFile(sourceFileAbsPath, options);
+          let output: TranspileOutput;
+          if (typeof transpile === 'function') {
+            const code = fse.readFileSync(sourceFileAbsPath, 'utf8');
+            const tmp = await transpile(code, options);
+            if (tmp && tmp.code) {
+              output = { code: tmp.code, map: tmp.map };
+            }
+          }
+
+          if (!output) {
+            output = babel.transformFile(sourceFileAbsPath, options);
+          }
 
           if (output.map) {
             output.code += `\n//# sourceMappingURL=${outputFileRelPath}.map`;

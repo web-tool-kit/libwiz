@@ -106,17 +106,17 @@ libwiz build --prebuild --types
 
 Here is an example of a configuration file (`libwiz.config.js`):
 
-```javascript
+```js
 // libwiz.config.js
 module.exports = {
   debug: true,
-  root: "./",
-  workspace: "./workspace",
-  srcPath: "./src",
-  buildPath: "./dist",
-  tsConfig: "./tsconfig.json",
-  extensions: [".ts", ".tsx"],
-  ignore: ["**/__tests__/**"],
+  root: './',
+  workspace: './workspace',
+  srcPath: './src',
+  buildPath: './dist',
+  tsConfig: './tsconfig.json',
+  extensions: ['.ts', '.tsx'],
+  ignore: ['**/__tests__/**'],
   lib: {
     esm: {
       output: {
@@ -131,29 +131,29 @@ module.exports = {
       },
     },
   },
-  target: ["modern", "common"],
+  target: ['modern', 'common'],
   babel: {
     runtime: true,
     react: {
-      runtime: "automatic",
+      runtime: 'automatic',
     },
     presets: [
       // any custom preset
     ],
     plugins: [
       // any custom babel plugins
-      "@babel/plugin-proposal-object-rest-spread",
-      "@babel/plugin-proposal-class-properties",
+      '@babel/plugin-proposal-object-rest-spread',
+      '@babel/plugin-proposal-class-properties',
     ],
-    browsers: "last 2 versions",
+    browsers: 'last 2 versions',
     overrides: [
       {
         exclude: /node_modules/,
-        plugins: ["@babel/plugin-syntax-dynamic-import"],
+        plugins: ['@babel/plugin-syntax-dynamic-import'],
       },
     ],
   },
-  assets: "**/*.css",
+  assets: '**/*.css',
 };
 ```
 

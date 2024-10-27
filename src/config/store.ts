@@ -1,9 +1,10 @@
+import clone from 'clone-deep';
 import type { Config } from '../types';
 
 class ConfigStore {
   private cacheConfig: Config = {};
 
-  public config = () => structuredClone(this.cacheConfig);
+  public config = () => clone(this.cacheConfig);
 
   public hasConfig = () => {
     return Boolean(Object.keys(this.cacheConfig).length);

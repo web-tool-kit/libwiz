@@ -23,5 +23,5 @@ export interface TranspileOptions {
 
 export interface TranspileOutput {
   code: string;
-  map: string;
+  map?: string;
 }

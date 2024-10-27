@@ -42,6 +42,7 @@ export function initConfig(localConfig?: Config): Config {
         },
       },
     },
+    transpile: null,
     babel: {
       runtime: true,
       react: {

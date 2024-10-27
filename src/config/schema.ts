@@ -2,6 +2,7 @@ import pc from 'picocolors';
 import { TransformOptions } from '@babel/core';
 import { z } from 'zod';
 import { log } from '../utils';
+import { TranspileOutput, TranspileOptions } from '../types';
 
 export type Bundles = 'modern' | 'common';
 
@@ -38,6 +39,10 @@ export type Config = Partial<{
     browsers: string | string[];
   }>;
   assets: string | string[] | null;
+  transpile: (
+    code: string,
+    option: TranspileOptions,
+  ) => Promise<TranspileOutput | void>;
 }>;
 
 const VALID_BUNDLE_ENUM = z
@@ -117,6 +122,17 @@ const BabelConfigSchema = z
   })
   .strict();
 
+const TranspileOptionsSchema = z.object({
+  env: VALID_BUNDLE_ENUM,
+  sourceMaps: z.boolean(),
+  comments: z.boolean(),
+});
+
+const TranspileOutputSchema = z.object({
+  code: z.string(),
+  map: z.string().optional(),
+});
+
 export const ConfigSchema = z
   .object({
     debug: z.boolean().optional().describe('Enable debug mode'),
@@ -143,6 +159,12 @@ export const ConfigSchema = z
       .union([z.string(), z.array(z.string()), z.null()])
       .optional()
       .describe('Assets to include'),
+    transpile: z
+      .function()
+      .args(z.string(), TranspileOptionsSchema)
+      .returns(z.promise(z.union([TranspileOutputSchema, z.void()])))
+      .optional()
+      .describe('Custom transpile function'),
   })
   .strict();
 
