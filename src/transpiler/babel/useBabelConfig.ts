@@ -1,7 +1,7 @@
 import type { TransformOptions } from '@babel/core';
-import { getConfig } from '../config';
-import { magicImport } from '../utils';
-import type { Bundles } from '../types';
+import { getConfig } from '../../config';
+import { magicImport } from '../../utils';
+import type { Bundles } from '../../types';
 
 export type UseBabelConfigProps = {
   env?: Bundles;

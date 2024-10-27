@@ -1,13 +1,13 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import useBabelConfig from './useBabelConfig';
+import * as babel from './babel';
 import { getConfig } from '../config';
-import { magicImport } from '../utils';
-import type { ModuleConfig, Bundles } from '../types';
+import type { ModuleConfig, Bundles, TranspileOutput } from '../types';
 
-const babel = magicImport<typeof import('@babel/core')>('@babel/core');
-
-export async function transpileAsync(target: Bundles, sourceFiles: string[]) {
+export const transformFilesAsync = async (
+  target: Bundles,
+  sourceFiles: string[],
+) => {
   const { lib, srcPath, buildPath } = getConfig();
 
   let moduleConfig: ModuleConfig = null;
@@ -43,31 +43,25 @@ export async function transpileAsync(target: Bundles, sourceFiles: string[]) {
       continue;
     }
 
+    const options = {
+      env: target,
+      sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
+      comments: Boolean(moduleConfig?.output?.comments),
+    };
+
     opsAsync.push(
       new Promise<void>(async (resolve, reject) => {
         try {
-          const babelConfig = useBabelConfig({ env: target });
-          const transformedCode = await babel.transformFileAsync(
-            sourceFileAbsPath,
-            {
-              ...babelConfig,
-              sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
-              comments: Boolean(moduleConfig?.output?.comments),
-              configFile: false,
-            },
-          );
+          const output = babel.transformFile(sourceFileAbsPath, options);
 
-          if (transformedCode.map) {
-            transformedCode.code += `\n//# sourceMappingURL=${outputFileRelPath}.map`;
+          if (output.map) {
+            output.code += `\n//# sourceMappingURL=${outputFileRelPath}.map`;
           }
 
-          fse.outputFileSync(outputFileAbsPath, transformedCode.code || '');
+          fse.outputFileSync(outputFileAbsPath, output.code || '');
 
-          if (transformedCode.map) {
-            fse.outputFileSync(
-              `${outputFileAbsPath}.map`,
-              JSON.stringify(transformedCode.map),
-            );
+          if (output.map) {
+            fse.outputFileSync(`${outputFileAbsPath}.map`, output.map);
           }
           resolve();
         } catch (err) {
@@ -78,4 +72,6 @@ export async function transpileAsync(target: Bundles, sourceFiles: string[]) {
   }
 
   return opsAsync;
-}
+};
+
+export default transformFilesAsync;

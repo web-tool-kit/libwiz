@@ -1,5 +1,5 @@
 import glob from 'fast-glob';
-import * as babel from '../transpiler/babel';
+import transformFilesAsync from '../transpiler';
 import createProgressLoader from '../utils/loader';
 import { trackProgress } from '../utils';
 import { getConfig } from '../config';
@@ -33,7 +33,7 @@ async function build() {
   loader.updateProgressText('Building library...');
 
   async function runBuildProcess(target: Bundles) {
-    const transpiles = await babel.transpileAsync(target, sourceFiles);
+    const transpiles = await transformFilesAsync(target, sourceFiles);
     if (!transpiles.length) return;
     await trackProgress(transpiles, ({ completed }) => {
       loader.track(completed);

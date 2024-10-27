@@ -14,3 +14,14 @@ export interface CliProps {
   verbose: boolean;
   target: Bundles;
 }
+
+export interface TranspileOptions {
+  env: Bundles;
+  sourceMaps: boolean;
+  comments: boolean;
+}
+
+export interface TranspileOutput {
+  code: string;
+  map: string;
+}
