@@ -22,9 +22,7 @@ function createProgressLoader(totalSteps: number) {
       updateBar(done, total);
 
       if (msg) {
-        if (hasStarted) {
-          clearLine();
-        }
+        clearLine();
         log.progress(`${msg}${bar}`);
         hasStarted = true;
       }
