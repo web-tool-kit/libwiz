@@ -73,6 +73,8 @@ export function clearLine() {
     if (process.stdout.isTTY) {
       process.stdout.clearLine(0);
       process.stdout.cursorTo(0);
+    } else {
+      console.log('\r');
     }
   } else if (parentPort) {
     parentPort.postMessage({ type: 'clearLine' });

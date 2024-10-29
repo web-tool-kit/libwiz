@@ -11,7 +11,7 @@ export function magicImport<T = any>(moduleId: string): T {
 }
 
 export function clearConsole() {
-  if (process.stdin.isTTY) {
+  if (process.stdout.isTTY) {
     process.stdout.write(
       process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H',
     );
@@ -90,11 +90,11 @@ export function createFileHash(path: string) {
 }
 
 export function initCli() {
-  if (!process.stdin.isTTY) return;
+  if (!process.stdout.isTTY) return;
 
-  process.stdin.write('\u001B[?25l');
+  process.stdout.write('\u001B[?25l');
   function restoreCursor() {
-    process.stdin.write('\u001B[?25h');
+    process.stdout.write('\u001B[?25h');
     process.exit(0);
   }
   ['SIGINT', 'SIGTERM', 'exit'].map(event => {
