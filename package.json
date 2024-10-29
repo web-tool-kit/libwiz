@@ -1,5 +1,5 @@
 {
-  "name": "libwiz-core",
+  "name": "libwiz",
   "private": true,
   "version": "0.0.2",
   "description": "Quick library build tool",
