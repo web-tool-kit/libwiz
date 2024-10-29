@@ -1,6 +1,7 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
+import ps from 'picocolors';
 import ts, { ParsedCommandLine } from 'typescript';
 import { log, clearLine, removeBuildInfoFiles } from '../utils';
 import { getConfig } from '../config';
@@ -89,7 +90,7 @@ function compileDTS() {
           diagnostic.start,
         );
         const filePath = path.relative(process.cwd(), diagnostic.file.fileName);
-        const fileKey = `${filePath}:${line + 1}`;
+        const fileKey = `${filePath}${ps.gray(`:${line + 1}`)}`;
         fileErrorCount.set(fileKey, (fileErrorCount.get(fileKey) || 0) + 1);
       }
     });
@@ -109,6 +110,7 @@ function compileDTS() {
       log.newline();
       log.raw(`     ${count}  ${fileKey}`);
     });
+    log.newline();
     process.exit(1);
   }
 }
