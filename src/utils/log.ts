@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 import { isMainThread, parentPort } from 'node:worker_threads';
 
-const isTTY = process.stdin.isTTY;
+const isTTY = process.stdout.isTTY;
 
 export function print(msg: string) {
   if (isMainThread) {
@@ -70,7 +70,7 @@ export const log = {
 
 export function clearLine() {
   if (isMainThread) {
-    if (process.stdout.isTTY) {
+    if (isTTY) {
       process.stdout.clearLine(0);
       process.stdout.cursorTo(0);
     } else {
