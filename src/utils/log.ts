@@ -60,6 +60,12 @@ export const log = {
   progress: (msg: string) => {
     print(`${pc.green('○')} ${msg}`);
   },
+  raw: (msg: string) => {
+    print(msg);
+  },
+  newline: () => {
+    print('\n');
+  },
 };
 
 export function clearLine() {

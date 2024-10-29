@@ -15,10 +15,11 @@ export function transformFile(
     comments: Boolean(options.comments),
     configFile: false,
   });
-  return {
-    map: JSON.stringify(transformedCode.map),
-    code: transformedCode.code,
-  };
+  const output: TranspileOutput = { code: transformedCode.code };
+  if (transformedCode.map) {
+    output.map = JSON.stringify(transformedCode.map);
+  }
+  return output;
 }
 
 export default transformFile;

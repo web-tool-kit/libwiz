@@ -5,6 +5,12 @@ import ts, { ParsedCommandLine } from 'typescript';
 import { log, clearLine, removeBuildInfoFiles } from '../utils';
 import { getConfig } from '../config';
 
+const formatHost = {
+  getCanonicalFileName: (path: string) => path,
+  getCurrentDirectory: ts.sys.getCurrentDirectory,
+  getNewLine: () => ts.sys.newLine,
+};
+
 function getParsedTSConfig() {
   const { tsConfig } = getConfig();
   const configFileText = fse.readFileSync(tsConfig, 'utf8');
@@ -68,24 +74,40 @@ function compileDTS() {
     .concat(emitResult.diagnostics);
 
   if (allDiagnostics.length > 0) {
+    clearLine();
+    log.error(
+      'Build process halted due to type errors. Please address the issues listed below to proceed with the build.',
+    );
+    log.newline();
+    log.newline();
+
+    const fileErrorCount = new Map();
+
     allDiagnostics.forEach(diagnostic => {
       if (diagnostic.file) {
-        const { line, character } =
-          diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-        const message = ts.flattenDiagnosticMessageText(
-          diagnostic.messageText,
-          '\n',
+        const { line } = diagnostic.file.getLineAndCharacterOfPosition(
+          diagnostic.start,
         );
-        console.error(
-          `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`,
-        );
-      } else {
-        const message = ts.flattenDiagnosticMessageText(
-          diagnostic.messageText,
-          '\n',
-        );
-        console.error(message);
+        const filePath = path.relative(process.cwd(), diagnostic.file.fileName);
+        const fileKey = `${filePath}:${line + 1}`;
+        fileErrorCount.set(fileKey, (fileErrorCount.get(fileKey) || 0) + 1);
       }
+    });
+
+    const totalErrors = allDiagnostics.length;
+    const totalFiles = fileErrorCount.size;
+
+    log.raw(
+      ts.formatDiagnosticsWithColorAndContext(allDiagnostics, formatHost),
+    );
+    log.newline();
+
+    log.raw(`\nFound ${totalErrors} errors in ${totalFiles} files.\n\n`);
+    log.raw(`Errors  Files`);
+
+    fileErrorCount.forEach((count, fileKey) => {
+      log.newline();
+      log.raw(`     ${count}  ${fileKey}`);
     });
     process.exit(1);
   }

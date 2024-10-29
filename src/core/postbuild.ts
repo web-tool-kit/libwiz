@@ -53,7 +53,7 @@ export async function copyRequiredFiles() {
 }
 
 async function postbuild() {
-  const { root, assets, srcPath, buildPath } = getConfig();
+  const { root, srcPath, buildPath } = getConfig();
 
   /**
    * Following function help to move project files like
