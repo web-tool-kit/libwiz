@@ -34,39 +34,6 @@ export async function sequential(fxnArr: (unknown | Promise<unknown>)[]) {
   return results;
 }
 
-export type TrackProgressCallback = (progress: {
-  completed: number;
-  total: number;
-  percentage: string;
-}) => void;
-
-export function trackProgress<T>(
-  promises: Promise<T>[],
-  progressCallback?: TrackProgressCallback,
-): Promise<T[]> {
-  if (typeof progressCallback !== 'function') {
-    return Promise.all(promises);
-  }
-
-  const total = promises.length;
-  let completed = 0;
-
-  progressCallback({ completed, total, percentage: '0' });
-
-  return Promise.all(
-    promises.map(
-      p =>
-        new Promise<T>((resolve, reject) => {
-          p.then(resolve, reject).finally(() => {
-            completed += 1;
-            const percentage = ((completed / total) * 100).toFixed(2);
-            progressCallback({ completed, total, percentage });
-          });
-        }),
-    ),
-  );
-}
-
 export function debounce<T extends (...args: readonly unknown[]) => unknown>(
   func: T,
   timeout = 400,

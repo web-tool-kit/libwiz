@@ -4,12 +4,12 @@ import type { TranspileOptions, TranspileOutput } from '../../types';
 
 const babel = magicImport<typeof import('@babel/core')>('@babel/core');
 
-export function transformFile(
+export async function transformFileAsync(
   sourceFile: string,
   options: TranspileOptions,
-): TranspileOutput {
+): Promise<TranspileOutput> {
   const babelConfig = useBabelConfig({ env: options.env });
-  const transformedCode = babel.transformFileSync(sourceFile, {
+  const transformedCode = await babel.transformFileAsync(sourceFile, {
     ...babelConfig,
     sourceMaps: Boolean(options.sourceMaps),
     comments: Boolean(options.comments),
@@ -22,4 +22,4 @@ export function transformFile(
   return output;
 }
 
-export default transformFile;
+export default transformFileAsync;

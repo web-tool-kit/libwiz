@@ -4,11 +4,24 @@ import * as babel from './babel';
 import { getConfig } from '../config';
 import type { ModuleConfig, Bundles, TranspileOutput } from '../types';
 
+export type ProgressCallback = ({
+  completed,
+  target,
+}: {
+  completed: number;
+  target: Bundles;
+}) => void;
+
 export const transformFilesAsync = async (
   target: Bundles,
   sourceFiles: string[],
+  progress: ProgressCallback,
 ) => {
   const { lib, srcPath, buildPath, transpile } = getConfig();
+
+  function callbackProgress(completed: number) {
+    return progress({ completed, target });
+  }
 
   let moduleConfig: ModuleConfig = null;
   let outPath = './';
@@ -29,57 +42,54 @@ export const transformFilesAsync = async (
 
   const opsAsync: Promise<unknown>[] = [];
 
+  // set initial progress 0
+  callbackProgress(0);
+
   for (let i = 0; i < sourceFiles.length; i++) {
-    // files relative paths
-    const sourceFileRelPath = sourceFiles[i];
-    const outputFileRelPath = sourceFiles[i].replace(/\.tsx?/, '.js');
+    try {
+      // files relative paths
+      const sourceFileRelPath = sourceFiles[i];
+      const outputFileRelPath = sourceFiles[i].replace(/\.tsx?/, '.js');
 
-    // files absolute paths
-    const sourceFileAbsPath = path.resolve(srcPath, sourceFileRelPath);
-    const outputFileAbsPath = path.resolve(outDir, outputFileRelPath);
+      // files absolute paths
+      const sourceFileAbsPath = path.resolve(srcPath, sourceFileRelPath);
+      const outputFileAbsPath = path.resolve(outDir, outputFileRelPath);
 
-    if (!fse.existsSync(sourceFileAbsPath)) {
-      fse.removeSync(path.resolve(outDir, sourceFiles[i]));
-      continue;
-    }
+      if (!fse.existsSync(sourceFileAbsPath)) {
+        fse.removeSync(path.resolve(outDir, sourceFiles[i]));
+        callbackProgress(i + 1);
+        continue;
+      }
 
-    const options = {
-      env: target,
-      sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
-      comments: Boolean(moduleConfig?.output?.comments),
-    };
+      const options = {
+        env: target,
+        sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
+        comments: Boolean(moduleConfig?.output?.comments),
+      };
 
-    opsAsync.push(
-      new Promise<void>(async (resolve, reject) => {
-        try {
-          let output: TranspileOutput;
-          if (typeof transpile === 'function') {
-            const code = fse.readFileSync(sourceFileAbsPath, 'utf8');
-            const tmp = await transpile(code, options);
-            if (tmp && tmp.code) {
-              output = { code: tmp.code, map: tmp.map };
-            }
-          }
-
-          if (!output) {
-            output = babel.transformFile(sourceFileAbsPath, options);
-          }
-
-          if (output.map) {
-            output.code += `\n//# sourceMappingURL=${outputFileRelPath}.map`;
-          }
-
-          fse.outputFileSync(outputFileAbsPath, output.code || '');
-
-          if (output.map) {
-            fse.outputFileSync(`${outputFileAbsPath}.map`, output.map);
-          }
-          resolve();
-        } catch (err) {
-          reject(err);
+      let output: TranspileOutput;
+      if (typeof transpile === 'function') {
+        const code = fse.readFileSync(sourceFileAbsPath, 'utf8');
+        const tmp = await transpile(code, options);
+        if (tmp && tmp.code) {
+          output = { code: tmp.code, map: tmp.map };
         }
-      }),
-    );
+      }
+
+      if (!output) {
+        output = await babel.transformFileAsync(sourceFileAbsPath, options);
+      }
+
+      if (output.map) {
+        output.code += `\n//# sourceMappingURL=${outputFileAbsPath}.map`;
+        fse.outputFileSync(`${outputFileAbsPath}.map`, output.map);
+      }
+      fse.outputFileSync(outputFileAbsPath, output.code);
+    } catch (error) {
+      console.error(error);
+      process.exit(1);
+    }
+    callbackProgress(i + 1);
   }
 
   return opsAsync;

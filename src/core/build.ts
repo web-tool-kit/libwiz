@@ -1,7 +1,6 @@
 import glob from 'fast-glob';
 import transformFilesAsync from '../transpiler';
 import createProgressLoader from '../utils/loader';
-import { trackProgress } from '../utils';
 import { getConfig } from '../config';
 import type { Bundles } from '../types';
 
@@ -32,10 +31,15 @@ async function build() {
   const loader = createProgressLoader(sourceFiles.length);
   loader.updateProgressText('Building library...');
 
+  let i = 0;
   async function runBuildProcess(target: Bundles) {
-    const transpiles = await transformFilesAsync(target, sourceFiles);
-    if (!transpiles.length) return;
-    await trackProgress(transpiles, ({ completed }) => {
+    await transformFilesAsync(target, sourceFiles, ({ completed }) => {
+      // Edge case: When modern and common builds run concurrently,
+      // one build may complete steps ahead of the other. This check
+      // prevents reducing the progress bar if a later callback reports
+      // less progress than a previous one.
+      if (i > completed) return;
+      i = completed;
       loader.track(completed);
     });
   }
