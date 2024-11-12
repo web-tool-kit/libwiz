@@ -1,10 +1,14 @@
 import pc from 'picocolors';
-import { TransformOptions } from '@babel/core';
+import type { TransformOptions } from '@babel/core';
 import { z } from 'zod';
 import { log } from '../utils';
-import { TranspileOutput, TranspileOptions } from '../types';
+import type { TranspileOutput, TranspileOptions } from '../types';
 
 export type Bundles = 'modern' | 'common';
+
+const VALID_BUNDLE_ENUM = z
+  .enum(['modern', 'common'])
+  .describe('Valid bundle types');
 
 export interface ModuleConfig {
   output?: {
@@ -12,42 +16,6 @@ export interface ModuleConfig {
     sourceMap?: boolean;
   };
 }
-
-export interface LibConfig {
-  esm?: ModuleConfig;
-  cjs?: ModuleConfig;
-}
-
-export type Config = Partial<{
-  debug: boolean;
-  root: string;
-  srcPath: string;
-  buildPath: string;
-  workspace: string;
-  tsConfig: string;
-  extensions: string[];
-  ignore: string[];
-  lib: LibConfig;
-  target: Bundles | Bundles[];
-  babel: Partial<{
-    runtime: boolean;
-    react: {
-      runtime: 'classic' | 'automatic';
-    };
-    presets: TransformOptions['presets'];
-    plugins: TransformOptions['plugins'];
-    browsers: string | string[];
-  }>;
-  assets: string | string[] | null;
-  transpile: (
-    code: string,
-    option: TranspileOptions,
-  ) => Promise<TranspileOutput | void>;
-}>;
-
-const VALID_BUNDLE_ENUM = z
-  .enum(['modern', 'common'])
-  .describe('Valid bundle types');
 
 export const ModuleConfigSchema = z
   .object({
@@ -66,6 +34,11 @@ export const ModuleConfigSchema = z
   .optional()
   .describe('Module configuration');
 
+export interface LibConfig {
+  esm?: ModuleConfig;
+  cjs?: ModuleConfig;
+}
+
 export const LibConfigSchema = z
   .object({
     esm: ModuleConfigSchema.describe('ESM module configuration'),
@@ -75,15 +48,60 @@ export const LibConfigSchema = z
   .optional()
   .describe('Library configuration');
 
-const BabelOverrideSchema = z
+export interface LibwizReactConfig {
+  pragma: string;
+  pragmaFrag: string;
+  throwIfNamespace?: boolean;
+  useBuiltins?: boolean;
+  runtime?: 'classic' | 'automatic';
+  importSource?: string;
+}
+
+const LibwizReactConfigSchema = z
   .object({
-    exclude: z
-      .instanceof(RegExp)
-      .describe('Regular expression to exclude files'),
-    plugins: z.array(z.string()).describe('Array of Babel plugins'),
+    pragma: z.string().optional().describe('React pragma for JSX'),
+    pragmaFrag: z.string().optional().describe('React pragma for fragment'),
+    throwIfNamespace: z
+      .boolean()
+      .optional()
+      .describe('Throw if namespace is used in JSX'),
+    useBuiltins: z
+      .boolean()
+      .optional()
+      .describe('Enable built-in runtime optimizations'),
+    runtime: z
+      .enum(['classic', 'automatic'])
+      .optional()
+      .describe('React runtime mode'),
+    importSource: z.string().optional().describe('React import source'),
   })
-  .strict()
-  .describe('Babel override configuration');
+  .optional()
+  .describe('React config for transpile');
+
+export type Config = Partial<{
+  debug: boolean;
+  root: string;
+  srcPath: string;
+  buildPath: string;
+  workspace: string;
+  tsConfig: string;
+  extensions: string[];
+  ignore: string[];
+  lib: LibConfig;
+  target: Bundles | Bundles[];
+  assets: string | string[] | null;
+  customTranspiler: (
+    code: string,
+    option: TranspileOptions,
+  ) => Promise<TranspileOutput | void>;
+  compiler: Partial<{
+    tool: 'babel';
+    react: Partial<LibwizReactConfig>;
+    presets: TransformOptions['presets'];
+    plugins: TransformOptions['plugins'];
+    browsers: string | string[];
+  }>;
+}>;
 
 const PluginAndPresetSchema = z.union([
   z.string().describe('Plugin or preset name'),
@@ -92,43 +110,34 @@ const PluginAndPresetSchema = z.union([
     .describe('Plugin or preset with options'),
 ]);
 
-const BabelConfigSchema = z
+const CompilerSchema = z
   .object({
-    runtime: z.boolean().optional().describe('Use Babel runtime'),
-    react: z
-      .object({
-        runtime: z
-          .enum(['classic', 'automatic'])
-          .describe('React runtime mode'),
-      })
-      .optional()
-      .describe('React configuration'),
+    tool: z.enum(['babel']).optional().describe('Compiler tool'),
+    react: LibwizReactConfigSchema.optional().describe(
+      'React specific configuration',
+    ),
     presets: z
       .array(PluginAndPresetSchema)
       .optional()
-      .describe('Babel presets'),
+      .describe('Compiler presets'),
     plugins: z
       .array(PluginAndPresetSchema)
       .optional()
-      .describe('Babel plugins'),
+      .describe('Compiler plugins'),
     browsers: z
       .union([z.string(), z.array(z.string())])
       .optional()
-      .describe('Target browsers'),
-    overrides: z
-      .array(BabelOverrideSchema)
-      .optional()
-      .describe('Babel overrides'),
+      .describe('Target browsers for compilation'),
   })
   .strict();
 
-const TranspileOptionsSchema = z.object({
+const CustomTranspileOptionsSchema = z.object({
   env: VALID_BUNDLE_ENUM,
   sourceMaps: z.boolean(),
   comments: z.boolean(),
 });
 
-const TranspileOutputSchema = z.object({
+const CustomTranspileOutputSchema = z.object({
   code: z.string(),
   map: z.string().optional(),
 });
@@ -154,17 +163,17 @@ export const ConfigSchema = z
       .union([VALID_BUNDLE_ENUM, z.array(VALID_BUNDLE_ENUM)])
       .optional()
       .describe('Build targets'),
-    babel: BabelConfigSchema.optional(),
     assets: z
       .union([z.string(), z.array(z.string()), z.null()])
       .optional()
       .describe('Assets to include'),
-    transpile: z
+    customTranspiler: z
       .function()
-      .args(z.string(), TranspileOptionsSchema)
-      .returns(z.promise(z.union([TranspileOutputSchema, z.void()])))
+      .args(z.string(), CustomTranspileOptionsSchema)
+      .returns(z.promise(z.union([CustomTranspileOutputSchema, z.void()])))
       .optional()
       .describe('Custom transpile function'),
+    compiler: CompilerSchema.optional().describe('Compiler configuration'),
   })
   .strict();
 

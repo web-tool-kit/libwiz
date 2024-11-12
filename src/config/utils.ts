@@ -76,3 +76,21 @@ export function invalidValueTypeError(
   );
   process.exit(1);
 }
+
+export function getBrowserslistConfig(root: string): string | string[] {
+  if (fse.existsSync(path.resolve(root, 'package.json'))) {
+    const pkg = fse.readJSONSync(path.resolve(root, 'package.json'));
+    if (pkg.browserslist) {
+      return pkg.browserslist;
+    }
+  }
+  return [
+    'last 2 Chrome versions',
+    'last 2 Firefox versions',
+    'last 2 Safari versions',
+    'last 2 iOS versions',
+    'last 1 Android version',
+    'last 1 ChromeAndroid version',
+    'ie 11',
+  ];
+}

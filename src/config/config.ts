@@ -6,6 +6,7 @@ import {
   getConfigPath,
   invalidTypeError,
   invalidValueTypeError,
+  getBrowserslistConfig,
 } from './utils';
 import { validateConfigSchema } from './schema';
 import store from './store';
@@ -42,12 +43,15 @@ export function initConfig(localConfig?: Config): Config {
         },
       },
     },
-    transpile: null,
-    babel: {
-      runtime: true,
+    customTranspiler: null,
+    compiler: {
+      tool: 'babel',
       react: {
         runtime: 'automatic',
       },
+      plugins: [],
+      presets: [],
+      browsers: getBrowserslistConfig(root),
     },
   };
 

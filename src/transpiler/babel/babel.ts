@@ -8,9 +8,10 @@ export async function transformFileAsync(
   sourceFile: string,
   options: TranspileOptions,
 ): Promise<TranspileOutput> {
-  const babelConfig = useBabelConfig({ env: options.env });
+  const babelConfig = useBabelConfig();
   const transformedCode = await babel.transformFileAsync(sourceFile, {
     ...babelConfig,
+    envName: options.env,
     sourceMaps: Boolean(options.sourceMaps),
     comments: Boolean(options.comments),
     configFile: false,

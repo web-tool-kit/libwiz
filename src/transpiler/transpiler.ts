@@ -17,7 +17,7 @@ export const transformFilesAsync = async (
   sourceFiles: string[],
   progress: ProgressCallback,
 ) => {
-  const { lib, srcPath, buildPath, transpile } = getConfig();
+  const { lib, srcPath, buildPath, customTranspiler } = getConfig();
 
   function callbackProgress(completed: number) {
     return progress({ completed, target });
@@ -68,9 +68,9 @@ export const transformFilesAsync = async (
       };
 
       let output: TranspileOutput;
-      if (typeof transpile === 'function') {
+      if (typeof customTranspiler === 'function') {
         const code = fse.readFileSync(sourceFileAbsPath, 'utf8');
-        const tmp = await transpile(code, options);
+        const tmp = await customTranspiler(code, options);
         if (tmp && tmp.code) {
           output = { code: tmp.code, map: tmp.map };
         }

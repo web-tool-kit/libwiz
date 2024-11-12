@@ -4,7 +4,7 @@ import path from 'node:path';
 import fse from 'fs-extra';
 import generateSchema from './generate-schema.mjs';
 
-async function postbuild() {
+async function postBuild() {
   const currentDirectory = url.fileURLToPath(new URL('.', import.meta.url));
   const sourcePath = path.resolve(currentDirectory, '../');
   const distPath = path.resolve(sourcePath, 'dist');
@@ -48,4 +48,4 @@ async function postbuild() {
   await generateSchema(distPath);
 }
 
-postbuild();
+postBuild();
