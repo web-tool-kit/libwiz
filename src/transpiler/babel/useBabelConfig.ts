@@ -84,7 +84,7 @@ const getDefaultBabelConfig = (): TransformOptions => {
   ];
 
   const env: TransformOptions['env'] = {
-    modern: /* ESM */ {
+    esm: {
       presets: [
         [
           magicImport('@babel/preset-env', { root, workspace }),
@@ -99,7 +99,7 @@ const getDefaultBabelConfig = (): TransformOptions => {
         ],
       ],
     },
-    common: /* CJS */ {
+    cjs: {
       presets: [
         [
           magicImport('@babel/preset-env', { root, workspace }),

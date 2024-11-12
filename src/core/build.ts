@@ -34,7 +34,7 @@ async function build() {
   let i = 0;
   async function runBuildProcess(target: Bundles) {
     await transformFilesAsync(target, sourceFiles, ({ completed }) => {
-      // Edge case: When modern and common builds run concurrently,
+      // Edge case: When esm and cjs builds run concurrently,
       // one build may complete steps ahead of the other. This check
       // prevents reducing the progress bar if a later callback reports
       // less progress than a previous one.
@@ -57,7 +57,7 @@ async function build() {
       }
     } else {
       await Promise.all(
-        (['modern', 'common'] as Bundles[]).map(target => {
+        (['esm', 'cjs'] as Bundles[]).map(target => {
           return runBuildProcess(target);
         }),
       );

@@ -4,11 +4,9 @@ import { z } from 'zod';
 import { log } from '../utils';
 import type { TranspileOutput, TranspileOptions } from '../types';
 
-export type Bundles = 'modern' | 'common';
+export type Bundles = 'esm' | 'cjs';
 
-const VALID_BUNDLE_ENUM = z
-  .enum(['modern', 'common'])
-  .describe('Valid bundle types');
+const VALID_BUNDLE_ENUM = z.enum(['esm', 'cjs']).describe('Valid bundle types');
 
 export interface ModuleConfig {
   output?: {

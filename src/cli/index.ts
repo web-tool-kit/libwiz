@@ -22,7 +22,7 @@ const argv = yargs(hideBin(process.argv))
   .strict()
 
   // target will be used if you want to generate build for
-  // specific case like commonjs (cjs) or modernjs (esm)
+  // specific case like cjs or esm
   .option('target', { type: 'string' })
 
   // source dir, default it will be src

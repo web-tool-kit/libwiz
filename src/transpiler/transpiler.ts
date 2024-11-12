@@ -26,10 +26,10 @@ export const transformFilesAsync = async (
   let moduleConfig: ModuleConfig = null;
   let outPath = './';
 
-  if (target === 'common') {
+  if (target === 'cjs') {
     moduleConfig = lib.cjs;
     outPath = './cjs';
-  } else if (target === 'modern') {
+  } else if (target === 'esm') {
     moduleConfig = lib.esm;
   }
 
