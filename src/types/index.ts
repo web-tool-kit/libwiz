@@ -6,7 +6,6 @@ export interface CliProps {
   build: boolean;
   types: boolean;
   watch: boolean;
-  prebuild: boolean;
   sourceMaps: boolean;
   srcDir: string;
   outDir: string;

@@ -2,12 +2,12 @@ import { getConfig } from '../config';
 import prebuildRun from '../core/prebuild';
 import buildRun from '../core/build';
 import typesRun from '../core/types';
-import postbuild from '../core/postbuild';
+import postBuild from '../core/postbuild';
 import type { CliProps } from '../types';
 
 async function run(argv: CliProps) {
   const config = getConfig();
-  const { build, types, watch, prebuild } = argv;
+  const { build, types, watch } = argv;
 
   // setup env before build start
   // production/devlopment can be there
@@ -27,9 +27,7 @@ async function run(argv: CliProps) {
     return;
   }
 
-  if (prebuild) {
-    await prebuildRun();
-  }
+  await prebuildRun();
 
   if (build) {
     await buildRun();
@@ -44,7 +42,7 @@ async function run(argv: CliProps) {
     }
   }
 
-  await postbuild();
+  await postBuild();
 }
 
 export default run;

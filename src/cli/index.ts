@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { resolve } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import { initCli } from '../utils';
@@ -9,7 +9,7 @@ import type { CliProps } from '../types';
 
 function getPackageVersion() {
   try {
-    const packageJsonPath = join(__dirname, './package.json');
+    const packageJsonPath = resolve(__dirname, '../package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
     return packageJson.version;
   } catch (e) {}
@@ -37,12 +37,6 @@ const argv = yargs(hideBin(process.argv))
   .option('types', {
     default: false,
     describe: 'To generate types definitions',
-    type: 'boolean',
-  })
-
-  .option('prebuild', {
-    default: false,
-    describe: 'To run prebuild steps',
     type: 'boolean',
   })
 
