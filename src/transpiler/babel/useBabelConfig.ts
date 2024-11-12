@@ -3,10 +3,11 @@ import { getConfig } from '../../config';
 import { magicImport, isPlainObject } from '../../utils';
 
 function resolvePluginPresets(moduleId: string, options = {}) {
+  const { root, workspace } = getConfig();
   if (options && Object.keys(options).length) {
-    return [magicImport(moduleId), { ...options }];
+    return [magicImport(moduleId, { root, workspace }), { ...options }];
   }
-  return magicImport(moduleId);
+  return magicImport(moduleId, { root, workspace });
 }
 
 const getPluginConfig = () => {
@@ -41,7 +42,7 @@ const getPluginConfig = () => {
 };
 
 const getDefaultBabelConfig = (): TransformOptions => {
-  const { compiler, ignore } = getConfig();
+  const { compiler, ignore, root, workspace } = getConfig();
 
   const rootPresetConfigMap: Record<string, any> = {
     presetEnv: {},
@@ -86,7 +87,7 @@ const getDefaultBabelConfig = (): TransformOptions => {
     modern: /* ESM */ {
       presets: [
         [
-          magicImport('@babel/preset-env'),
+          magicImport('@babel/preset-env', { root, workspace }),
           {
             ...rootPresetConfigMap.presetEnv,
             modules: false,
@@ -101,7 +102,7 @@ const getDefaultBabelConfig = (): TransformOptions => {
     common: /* CJS */ {
       presets: [
         [
-          magicImport('@babel/preset-env'),
+          magicImport('@babel/preset-env', { root, workspace }),
           {
             ...rootPresetConfigMap.presetEnv,
             modules: 'commonjs',
