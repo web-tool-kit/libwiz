@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
+import type { EnvConfig } from '@swc/types';
 import { log, mergeDeep } from '../utils';
 import type { Config, PluginApi, InternalConfig } from '../types';
 
@@ -77,22 +78,22 @@ export function invalidValueTypeError(
   process.exit(1);
 }
 
-export function getBrowserslistConfig(root: string): string | string[] {
+export function getBrowserslistConfig(root: string) {
+  const browsersList = {} as Partial<
+    Record<'env' | 'packageJSON' | 'path', EnvConfig['targets']>
+  >;
   if (fse.existsSync(path.resolve(root, 'package.json'))) {
     const pkg = fse.readJSONSync(path.resolve(root, 'package.json'));
     if (pkg.browserslist) {
-      return pkg.browserslist;
+      browsersList.packageJSON = pkg.browserslist;
     }
   }
-  return [
-    'last 2 Chrome versions',
-    'last 2 Firefox versions',
-    'last 2 Safari versions',
-    'last 2 iOS versions',
-    'last 1 Android version',
-    'last 1 ChromeAndroid version',
-    'ie 11',
-  ];
+  const configPath = path.resolve(root, `./.browserslistrc`);
+  if (fse.existsSync(configPath)) {
+    browsersList.path = configPath;
+  }
+  browsersList.env = process.env.BROWSERSLIST;
+  return browsersList;
 }
 
 export function setupAndRegisterBuildApi(config: InternalConfig) {

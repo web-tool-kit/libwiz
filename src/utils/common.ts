@@ -3,7 +3,9 @@ import crypto from 'node:crypto';
 import resolveFrom from 'resolve-from';
 import type { Config } from '../types';
 
-export function magicImport<T = any>(
+// this function use to resolve is module from client project
+// this will resolve from root firt first and then workspace
+export function magicImportClient<T = any>(
   moduleId: string,
   options: Pick<Config, 'root' | 'workspace'> = {},
 ): T {
@@ -12,10 +14,23 @@ export function magicImport<T = any>(
   if (fromProject) {
     return require(fromProject) as T;
   } else if (workspace) {
-    const fromWorkspace = resolveFrom.silent(root, moduleId);
+    const fromWorkspace = resolveFrom.silent(workspace, moduleId);
     if (fromWorkspace) {
       return require(fromWorkspace) as T;
     }
+  }
+  return null;
+}
+
+// this function use to resolve is module from client project and
+// libwiz default it will fall to libwiz
+export function magicImport<T = any>(
+  moduleId: string,
+  options: Pick<Config, 'root' | 'workspace'> = {},
+): T {
+  const module = magicImportClient<T>(moduleId, options);
+  if (module) {
+    return module as T;
   }
   return require(moduleId) as T;
 }

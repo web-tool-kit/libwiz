@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import { log, mergeDeep } from '../utils';
+import { log, mergeDeep, isPlainObject } from '../utils';
 import {
   getTSConfigPath,
   getConfigPath,
@@ -208,15 +208,27 @@ export function initConfig(localConfig?: Config): InternalConfig {
     }
   }
 
+  // delete SWC env if empty and no target
+  if (
+    !config?.tools?.swc?.jsc?.target &&
+    isPlainObject(config.tools?.swc?.env) &&
+    Object.keys(config.tools.swc.env).length === 0
+  ) {
+    delete config.tools.swc.env;
+  }
+
+  if (config.tools?.swc?.env && config?.tools?.swc?.jsc?.target) {
+    log.error('`env` and `jsc.target` cannot be used together');
+    process.exit(1);
+  }
+
   // this method used to register all api with plugins and
   // initialize all actions
   const setup = setupAndRegisterBuildApi(config);
   const updatedConfig = setup();
 
-  console.log(JSON.stringify(updatedConfig, null, 2));
-
-  store.setConfig(config);
-  return config as Config;
+  store.setConfig(updatedConfig);
+  return updatedConfig as Config;
 }
 
 export const getConfig = (localConfig?: Config) => {

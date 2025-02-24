@@ -1,6 +1,6 @@
 import type { Options as SwcOptions } from '@swc/types';
-import { getConfig } from '../../config';
 import type { TranspileOptions } from '../../types';
+import { getConfig, getBrowserslistConfig } from '../../config';
 
 const getDefaultSwcConfig = () => {
   const { mode } = getConfig();
@@ -34,7 +34,7 @@ const getDefaultSwcConfig = () => {
 };
 
 const useSwcConfig = (options: TranspileOptions) => {
-  const { tools } = getConfig();
+  const { root, tools } = getConfig();
   const defaultConfig = getDefaultSwcConfig();
   const toolConfig = tools.swc || {};
 
@@ -60,6 +60,31 @@ const useSwcConfig = (options: TranspileOptions) => {
     },
     sourceMaps: options.sourceMaps,
   };
+
+  let hasBrowserList = false;
+  if (!toolConfig.env && !toolConfig.jsc.target) {
+    swcConfig.env ||= {};
+    // handle browserlist config in case jsc target not handle by library
+    const browsersListConfig = getBrowserslistConfig(root);
+    console.log(browsersListConfig, 'browsersListConfig');
+
+    if (browsersListConfig.env) {
+      swcConfig.env.targets = browsersListConfig.env;
+      hasBrowserList = true;
+    } else if (browsersListConfig.path) {
+      swcConfig.env.path = browsersListConfig.path;
+      hasBrowserList = true;
+    } else if (browsersListConfig.packageJSON) {
+      swcConfig.env.targets = browsersListConfig.packageJSON;
+      hasBrowserList = true;
+    }
+  }
+
+  // in case env exist or browsersListConfig exist by library then target can't be used
+  // as target and env both can not be used together in SWC
+  if (toolConfig.env || hasBrowserList) {
+    delete swcConfig.jsc.target;
+  }
 
   if (options.bundle === 'esm') {
     swcConfig.module.type = 'es6';
