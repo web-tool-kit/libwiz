@@ -7,19 +7,20 @@ import {
   invalidTypeError,
   invalidValueTypeError,
   getBrowserslistConfig,
+  setupAndRegisterBuildApi,
 } from './utils';
 import { validateConfigSchema } from './schema';
 import store from './store';
-import type { Config } from '../types';
+import type { Config, InternalConfig } from '../types';
 
-export function initConfig(localConfig?: Config): Config {
+export function initConfig(localConfig?: Config): InternalConfig {
   const root = process.cwd();
 
   if (localConfig) {
     validateConfigSchema(localConfig);
   }
 
-  const config: Config = {
+  const config: InternalConfig = {
     debug: Boolean(process.env.DEBUG_MODE),
     ignore: [
       '**/*.test.js',
@@ -44,15 +45,8 @@ export function initConfig(localConfig?: Config): Config {
       },
     },
     customTranspiler: null,
-    compiler: {
-      tool: 'babel',
-      react: {
-        runtime: 'automatic',
-      },
-      plugins: [],
-      presets: [],
-      browsers: getBrowserslistConfig(root),
-    },
+    plugins: [],
+    tools: {},
   };
 
   // merge localConfig with config
@@ -205,6 +199,21 @@ export function initConfig(localConfig?: Config): Config {
   } else {
     config.buildPath = path.resolve(root, './dist');
   }
+
+  if (!config.mode) {
+    if (process.env.NODE_ENV === 'development') {
+      config.mode = 'development';
+    } else if (process.env.NODE_ENV === 'production') {
+      config.mode = 'production';
+    }
+  }
+
+  // this method used to register all api with plugins and
+  // initialize all actions
+  const setup = setupAndRegisterBuildApi(config);
+  const updatedConfig = setup();
+
+  console.log(JSON.stringify(updatedConfig, null, 2));
 
   store.setConfig(config);
   return config as Config;

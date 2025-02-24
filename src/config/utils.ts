@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import { log } from '../utils';
-import type { Config } from '../types';
+import { log, mergeDeep } from '../utils';
+import type { Config, PluginApi, InternalConfig } from '../types';
 
 export const PACKAGE_NAME = 'libwiz';
 
@@ -93,4 +93,20 @@ export function getBrowserslistConfig(root: string): string | string[] {
     'last 1 ChromeAndroid version',
     'ie 11',
   ];
+}
+
+export function setupAndRegisterBuildApi(config: InternalConfig) {
+  const api: PluginApi = {
+    getConfig: () => config,
+    modifyConfig: (newConfig: Config) => mergeDeep(config, newConfig),
+    isDev: config.mode === 'development',
+    isProd: config.mode === 'production',
+  };
+
+  return () => {
+    config.plugins?.filter(Boolean).forEach(plugin => {
+      plugin.setup(api);
+    });
+    return config;
+  };
 }

@@ -28,6 +28,7 @@
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.25.9",
     "@babel/preset-typescript": "^7.26.0",
+    "@swc/core": "^1.10.18",
     "chokidar": "^3.6.0",
     "clone-deep": "^4.0.1",
     "fast-glob": "^3.3.2",
@@ -39,6 +40,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@swc/types": "^0.1.17",
     "@types/babel__core": "^7.20.5",
     "@types/clone-deep": "^4.0.4",
     "@types/fs-extra": "^11.0.4",

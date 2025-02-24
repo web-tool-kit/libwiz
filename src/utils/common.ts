@@ -83,7 +83,7 @@ export function isPlainObject(item: unknown) {
   return item && typeof item === 'object' && !Array.isArray(item);
 }
 
-export function mergeDeep(
+export function mergeDeep<T extends Record<string, any>>(
   target: Record<string, any>,
   source: Record<string, any>,
 ) {
@@ -99,4 +99,5 @@ export function mergeDeep(
       }
     }
   }
+  return target as T;
 }

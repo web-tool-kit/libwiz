@@ -1,8 +1,9 @@
 import pc from 'picocolors';
-import type { TransformOptions } from '@babel/core';
 import { z } from 'zod';
+import type { Config as SwcConfig, ReactConfig } from '@swc/types';
+import type { TransformOptions } from '@babel/core';
 import { log } from '../utils';
-import type { TranspileOutput, TranspileOptions } from '../types';
+import type { TranspileOutput, TranspileOptions, LibwizPlugin } from '../types';
 
 export type Bundles = 'esm' | 'cjs';
 
@@ -46,14 +47,7 @@ export const LibConfigSchema = z
   .optional()
   .describe('Library configuration');
 
-export interface LibwizReactConfig {
-  pragma: string;
-  pragmaFrag: string;
-  throwIfNamespace?: boolean;
-  useBuiltins?: boolean;
-  runtime?: 'classic' | 'automatic';
-  importSource?: string;
-}
+export interface LibwizReactConfig extends ReactConfig {}
 
 const LibwizReactConfigSchema = z
   .object({
@@ -67,6 +61,10 @@ const LibwizReactConfigSchema = z
       .boolean()
       .optional()
       .describe('Enable built-in runtime optimizations'),
+    development: z
+      .boolean()
+      .optional()
+      .describe('Used to build in development mode, default its `false`'),
     runtime: z
       .enum(['classic', 'automatic'])
       .optional()
@@ -78,6 +76,7 @@ const LibwizReactConfigSchema = z
 
 export type Config = Partial<{
   debug: boolean;
+  mode: 'development' | 'production';
   root: string;
   srcPath: string;
   buildPath: string;
@@ -92,12 +91,9 @@ export type Config = Partial<{
     code: string,
     option: TranspileOptions,
   ) => Promise<TranspileOutput | void>;
-  compiler: Partial<{
-    tool: 'babel';
-    react: Partial<LibwizReactConfig>;
-    presets: TransformOptions['presets'];
-    plugins: TransformOptions['plugins'];
-    browsers: string | string[];
+  plugins: LibwizPlugin[];
+  tools: Partial<{
+    swc: SwcConfig;
   }>;
 }>;
 
@@ -140,8 +136,21 @@ const CustomTranspileOutputSchema = z.object({
   map: z.string().optional(),
 });
 
+const SwcConfigSchema = z.record(z.any()).describe('SWC configuration');
+const ToolsSchema = z
+  .object({
+    swc: SwcConfigSchema.optional(),
+    babel: CompilerSchema.optional().describe('Compiler configuration'),
+  })
+  .optional()
+  .describe('Tools configuration');
+
 export const ConfigSchema = z
   .object({
+    mode: z
+      .enum(['development', 'production'])
+      .optional()
+      .describe('Build mode'),
     debug: z.boolean().optional().describe('Enable debug mode'),
     root: z.string().optional().describe('Root directory'),
     workspace: z.string().optional().describe('Workspace directory'),
@@ -171,7 +180,8 @@ export const ConfigSchema = z
       .returns(z.promise(z.union([CustomTranspileOutputSchema, z.void()])))
       .optional()
       .describe('Custom transpile function'),
-    compiler: CompilerSchema.optional().describe('Compiler configuration'),
+    plugins: z.array(z.any()).optional().describe('Libwiz plugins'),
+    tools: ToolsSchema,
   })
   .strict();
 

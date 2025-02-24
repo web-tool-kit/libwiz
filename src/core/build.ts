@@ -7,7 +7,11 @@ import type { Bundles } from '../types';
 function getAllSourceFiles() {
   const { extensions, ignore, srcPath } = getConfig();
   try {
-    return glob.globSync(`**/*{${extensions.join(',')}}`, {
+    const pattern =
+      extensions.length > 1
+        ? `{${extensions.join(',')}}`
+        : extensions.join(',');
+    return glob.globSync(`**/*${pattern}`, {
       cwd: srcPath,
       ignore,
     });

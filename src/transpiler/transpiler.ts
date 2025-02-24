@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import * as babel from './babel';
+import { transformFileAsync } from './swc';
 import { getConfig } from '../config';
 import type { ModuleConfig, Bundles, TranspileOutput } from '../types';
 
@@ -49,7 +49,7 @@ export const transformFilesAsync = async (
     try {
       // files relative paths
       const sourceFileRelPath = sourceFiles[i];
-      const outputFileRelPath = sourceFiles[i].replace(/\.tsx?/, '.js');
+      const outputFileRelPath = sourceFiles[i].replace(/\.(ts|js)x?/, '.js');
 
       // files absolute paths
       const sourceFileAbsPath = path.resolve(srcPath, sourceFileRelPath);
@@ -62,7 +62,7 @@ export const transformFilesAsync = async (
       }
 
       const options = {
-        env: target,
+        bundle: target,
         sourceMaps: Boolean(moduleConfig?.output?.sourceMap),
         comments: Boolean(moduleConfig?.output?.comments),
       };
@@ -75,9 +75,8 @@ export const transformFilesAsync = async (
           output = { code: tmp.code, map: tmp.map };
         }
       }
-
       if (!output) {
-        output = await babel.transformFileAsync(sourceFileAbsPath, options);
+        output = await transformFileAsync(sourceFileAbsPath, options);
       }
 
       if (output.map) {

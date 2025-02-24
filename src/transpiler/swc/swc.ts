@@ -1,6 +1,7 @@
-import useBabelConfig from './useBabelConfig';
+import useSwcConfig from './useSwcConfig';
 import getConfig from '../../config';
 import { magicImport } from '../../utils';
+
 import type { TranspileOptions, TranspileOutput } from '../../types';
 
 export async function transformFileAsync(
@@ -8,19 +9,20 @@ export async function transformFileAsync(
   options: TranspileOptions,
 ): Promise<TranspileOutput> {
   const { root, workspace } = getConfig();
-  const babel = magicImport<typeof import('@babel/core')>('@babel/core', {
+
+  const swc = magicImport<typeof import('@swc/core')>('@swc/core', {
     root,
     workspace,
   });
+  const swcConfig = useSwcConfig(options);
 
-  const babelConfig = useBabelConfig();
-  const transformedCode = await babel.transformFileAsync(sourceFile, {
-    ...babelConfig,
-    envName: options.env,
-    sourceMaps: Boolean(options.sourceMaps),
-    comments: Boolean(options.comments),
+  const transformedCode = await swc.transformFile(sourceFile, {
+    ...swcConfig,
     configFile: false,
+    swcrc: false,
+    sourceMaps: options.sourceMaps,
   });
+
   const output: TranspileOutput = { code: transformedCode.code };
   if (transformedCode.map) {
     output.map = JSON.stringify(transformedCode.map);
