@@ -1,7 +1,7 @@
 {
   "name": "libwiz",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.0-experiment.10",
   "description": "Quick library build tool",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -23,10 +23,6 @@
     "libwiz": "./dist/cli/index.js"
   },
   "dependencies": {
-    "@babel/plugin-transform-react-jsx": "^7.25.9",
-    "@babel/preset-env": "^7.26.0",
-    "@babel/preset-react": "^7.25.9",
-    "@babel/preset-typescript": "^7.26.0",
     "@swc/core": "^1.10.18",
     "chokidar": "^3.6.0",
     "clone-deep": "^4.0.1",

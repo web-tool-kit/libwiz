@@ -6,7 +6,6 @@ import {
   getConfigPath,
   invalidTypeError,
   invalidValueTypeError,
-  getBrowserslistConfig,
   setupAndRegisterBuildApi,
 } from './utils';
 import { validateConfigSchema } from './schema';

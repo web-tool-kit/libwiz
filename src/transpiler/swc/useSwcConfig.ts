@@ -66,7 +66,6 @@ const useSwcConfig = (options: TranspileOptions) => {
     swcConfig.env ||= {};
     // handle browserlist config in case jsc target not handle by library
     const browsersListConfig = getBrowserslistConfig(root);
-    console.log(browsersListConfig, 'browsersListConfig');
 
     if (browsersListConfig.env) {
       swcConfig.env.targets = browsersListConfig.env;

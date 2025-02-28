@@ -26,7 +26,7 @@ export interface TranspileOutput {
   map?: string;
 }
 
-export interface InternalConfig extends Config {}
+export interface InternalConfig extends Config { }
 
 export interface PluginApi {
   isDev: boolean;
@@ -35,9 +35,9 @@ export interface PluginApi {
   modifyConfig: (newConfig: Config) => Config;
 }
 
-export type LibwizPluginBase = {
+export type LibwizPlugin = {
   name?: string;
   setup: (api: PluginApi) => void | Promise<void>;
 };
 
-export type LibwizPlugin = LibwizPluginBase;
+export type BrowsersList = string | string[];
