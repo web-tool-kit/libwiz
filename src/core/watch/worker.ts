@@ -1,8 +1,8 @@
 import { parentPort, isMainThread } from 'node:worker_threads';
 import { globSync } from 'fast-glob';
+import api from '../../api';
 import log from '../../utils/log';
 import { createFileHash } from '../../utils';
-import { getConfig } from '../../config';
 import build from '../build';
 import runPostbuild from '../postbuild';
 
@@ -15,7 +15,7 @@ const actionOnWatch = async (
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
   path: string,
 ) => {
-  const config = getConfig();
+  const config = api.getConfig();
 
   if (event === 'unlink') {
     fileHashes.delete(path);

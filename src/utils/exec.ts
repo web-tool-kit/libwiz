@@ -1,6 +1,6 @@
 import { exec as nodeExec } from 'node:child_process';
 import type { ChildProcess, ExecOptions } from 'node:child_process';
-import { getConfig } from '../config';
+import api from '../api';
 
 async function exec(
   command: string,
@@ -10,7 +10,7 @@ async function exec(
   stdout: string;
   stderr: string;
 }> {
-  const config = getConfig();
+  const config = api.getConfig();
   return new Promise((resolve, reject) => {
     try {
       const prc: ChildProcess = nodeExec(

@@ -1,20 +1,9 @@
 import pc from 'picocolors';
 import { z } from 'zod';
-import type { Config as SwcConfig, ReactConfig } from '@swc/types';
-import type { TransformOptions } from '@babel/core';
 import { log } from '../utils';
-import type { TranspileOutput, TranspileOptions, LibwizPlugin } from '../types';
-
-export type Bundles = 'esm' | 'cjs';
+import type { Config } from '../types';
 
 const VALID_BUNDLE_ENUM = z.enum(['esm', 'cjs']).describe('Valid bundle types');
-
-export interface ModuleConfig {
-  output?: {
-    comments?: boolean;
-    sourceMap?: boolean;
-  };
-}
 
 export const ModuleConfigSchema = z
   .object({
@@ -33,11 +22,6 @@ export const ModuleConfigSchema = z
   .optional()
   .describe('Module configuration');
 
-export interface LibConfig {
-  esm?: ModuleConfig;
-  cjs?: ModuleConfig;
-}
-
 export const LibConfigSchema = z
   .object({
     esm: ModuleConfigSchema.describe('ESM module configuration'),
@@ -46,8 +30,6 @@ export const LibConfigSchema = z
   .strict()
   .optional()
   .describe('Library configuration');
-
-export interface LibwizReactConfig extends ReactConfig {}
 
 const LibwizReactConfigSchema = z
   .object({
@@ -73,29 +55,6 @@ const LibwizReactConfigSchema = z
   })
   .optional()
   .describe('React config for transpile');
-
-export type Config = Partial<{
-  debug: boolean;
-  mode: 'development' | 'production';
-  root: string;
-  srcPath: string;
-  buildPath: string;
-  workspace: string;
-  tsConfig: string;
-  extensions: string[];
-  ignore: string[];
-  lib: LibConfig;
-  target: Bundles | Bundles[];
-  assets: string | string[] | null;
-  customTranspiler: (
-    code: string,
-    option: TranspileOptions,
-  ) => Promise<TranspileOutput | void>;
-  plugins: LibwizPlugin[];
-  tools: Partial<{
-    swc: SwcConfig;
-  }>;
-}>;
 
 const PluginAndPresetSchema = z.union([
   z.string().describe('Plugin or preset name'),

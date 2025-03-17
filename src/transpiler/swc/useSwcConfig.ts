@@ -1,9 +1,10 @@
 import type { Options as SwcOptions } from '@swc/types';
 import type { TranspileOptions } from '../../types';
-import { getConfig, getBrowserslistConfig } from '../../config';
+import api from '../../api';
+import { getBrowserslistConfig } from '../../config';
 
 const getDefaultSwcConfig = () => {
-  const { mode } = getConfig();
+  const { mode } = api.getConfig();
 
   const swcConfig: SwcOptions = {
     jsc: {
@@ -34,7 +35,7 @@ const getDefaultSwcConfig = () => {
 };
 
 const useSwcConfig = (options: TranspileOptions) => {
-  const { root, tools } = getConfig();
+  const { root, tools } = api.getConfig();
   const defaultConfig = getDefaultSwcConfig();
   const toolConfig = tools.swc || {};
 

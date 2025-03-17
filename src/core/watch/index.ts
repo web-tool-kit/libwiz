@@ -1,13 +1,13 @@
 import chokidar from 'chokidar';
+import api from '../../api';
 import log from '../../utils/log';
 import { clearConsole } from '../../utils';
-import { getConfig } from '../../config';
 import WorkerNodes from './WorkerNodes';
 
 const watchWorker = new WorkerNodes();
 
 async function watch() {
-  const config = getConfig();
+  const config = api.getConfig();
   clearConsole();
   log.success(`Running in watch mode...\n`);
 

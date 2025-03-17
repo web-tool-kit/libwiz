@@ -1,14 +1,14 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import glob from 'fast-glob';
+import api from '../api';
 import { log, parallel, sequential } from '../utils';
-import { getConfig } from '../config';
 
 /**
  * Copy required files of module in there folder
  */
 export async function copyRequiredFiles() {
-  const { assets, srcPath, buildPath } = getConfig();
+  const { assets, srcPath, buildPath } = api.getConfig();
   if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
     return;
   }
@@ -53,7 +53,7 @@ export async function copyRequiredFiles() {
 }
 
 async function postbuild() {
-  const { root, srcPath, buildPath } = getConfig();
+  const { root, srcPath, buildPath } = api.getConfig();
 
   /**
    * Following function help to move project files like

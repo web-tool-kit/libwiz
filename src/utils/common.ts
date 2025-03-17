@@ -75,23 +75,14 @@ export function debounce<T extends (...args: readonly unknown[]) => unknown>(
 
 export function createFileHash(path: string) {
   try {
-    return crypto.createHash('md5').update(fs.readFileSync(path)).digest('hex');
+    const fileBuffer = fs.readFileSync(path);
+    return crypto
+      .createHash('md5')
+      .update(fileBuffer as crypto.BinaryLike)
+      .digest('hex');
   } catch (error) {
     return null;
   }
-}
-
-export function initCli() {
-  if (!process.stdout.isTTY) return;
-
-  process.stdout.write('\u001B[?25l');
-  function restoreCursor() {
-    process.stdout.write('\u001B[?25h');
-    process.exit(0);
-  }
-  ['SIGINT', 'SIGTERM', 'exit'].map(event => {
-    process.on(event, restoreCursor);
-  });
 }
 
 export function isPlainObject(item: unknown) {

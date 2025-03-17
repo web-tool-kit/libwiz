@@ -1,11 +1,11 @@
 import glob from 'fast-glob';
 import transformFilesAsync from '../transpiler';
 import createProgressLoader from '../utils/loader';
-import { getConfig } from '../config';
 import type { Bundles } from '../types';
+import api from '../api';
 
 function getAllSourceFiles() {
-  const { extensions, ignore, srcPath } = getConfig();
+  const { extensions, ignore, srcPath } = api.getConfig();
   try {
     const pattern =
       extensions.length > 1
@@ -22,7 +22,7 @@ function getAllSourceFiles() {
 }
 
 async function build() {
-  const { target, extensions } = getConfig();
+  const { target, extensions } = api.getConfig();
 
   const sourceFiles = getAllSourceFiles();
   if (sourceFiles.length === 0) {

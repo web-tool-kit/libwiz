@@ -57,27 +57,6 @@ export const expectedTypeError = function (value: unknown, type: string) {
   return `expected type '${type}' but got '${typeof value}'`;
 };
 
-export function invalidTypeError(
-  key: string,
-  value: unknown,
-  type: string | string[],
-) {
-  let typ = typeof type === 'string' ? type : type.join(' or ');
-  log.error(`Invalid ${key} passed, ${expectedTypeError(value, typ)}`);
-  process.exit(1);
-}
-
-export function invalidValueTypeError(
-  key: string,
-  value: unknown,
-  type: string,
-) {
-  log.error(
-    `Invalid ${key} value found -> '${value}', ${expectedTypeError(value, type)}`,
-  );
-  process.exit(1);
-}
-
 export function getBrowserslistConfig(root: string) {
   const browsersList = {} as Partial<
     Record<'env' | 'packageJSON' | 'path', EnvConfig['targets']>

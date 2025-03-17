@@ -1,6 +1,6 @@
 import useSwcConfig from './useSwcConfig';
-import getConfig from '../../config';
 import { magicImport } from '../../utils';
+import api from '../../api';
 
 import type { TranspileOptions, TranspileOutput } from '../../types';
 
@@ -8,7 +8,7 @@ export async function transformFileAsync(
   sourceFile: string,
   options: TranspileOptions,
 ): Promise<TranspileOutput> {
-  const { root, workspace } = getConfig();
+  const { root, workspace } = api.getConfig();
 
   const swc = magicImport<typeof import('@swc/core')>('@swc/core', {
     root,

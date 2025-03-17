@@ -1,4 +1,4 @@
-import { getConfig } from '../config';
+import api from '../api';
 import prebuildRun from '../core/prebuild';
 import buildRun from '../core/build';
 import typesRun from '../core/types';
@@ -6,7 +6,7 @@ import postBuild from '../core/postbuild';
 import type { CliProps } from '../types';
 
 async function run(argv: CliProps) {
-  const config = getConfig();
+  const config = api.getConfig();
   const { build, types, watch } = argv;
 
   // setup env before build start

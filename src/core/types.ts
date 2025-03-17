@@ -3,8 +3,8 @@ import glob from 'fast-glob';
 import fse from 'fs-extra';
 import ps from 'picocolors';
 import ts, { ParsedCommandLine } from 'typescript';
+import api from '../api';
 import { log, clearLine, removeBuildInfoFiles } from '../utils';
-import { getConfig } from '../config';
 
 const formatHost = {
   getCanonicalFileName: (path: string) => path,
@@ -13,7 +13,7 @@ const formatHost = {
 };
 
 function getParsedTSConfig() {
-  const { tsConfig } = getConfig();
+  const { tsConfig } = api.getConfig();
   const configFileText = fse.readFileSync(tsConfig, 'utf8');
   const result = ts.parseConfigFileTextToJson(tsConfig, configFileText);
 
@@ -45,7 +45,7 @@ function getParsedTSConfig() {
 }
 
 function compileDTS() {
-  const { srcPath, buildPath } = getConfig();
+  const { srcPath, buildPath } = api.getConfig();
   const config = getParsedTSConfig();
 
   const finalConfig: ParsedCommandLine = {
@@ -117,7 +117,7 @@ function compileDTS() {
 
 async function types() {
   log.progress('Generating types...');
-  const { root, tsConfig, buildPath } = getConfig();
+  const { root, tsConfig, buildPath } = api.getConfig();
 
   if (!fse.existsSync(tsConfig)) {
     let packageJsonFile: string | null = path.resolve(root, 'package.json');

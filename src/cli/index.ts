@@ -3,8 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
-import { initCli } from '../utils';
-import { initConfig } from '../config';
+import api from '../api';
 import type { CliProps } from '../types';
 
 function getPackageVersion() {
@@ -78,8 +77,8 @@ if (task === 'build') {
 
 const cliProps = argv as unknown as CliProps;
 
-initCli();
-initConfig({
+// init cli and config
+api.init({
   debug: cliProps.verbose,
   srcPath: cliProps.srcDir,
   buildPath: cliProps.outDir,

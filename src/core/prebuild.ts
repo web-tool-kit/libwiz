@@ -1,9 +1,9 @@
 import fse from 'fs-extra';
-import { getConfig } from '../config';
+import api from '../api';
 import { removeBuildInfoFiles } from '../utils';
 
 async function prebuild() {
-  const { buildPath } = getConfig();
+  const { buildPath } = api.getConfig();
   if (fse.existsSync(buildPath)) {
     fse.removeSync(buildPath);
   }

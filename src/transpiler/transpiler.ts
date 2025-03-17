@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fse from 'fs-extra';
+import api from '../api';
 import { transformFileAsync } from './swc';
-import { getConfig } from '../config';
 import type { ModuleConfig, Bundles, TranspileOutput } from '../types';
 
 export type ProgressCallback = ({
@@ -17,7 +17,7 @@ export const transformFilesAsync = async (
   sourceFiles: string[],
   progress: ProgressCallback,
 ) => {
-  const { lib, srcPath, buildPath, customTranspiler } = getConfig();
+  const { lib, srcPath, buildPath, customTranspiler } = api.getConfig();
 
   function callbackProgress(completed: number) {
     return progress({ completed, target });
