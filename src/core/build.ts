@@ -5,7 +5,7 @@ import type { Bundles } from '../types';
 import api from '../api';
 
 function getAllSourceFiles() {
-  const { extensions, ignore, srcPath } = api.getConfig();
+  const { extensions, ignore, srcPath } = api.config;
   try {
     const pattern =
       extensions.length > 1
@@ -22,7 +22,7 @@ function getAllSourceFiles() {
 }
 
 async function build() {
-  const { target, extensions } = api.getConfig();
+  const { target, extensions } = api.config;
 
   const sourceFiles = getAllSourceFiles();
   if (sourceFiles.length === 0) {

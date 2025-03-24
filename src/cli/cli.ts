@@ -7,8 +7,8 @@ import { doOrDie } from '../utils';
 import type { CliProps } from '../types';
 
 async function run(argv: CliProps) {
-  const config = api.getConfig();
   const { build, types, watch } = argv;
+  const { tsConfig } = api.config;
 
   // setup env before build start
   // production/devlopment can be there
@@ -34,7 +34,7 @@ async function run(argv: CliProps) {
     await buildRun();
   }
 
-  if (config.tsConfig && types && !watch) {
+  if (tsConfig && types && !watch) {
     await doOrDie(() => {
       return typesRun();
     });

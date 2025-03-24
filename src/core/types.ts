@@ -13,7 +13,7 @@ const formatHost = {
 };
 
 function getParsedTSConfig() {
-  const { tsConfig } = api.getConfig();
+  const { tsConfig } = api.config;
   const configFileText = fse.readFileSync(tsConfig, 'utf8');
   const result = ts.parseConfigFileTextToJson(tsConfig, configFileText);
 
@@ -45,7 +45,7 @@ function getParsedTSConfig() {
 }
 
 function compileDTS() {
-  const { srcPath, buildPath } = api.getConfig();
+  const { srcPath, buildPath } = api.config;
   const config = getParsedTSConfig();
 
   const finalConfig: ParsedCommandLine = {
@@ -117,7 +117,7 @@ function compileDTS() {
 
 async function types() {
   log.progress('Generating types...');
-  const { root, tsConfig, buildPath } = api.getConfig();
+  const { root, tsConfig, buildPath } = api.config;
 
   if (!fse.existsSync(tsConfig)) {
     let packageJsonFile: string | null = path.resolve(root, 'package.json');

@@ -17,7 +17,7 @@ export const transformFilesAsync = async (
   sourceFiles: string[],
   progress: ProgressCallback,
 ) => {
-  const { lib, srcPath, buildPath, customTranspiler } = api.getConfig();
+  const { lib, srcPath, buildPath, customTranspiler } = api.config;
 
   function callbackProgress(completed: number) {
     return progress({ completed, target });

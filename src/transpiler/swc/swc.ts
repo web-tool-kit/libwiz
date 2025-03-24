@@ -8,7 +8,7 @@ export async function transformFileAsync(
   sourceFile: string,
   options: TranspileOptions,
 ): Promise<TranspileOutput> {
-  const { root, workspace } = api.getConfig();
+  const { root, workspace } = api.config;
 
   const swc = magicImport<typeof import('@swc/core')>('@swc/core', {
     root,

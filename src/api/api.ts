@@ -18,18 +18,18 @@ function initCli() {
 }
 
 class CreateApi {
-  private static instance: CreateApi;
-  private config: Config;
-
-  private constructor() {
-    this.config = {};
-  }
+  static #instance: CreateApi;
+  #config: Config = {};
 
   static getInstance(): CreateApi {
-    if (!CreateApi.instance) {
-      CreateApi.instance = new CreateApi();
+    if (!CreateApi.#instance) {
+      CreateApi.#instance = new CreateApi();
     }
-    return CreateApi.instance;
+    return CreateApi.#instance;
+  }
+
+  get config(): Config {
+    return clone(this.#config);
   }
 
   init(cliProps: CliProps) {
@@ -59,12 +59,8 @@ class CreateApi {
   }
 
   setConfig(newConfig: Config): Config {
-    this.config = mergeDeep(this.config, newConfig);
+    this.#config = mergeDeep(this.#config, newConfig);
     return this.config;
-  }
-
-  getConfig(): Config {
-    return clone(this.config);
   }
 }
 

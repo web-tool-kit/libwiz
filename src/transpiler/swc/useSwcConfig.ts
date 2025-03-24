@@ -4,7 +4,7 @@ import api from '../../api';
 import { getBrowserslistConfig } from '../../config';
 
 const getDefaultSwcConfig = () => {
-  const { mode } = api.getConfig();
+  const { mode } = api.config;
 
   const swcConfig: SwcOptions = {
     jsc: {
@@ -35,7 +35,7 @@ const getDefaultSwcConfig = () => {
 };
 
 const useSwcConfig = (options: TranspileOptions) => {
-  const { root, tools } = api.getConfig();
+  const { root, tools } = api.config;
   const defaultConfig = getDefaultSwcConfig();
   const toolConfig = tools.swc || {};
 

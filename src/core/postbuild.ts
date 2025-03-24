@@ -8,7 +8,7 @@ import { log, parallel, sequential } from '../utils';
  * Copy required files of module in there folder
  */
 export async function copyRequiredFiles() {
-  const { assets, srcPath, buildPath } = api.getConfig();
+  const { assets, srcPath, buildPath } = api.config;
   if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
     return;
   }
@@ -53,7 +53,7 @@ export async function copyRequiredFiles() {
 }
 
 async function postbuild() {
-  const { root, srcPath, buildPath } = api.getConfig();
+  const { root, srcPath, buildPath } = api.config;
 
   /**
    * Following function help to move project files like

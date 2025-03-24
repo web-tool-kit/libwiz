@@ -15,13 +15,13 @@ const actionOnWatch = async (
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
   path: string,
 ) => {
-  const config = api.getConfig();
+  const { ignore } = api.config;
 
   if (event === 'unlink') {
     fileHashes.delete(path);
   } else if (event === 'unlinkDir') {
     globSync(`${path}/**/*`, {
-      ignore: config.ignore,
+      ignore,
     }).forEach(file => {
       fileHashes.delete(file);
     });

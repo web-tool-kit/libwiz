@@ -7,7 +7,7 @@ import WorkerNodes from './WorkerNodes';
 const watchWorker = new WorkerNodes();
 
 async function watch() {
-  const config = api.getConfig();
+  const config = api.config;
   clearConsole();
   log.success(`Running in watch mode...\n`);
 
