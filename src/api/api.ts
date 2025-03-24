@@ -1,7 +1,7 @@
 import clone from 'clone-deep';
 import { mergeDeep } from '../utils';
-import type { Config } from '../types';
 import { initConfig } from '../config';
+import type { Config, CliProps } from '../types';
 
 function initCli() {
   if (!process.stdout.isTTY) return;
@@ -32,13 +32,30 @@ class CreateApi {
     return CreateApi.instance;
   }
 
-  init(config: Config) {
+  init(cliProps: CliProps) {
+    const config: Config = {
+      debug: cliProps.verbose,
+      srcPath: cliProps.srcDir,
+      buildPath: cliProps.outDir,
+      target: cliProps.target,
+      lib: {
+        esm: {
+          output: {
+            comments: true,
+            sourceMap: Boolean(cliProps.sourceMaps),
+          },
+        },
+        cjs: {
+          output: {
+            comments: true,
+            sourceMap: Boolean(cliProps.sourceMaps),
+          },
+        },
+      },
+    };
+
     initCli();
     initConfig(config);
-  }
-
-  hasConfig() {
-    return Boolean(Object.keys(this.config).length);
   }
 
   setConfig(newConfig: Config): Config {

@@ -78,26 +78,7 @@ if (task === 'build') {
 const cliProps = argv as unknown as CliProps;
 
 // init cli and config
-api.init({
-  debug: cliProps.verbose,
-  srcPath: cliProps.srcDir,
-  buildPath: cliProps.outDir,
-  target: cliProps.target,
-  lib: {
-    esm: {
-      output: {
-        comments: true,
-        sourceMap: Boolean(cliProps.sourceMaps),
-      },
-    },
-    cjs: {
-      output: {
-        comments: true,
-        sourceMap: Boolean(cliProps.sourceMaps),
-      },
-    },
-  },
-});
+api.init(cliProps);
 
 (function start() {
   const { default: cli } = require('./cli');

@@ -1,8 +1,8 @@
 import type { TransformOptions } from '@babel/core';
 import { getBrowserslistConfig } from '../../config';
 import { isPlainObject, ensureDependency } from '../../utils';
+import type { Config } from '../../types';
 import type { BabelConfig } from './types';
-import type { Config } from '../../config';
 
 const useBabelConfig = (
   babelConfig: BabelConfig,
