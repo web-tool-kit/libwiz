@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import type { EnvConfig } from '@swc/types';
-import { log, mergeDeep } from '../utils';
+import { mergeDeep, doOrDie } from '../utils';
 import type { Config, PluginApi, InternalConfig } from '../types';
 
 export const PACKAGE_NAME = 'libwiz';
@@ -89,4 +89,23 @@ export function setupAndRegisterBuildApi(config: InternalConfig) {
     });
     return config;
   };
+}
+
+export function getRootConfig(root: string) {
+  const rootConfig = doOrDie(() => {
+    const configPath = getConfigPath(root);
+    if (configPath) {
+      let rootConfig: Config = {};
+      if (configPath.endsWith('.js')) {
+        rootConfig = (require(configPath) || {}) as Config;
+      } else {
+        rootConfig = JSON.parse(
+          fse.readFileSync(configPath, { encoding: 'utf8' }),
+        ) as Config;
+      }
+      return rootConfig;
+    }
+  });
+
+  return rootConfig || null;
 }

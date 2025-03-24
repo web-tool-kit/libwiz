@@ -29,7 +29,7 @@ class PluginBabel implements LibwizPlugin {
       const transformedCode = await babel.transformFileAsync(sourceFile, {
         ...babelConfig,
         ...options,
-        browserslistConfigFile: false
+        browserslistConfigFile: false,
       });
       const output: TranspileOutput = {
         code: (transformedCode?.code as string) || '',

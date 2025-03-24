@@ -2,10 +2,10 @@ import path from 'node:path';
 import fse from 'fs-extra';
 import clone from 'clone-deep';
 import api from '../api';
-import { log, mergeDeep, isPlainObject } from '../utils';
+import { log, mergeDeep, isPlainObject, doOrDie } from '../utils';
 import {
   getTSConfigPath,
-  getConfigPath,
+  getRootConfig,
   setupAndRegisterBuildApi,
 } from './utils';
 import { validateConfigSchema } from './schema';
@@ -39,29 +39,6 @@ const defaultConfig: InternalConfig = {
   tools: {},
 };
 
-function getRootConfig(root: string) {
-  try {
-    const configPath = getConfigPath(root);
-    if (configPath) {
-      let rootConfig: Config = {};
-      if (configPath.endsWith('.js')) {
-        rootConfig = (require(configPath) || {}) as Config;
-      } else {
-        rootConfig = JSON.parse(
-          fse.readFileSync(configPath, { encoding: 'utf8' }),
-        ) as Config;
-      }
-      rootConfig = validateConfigSchema(rootConfig);
-      return rootConfig;
-    }
-  } catch (err) {
-    log.error(err.toString());
-    console.error(err);
-    process.exit(1);
-  }
-  return null;
-}
-
 export function initConfig(localConfig?: Config): InternalConfig {
   const root = path.resolve(localConfig.root || process.cwd());
 
@@ -75,7 +52,7 @@ export function initConfig(localConfig?: Config): InternalConfig {
   // merge localConfig with config
   mergeDeep(config, localConfig);
 
-  try {
+  doOrDie(() => {
     if (!fse.pathExistsSync(root)) {
       log.error('provided root path does not exist');
       process.exit(1);
@@ -84,6 +61,7 @@ export function initConfig(localConfig?: Config): InternalConfig {
     // get root config and if exist then merge with config
     const rootConfig = getRootConfig(root);
     if (rootConfig) {
+      validateConfigSchema(rootConfig);
       mergeDeep(config, rootConfig);
     }
 
@@ -137,11 +115,7 @@ export function initConfig(localConfig?: Config): InternalConfig {
         '**/*.d.ts',
       ];
     }
-  } catch (err) {
-    log.error(err.toString());
-    console.error(err);
-    process.exit(1);
-  }
+  });
 
   config.root = root;
 

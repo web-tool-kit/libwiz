@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import resolveFrom from 'resolve-from';
+import log from './log';
 import type { Config } from '../types';
 
 // this function use to resolve is module from client project
@@ -106,4 +107,14 @@ export function mergeDeep<T extends Record<string, any>>(
     }
   }
   return target as T;
+}
+
+export function doOrDie<T extends unknown>(fn: (...args: unknown[]) => T) {
+  try {
+    return fn();
+  } catch (err) {
+    log.error(err.toString());
+    console.error(err);
+    process.exit(1);
+  }
 }

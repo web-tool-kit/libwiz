@@ -3,6 +3,7 @@ import prebuildRun from '../core/prebuild';
 import buildRun from '../core/build';
 import typesRun from '../core/types';
 import postBuild from '../core/postbuild';
+import { doOrDie } from '../utils';
 import type { CliProps } from '../types';
 
 async function run(argv: CliProps) {
@@ -34,12 +35,9 @@ async function run(argv: CliProps) {
   }
 
   if (config.tsConfig && types && !watch) {
-    try {
-      await typesRun();
-    } catch (err) {
-      console.error(err);
-      process.exit(1);
-    }
+    await doOrDie(() => {
+      return typesRun();
+    });
   }
 
   await postBuild();
