@@ -34,7 +34,7 @@ class CreateApi {
 
   init(cliProps: CliProps) {
     const config: Config = {
-      debug: cliProps.verbose,
+      verbose: cliProps.verbose,
       srcPath: cliProps.srcDir,
       buildPath: cliProps.outDir,
       target: cliProps.target,

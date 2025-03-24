@@ -10,7 +10,7 @@ async function exec(
   stdout: string;
   stderr: string;
 }> {
-  const { debug } = api.config;
+  const { verbose } = api.config;
   return new Promise((resolve, reject) => {
     try {
       const prc: ChildProcess = nodeExec(
@@ -32,7 +32,7 @@ async function exec(
           reject(new Error('[internal] exec aborted via signal'));
         });
       }
-      if (debug) {
+      if (verbose) {
         prc.stdout && prc.stdout.pipe(process.stdout);
         prc.stderr && prc.stderr.pipe(process.stdout);
       }

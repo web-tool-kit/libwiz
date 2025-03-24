@@ -110,7 +110,7 @@ export const ConfigSchema = z
       .enum(['development', 'production'])
       .optional()
       .describe('Build mode'),
-    debug: z.boolean().optional().describe('Enable debug mode'),
+    verbose: z.boolean().optional().describe('Enable verbose mode for logs'),
     root: z.string().optional().describe('Root directory'),
     workspace: z.string().optional().describe('Workspace directory'),
     srcPath: z.string().optional().describe('Source path'),

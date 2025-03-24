@@ -55,7 +55,7 @@ export type CustomTranspiler = (
 ) => Promise<TranspileOutput | void>;
 
 export type Config = Partial<{
-  debug: boolean;
+  verbose: boolean;
   mode: 'development' | 'production';
   root: string;
   srcPath: string;

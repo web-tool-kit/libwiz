@@ -47,7 +47,7 @@ export function initConfig(localConfig?: Config): InternalConfig {
   }
 
   const config = clone(defaultConfig);
-  config.debug = Boolean(process.env.DEBUG_MODE);
+  config.verbose = Boolean(process.env.LIBWIZ_VERBOSE);
 
   // merge localConfig with config
   mergeDeep(config, localConfig);
