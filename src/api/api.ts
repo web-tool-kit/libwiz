@@ -1,7 +1,8 @@
 import clone from 'clone-deep';
 import { mergeDeep } from '../utils';
 import { initConfig } from '../config';
-import type { Config, CliProps } from '../types';
+import { compiler } from '../compiler';
+import type { InternalConfig, Config, CliProps } from '../types';
 
 function initCli() {
   if (!process.stdout.isTTY) return;
@@ -19,7 +20,11 @@ function initCli() {
 
 class CreateApi {
   static #instance: CreateApi;
-  #config: Config = {};
+  #config: InternalConfig = {};
+
+  get compiler() {
+    return this.#config.__compiler || compiler;
+  }
 
   static getInstance(): CreateApi {
     if (!CreateApi.#instance) {
@@ -42,13 +47,13 @@ class CreateApi {
         esm: {
           output: {
             comments: true,
-            sourceMap: Boolean(cliProps.sourceMaps),
+            sourceMap: cliProps.sourceMaps,
           },
         },
         cjs: {
           output: {
             comments: true,
-            sourceMap: Boolean(cliProps.sourceMaps),
+            sourceMap: cliProps.sourceMaps,
           },
         },
       },
@@ -58,9 +63,11 @@ class CreateApi {
     initConfig(config);
   }
 
-  setConfig(newConfig: Config): Config {
-    this.#config = mergeDeep(this.#config, newConfig);
-    return this.config;
+  setConfig(config: InternalConfig) {
+    if (config.plugins) {
+      config.plugins = config.plugins.filter(Boolean);
+    }
+    this.#config = mergeDeep(this.#config, config);
   }
 }
 

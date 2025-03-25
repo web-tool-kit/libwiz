@@ -5,10 +5,11 @@ import type { Config } from '../../types';
 import type { BabelConfig } from './types';
 
 const useBabelConfig = (
-  babelConfig: BabelConfig,
   options: Pick<Config, 'root' | 'workspace'>,
+  babelConfig?: BabelConfig,
 ) => {
-  const { plugins = [], presets = [] } = babelConfig;
+  const plugins = babelConfig?.plugins || [];
+  const presets = babelConfig?.presets || [];
 
   const { root, workspace } = options;
 

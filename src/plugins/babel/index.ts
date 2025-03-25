@@ -2,8 +2,8 @@ import type { BabelConfig } from './types';
 import type {
   LibwizPlugin,
   PluginApi,
-  TranspileOptions,
-  TranspileOutput,
+  Compiler,
+  CompileOutput,
 } from '../../types';
 import useBabelConfig from './useBabelConfig';
 import { ensureDependency } from '../../utils';
@@ -18,29 +18,37 @@ class PluginBabel implements LibwizPlugin {
   }
 
   setup(api: PluginApi): void {
-    const { root, workspace } = api.getConfig();
+    const { root, workspace } = api.config;
     const babel = ensureDependency<typeof import('@babel/core')>(
       '@babel/core',
       { root, workspace },
     );
 
-    const transform = async (sourceFile: string, options: TranspileOptions) => {
-      const babelConfig = useBabelConfig(this.babelConfig, { root, workspace });
+    const transform: Compiler = async (sourceFile, options) => {
+      const babelConfig = useBabelConfig({ root, workspace }, this.babelConfig);
+      // ignore browserlist warning
+      process.env.BROWSERSLIST_IGNORE_OLD_DATA = 'true';
+
       const transformedCode = await babel.transformFileAsync(sourceFile, {
         ...babelConfig,
-        ...options,
+        envName: options.bundle,
+        sourceMaps: options.sourceMaps,
+        comments: options.comments,
+        configFile: false,
         browserslistConfigFile: false,
       });
-      const output: TranspileOutput = {
+
+      const output: CompileOutput = {
         code: (transformedCode?.code as string) || '',
       };
+
       if (transformedCode?.map) {
         output.map = JSON.stringify(transformedCode.map);
       }
       return output;
     };
 
-    console.log(transform);
+    api.useCompiler(transform);
   }
 }
 

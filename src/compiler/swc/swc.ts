@@ -1,13 +1,9 @@
 import useSwcConfig from './useSwcConfig';
 import { magicImport } from '../../utils';
 import api from '../../api';
+import type { CompileOutput, Compiler } from '../../types';
 
-import type { TranspileOptions, TranspileOutput } from '../../types';
-
-export async function transformFileAsync(
-  sourceFile: string,
-  options: TranspileOptions,
-): Promise<TranspileOutput> {
+export const compiler: Compiler = async (sourceFile, options) => {
   const { root, workspace } = api.config;
 
   const swc = magicImport<typeof import('@swc/core')>('@swc/core', {
@@ -15,7 +11,6 @@ export async function transformFileAsync(
     workspace,
   });
   const swcConfig = useSwcConfig(options);
-
   const transformedCode = await swc.transformFile(sourceFile, {
     ...swcConfig,
     configFile: false,
@@ -23,11 +18,11 @@ export async function transformFileAsync(
     sourceMaps: options.sourceMaps,
   });
 
-  const output: TranspileOutput = { code: transformedCode.code };
+  const output: CompileOutput = { code: transformedCode.code };
   if (transformedCode.map) {
     output.map = JSON.stringify(transformedCode.map);
   }
   return output;
-}
+};
 
-export default transformFileAsync;
+export default compiler;

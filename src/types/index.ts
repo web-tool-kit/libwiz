@@ -4,7 +4,7 @@ export interface CliProps {
   build: boolean;
   types: boolean;
   watch: boolean;
-  sourceMaps: boolean;
+  sourceMaps: boolean | 'inline';
   srcDir: string;
   outDir: string;
   bundle: string;
@@ -14,22 +14,28 @@ export interface CliProps {
 
 export type Bundles = 'esm' | 'cjs';
 
-export interface TranspileOptions {
+export interface CompileOptions {
   bundle: Bundles;
-  sourceMaps: boolean;
+  sourceMaps: boolean | 'inline';
   comments: boolean;
 }
 
-export interface TranspileOutput {
+export interface CompileOutput {
   code: string;
   map?: string;
 }
 
+export type Compiler = (
+  sourceFile: string,
+  options: CompileOptions,
+) => Promise<CompileOutput>;
+
 export interface PluginApi {
   isDev: boolean;
   isProd: boolean;
-  getConfig: () => Config;
-  modifyConfig: (newConfig: Config) => Config;
+  config: Config;
+  updateConfig: (newConfig: Config) => void;
+  useCompiler: (compiler: Compiler) => void;
 }
 
 export type LibwizPlugin = {
@@ -40,7 +46,7 @@ export type LibwizPlugin = {
 export interface ModuleConfig {
   output?: {
     comments?: boolean;
-    sourceMap?: boolean;
+    sourceMap?: boolean | 'inline';
   };
 }
 
@@ -51,8 +57,8 @@ export interface LibConfig {
 
 export type CustomTranspiler = (
   code: string,
-  option: TranspileOptions,
-) => Promise<TranspileOutput | void>;
+  option: CompileOptions,
+) => Promise<CompileOutput | void>;
 
 export type Config = Partial<{
   verbose: boolean;
@@ -76,8 +82,5 @@ export type Config = Partial<{
 
 export interface InternalConfig extends Config {
   // this will use to set internal transpile
-  __transpiler?: (
-    code: string,
-    option: TranspileOptions,
-  ) => Promise<TranspileOutput | void>;
+  __compiler?: Compiler;
 }

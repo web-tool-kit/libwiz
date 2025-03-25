@@ -1,5 +1,5 @@
 import glob from 'fast-glob';
-import transformFilesAsync from '../transpiler';
+import builder from '../builder';
 import createProgressLoader from '../utils/loader';
 import type { Bundles } from '../types';
 import api from '../api';
@@ -37,15 +37,21 @@ async function build() {
 
   let i = 0;
   async function runBuildProcess(target: Bundles) {
-    await transformFilesAsync(target, sourceFiles, ({ completed }) => {
-      // Edge case: When esm and cjs builds run concurrently,
-      // one build may complete steps ahead of the other. This check
-      // prevents reducing the progress bar if a later callback reports
-      // less progress than a previous one.
-      if (i > completed) return;
-      i = completed;
-      loader.track(completed);
-    });
+    try {
+      await builder(target, sourceFiles, ({ completed }) => {
+        // Edge case: When esm and cjs builds run concurrently,
+        // one build may complete steps ahead of the other. This check
+        // prevents reducing the progress bar if a later callback reports
+        // less progress than a previous one.
+        if (i > completed) return;
+        i = completed;
+        loader.track(completed);
+      });
+    } catch (err) {
+      loader.stop();
+      console.error(err);
+      process.exit(1);
+    }
   }
 
   try {

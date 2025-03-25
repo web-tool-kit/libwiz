@@ -4,16 +4,15 @@ import { mergeDeep } from '../../utils';
 
 class PluginReact implements LibwizPlugin {
   name: string;
-  private reactConfig: ReactConfig;
+  #reactConfig: ReactConfig;
 
   constructor(reactConfig: ReactConfig) {
     this.name = 'LIBWIZ_PLUGIN_REACT';
-    this.reactConfig = reactConfig;
+    this.#reactConfig = reactConfig;
   }
 
   setup(api: PluginApi): void {
-    const { isDev, isProd, modifyConfig, getConfig } = api;
-    const config = getConfig();
+    const { isDev, isProd, updateConfig, config } = api;
 
     const __config: SwcConfig = {
       jsc: {
@@ -25,7 +24,7 @@ class PluginReact implements LibwizPlugin {
           react: {
             development: isDev,
             runtime: 'automatic',
-            ...this.reactConfig,
+            ...this.#reactConfig,
           },
         },
       },
@@ -38,7 +37,7 @@ class PluginReact implements LibwizPlugin {
       };
     }
 
-    modifyConfig({
+    updateConfig({
       tools: {
         swc: mergeDeep<SwcConfig>(config.tools?.swc, __config),
       },

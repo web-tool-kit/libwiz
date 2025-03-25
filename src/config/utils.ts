@@ -1,8 +1,8 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import type { EnvConfig } from '@swc/types';
-import { mergeDeep, doOrDie } from '../utils';
-import type { Config, PluginApi, InternalConfig } from '../types';
+import { doOrDie } from '../utils';
+import type { Config } from '../types';
 
 export const PACKAGE_NAME = 'libwiz';
 
@@ -73,22 +73,6 @@ export function getBrowserslistConfig(root: string) {
   }
   browsersList.env = process.env.BROWSERSLIST;
   return browsersList;
-}
-
-export function setupAndRegisterBuildApi(config: InternalConfig) {
-  const api: PluginApi = {
-    getConfig: () => config,
-    modifyConfig: (newConfig: Config) => mergeDeep(config, newConfig),
-    isDev: config.mode === 'development',
-    isProd: config.mode === 'production',
-  };
-
-  return () => {
-    config.plugins?.filter(Boolean).forEach(plugin => {
-      plugin.setup(api);
-    });
-    return config;
-  };
 }
 
 export function getRootConfig(root: string) {

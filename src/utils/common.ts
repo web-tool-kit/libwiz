@@ -91,18 +91,25 @@ export function isPlainObject(item: unknown) {
 }
 
 export function mergeDeep<T extends Record<string, any>>(
-  target: Record<string, any>,
-  source: Record<string, any>,
+  target: Record<string, any> = {},
+  source: Record<string, any> = {},
 ) {
-  for (let key in source) {
-    if (source.hasOwnProperty(key)) {
-      if (isPlainObject(source[key])) {
-        if (!target[key]) {
-          target[key] = {};
-        }
-        mergeDeep(target[key], source[key]);
-      } else {
-        target[key] = source[key];
+  for (const key in source) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      const sourceValue = source[key];
+      const targetValue = target[key];
+
+      // If both are arrays → concatenate
+      if (Array.isArray(sourceValue) && Array.isArray(targetValue)) {
+        target[key] = targetValue.concat(sourceValue);
+      }
+      // If both are plain objects → deep merge
+      else if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
+        target[key] = mergeDeep(targetValue, sourceValue);
+      }
+      // In all other cases → replace
+      else {
+        target[key] = sourceValue;
       }
     }
   }

@@ -1,5 +1,5 @@
-import type { Options as SwcOptions } from '@swc/types';
-import type { TranspileOptions } from '../../types';
+import type { Options as SwcOptions, JscConfig } from '@swc/types';
+import type { CompileOptions } from '../../types';
 import api from '../../api';
 import { getBrowserslistConfig } from '../../config';
 
@@ -34,8 +34,16 @@ const getDefaultSwcConfig = () => {
   return swcConfig;
 };
 
-const useSwcConfig = (options: TranspileOptions) => {
-  const { root, tools } = api.config;
+const useSwcConfig = (options: CompileOptions) => {
+  const { root, tools, plugins } = api.config;
+
+  const swcPlugins = plugins.filter(plugin => {
+    if (typeof plugin === 'object' && plugin.name) {
+      return !plugin.name.startsWith('LIBWIZ_PLUGIN');
+    }
+    return true;
+  }) as unknown as JscConfig['experimental']['plugins'];
+
   const defaultConfig = getDefaultSwcConfig();
   const toolConfig = tools.swc || {};
 
@@ -58,12 +66,19 @@ const useSwcConfig = (options: TranspileOptions) => {
           comments: options.comments === false ? false : 'all',
         },
       },
+      experimental: {
+        ...toolConfig.jsc?.experimental,
+        plugins: [
+          ...swcPlugins,
+          ...(toolConfig.jsc?.experimental?.plugins || []),
+        ],
+      },
     },
     sourceMaps: options.sourceMaps,
   };
 
   let hasBrowserList = false;
-  if (!toolConfig.env && !toolConfig.jsc.target) {
+  if (!toolConfig.env && !toolConfig.jsc?.target) {
     swcConfig.env ||= {};
     // handle browserlist config in case jsc target not handle by library
     const browsersListConfig = getBrowserslistConfig(root);

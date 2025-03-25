@@ -1,13 +1,9 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import clone from 'clone-deep';
-import api from '../api';
+import api, { registerPlugin } from '../api';
 import { log, mergeDeep, isPlainObject, doOrDie } from '../utils';
-import {
-  getTSConfigPath,
-  getRootConfig,
-  setupAndRegisterBuildApi,
-} from './utils';
+import { getTSConfigPath, getRootConfig } from './utils';
 import { validateConfigSchema } from './schema';
 import type { Config, InternalConfig } from '../types';
 
@@ -153,11 +149,8 @@ export function initConfig(localConfig?: Config): InternalConfig {
     process.exit(1);
   }
 
-  // this method used to register all api with plugins and
-  // initialize all actions
-  const setup = setupAndRegisterBuildApi(config);
-  const updatedConfig = setup();
+  api.setConfig(config);
+  registerPlugin();
 
-  api.setConfig(updatedConfig);
-  return updatedConfig as Config;
+  return api.config;
 }

@@ -84,13 +84,13 @@ const CompilerSchema = z
   })
   .strict();
 
-const CustomTranspileOptionsSchema = z.object({
+const CustomCompileOptionsSchema = z.object({
   env: VALID_BUNDLE_ENUM,
-  sourceMaps: z.boolean(),
+  sourceMaps: z.union([z.boolean(), z.literal('inline')]),
   comments: z.boolean(),
 });
 
-const CustomTranspileOutputSchema = z.object({
+const CustomCompileOutputSchema = z.object({
   code: z.string(),
   map: z.string().optional(),
 });
@@ -135,8 +135,8 @@ export const ConfigSchema = z
       .describe('Assets to include'),
     customTranspiler: z
       .function()
-      .args(z.string(), CustomTranspileOptionsSchema)
-      .returns(z.promise(z.union([CustomTranspileOutputSchema, z.void()])))
+      .args(z.string(), CustomCompileOptionsSchema)
+      .returns(z.promise(z.union([CustomCompileOutputSchema, z.void()])))
       .optional()
       .describe('Custom transpile function'),
     plugins: z.array(z.any()).optional().describe('Libwiz plugins'),
