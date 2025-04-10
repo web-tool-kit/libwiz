@@ -35,7 +35,9 @@ const defaultConfig: InternalConfig = {
   tools: {},
 };
 
-export function initConfig(localConfig?: Config): InternalConfig {
+export async function initConfig(
+  localConfig?: Config,
+): Promise<InternalConfig> {
   const root = path.resolve(localConfig.root || process.cwd());
 
   if (localConfig) {
@@ -48,14 +50,14 @@ export function initConfig(localConfig?: Config): InternalConfig {
   // merge localConfig with config
   mergeDeep(config, localConfig);
 
-  doOrDie(() => {
+  await doOrDie(async () => {
     if (!fse.pathExistsSync(root)) {
       log.error('provided root path does not exist');
       process.exit(1);
     }
 
     // get root config and if exist then merge with config
-    const rootConfig = getRootConfig(root);
+    const rootConfig = await getRootConfig(root);
     if (rootConfig) {
       validateConfigSchema(rootConfig);
       mergeDeep(config, rootConfig);

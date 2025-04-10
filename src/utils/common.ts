@@ -116,12 +116,21 @@ export function mergeDeep<T extends Record<string, any>>(
   return target as T;
 }
 
-export function doOrDie<T extends unknown>(fn: (...args: unknown[]) => T) {
-  try {
-    return fn();
-  } catch (err) {
+export function doOrDie<T extends unknown>(
+  fn: (die: (e: Error, exit?: boolean) => void, ...args: unknown[]) => T,
+) {
+  function die(err: Error, exit = true) {
     log.error(err.toString());
     console.error(err);
-    process.exit(1);
+    exit && process.exit(1);
+  }
+  try {
+    const run = fn(die);
+    if (run instanceof Promise) {
+      run.catch(die);
+    }
+    return run;
+  } catch (err) {
+    die(err);
   }
 }

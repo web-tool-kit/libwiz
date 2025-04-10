@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
+import { pathToFileURL } from 'url';
 import type { EnvConfig } from '@swc/types';
 import { doOrDie } from '../utils';
 import type { Config } from '../types';
@@ -40,6 +41,8 @@ export function getTSConfigPath({
 export function getConfigPath(root: string): string | undefined {
   const configPaths = [
     path.resolve(root, `./${PACKAGE_NAME}.config.js`),
+    path.resolve(root, `./${PACKAGE_NAME}.config.cjs`),
+    path.resolve(root, `./${PACKAGE_NAME}.config.mjs`),
     path.resolve(root, `./${PACKAGE_NAME}.config.json`),
     path.resolve(root, `./.${PACKAGE_NAME}rc`),
   ];
@@ -75,13 +78,17 @@ export function getBrowserslistConfig(root: string) {
   return browsersList;
 }
 
-export function getRootConfig(root: string) {
-  const rootConfig = doOrDie(() => {
+export async function getRootConfig(root: string) {
+  const rootConfig = await doOrDie(async () => {
     const configPath = getConfigPath(root);
     if (configPath) {
       let rootConfig: Config = {};
-      if (configPath.endsWith('.js')) {
+      if (/\.c?js$/.test(configPath)) {
         rootConfig = (require(configPath) || {}) as Config;
+      } else if (configPath.endsWith('.mjs')) {
+        const fileUrl = pathToFileURL(configPath).href;
+        const configModule = await import(fileUrl);
+        rootConfig = configModule.default || configModule;
       } else {
         rootConfig = JSON.parse(
           fse.readFileSync(configPath, { encoding: 'utf8' }),

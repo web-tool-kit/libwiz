@@ -37,7 +37,7 @@ class CreateApi {
     return clone(this.#config);
   }
 
-  init(cliProps: CliProps) {
+  async init(cliProps: CliProps) {
     const config: Config = {
       verbose: cliProps.verbose,
       srcPath: cliProps.srcDir,
@@ -60,7 +60,7 @@ class CreateApi {
     };
 
     initCli();
-    initConfig(config);
+    await initConfig(config);
   }
 
   setConfig(config: InternalConfig) {
