@@ -68,7 +68,6 @@ libwiz build --types
 
 The following configuration options allow you to customize or override the default flow. By default, `libwiz` will use sensible values, but you can specify these options as needed to fine-tune the build process.
 
-- **`debug`** (`boolean`): Enables debug mode, providing detailed logging for development.
 - **`root`** (`string`): Specifies the root directory of the project.
 - **`workspace`** (`string`): Defines a workspace directory within the project.
 - **`srcPath`** (`string`): Path to the source files of the library.
@@ -108,7 +107,6 @@ Here is an example of a configuration file (`libwiz.config.js`):
 ```js
 // libwiz.config.js
 module.exports = {
-  debug: true,
   root: './',
   workspace: '../../',
   srcPath: './src',
@@ -154,7 +152,6 @@ Example `libwiz.config.json`
 ```json
 {
   "$schema": "./node_module/schemas/libwiz-schema.json",
-  "debug": true,
   "root": "./",
   "srcPath": "./src",
   "buildPath": "./dist"

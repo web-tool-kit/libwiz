@@ -77,7 +77,6 @@ const LibwizReactConfigSchema = z
   .describe('React config for transpile');
 
 export type Config = Partial<{
-  debug: boolean;
   root: string;
   srcPath: string;
   buildPath: string;
@@ -141,7 +140,6 @@ const CustomTranspileOutputSchema = z.object({
 
 export const ConfigSchema = z
   .object({
-    debug: z.boolean().optional().describe('Enable debug mode'),
     root: z.string().optional().describe('Root directory'),
     workspace: z.string().optional().describe('Workspace directory'),
     srcPath: z.string().optional().describe('Source path'),

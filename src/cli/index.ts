@@ -80,7 +80,6 @@ const cliProps = argv as unknown as CliProps;
 
 initCli();
 initConfig({
-  debug: cliProps.verbose,
   srcPath: cliProps.srcDir,
   buildPath: cliProps.outDir,
   target: cliProps.target,

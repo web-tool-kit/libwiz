@@ -20,7 +20,6 @@ export function initConfig(localConfig?: Config): Config {
   }
 
   const config: Config = {
-    debug: Boolean(process.env.DEBUG_MODE),
     ignore: [
       '**/*.test.js',
       '**/*.test.ts',
