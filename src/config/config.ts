@@ -55,7 +55,7 @@ export function initConfig(localConfig?: Config): Config {
   };
 
   // merge localConfig with config
-  mergeDeep(config, localConfig);
+  mergeDeep(config, localConfig as Config);
 
   try {
     // handle root path

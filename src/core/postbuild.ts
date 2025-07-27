@@ -3,12 +3,14 @@ import fse from 'fs-extra';
 import glob from 'fast-glob';
 import { log, parallel, sequential } from '../utils';
 import { getConfig } from '../config';
+import type { Config } from '../config';
+import type { NotPartial } from '../types';
 
 /**
  * Copy required files of module in there folder
  */
 export async function copyRequiredFiles() {
-  const { assets, srcPath, buildPath } = getConfig();
+  const { assets, srcPath, buildPath } = getConfig() as NotPartial<Config>;
   if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
     return;
   }
@@ -53,7 +55,7 @@ export async function copyRequiredFiles() {
 }
 
 async function postbuild() {
-  const { root, srcPath, buildPath } = getConfig();
+  const { root, srcPath, buildPath } = getConfig() as NotPartial<Config>;
 
   /**
    * Following function help to move project files like

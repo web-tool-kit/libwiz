@@ -2,6 +2,14 @@ import type { Bundles } from '../config';
 
 export type { Bundles, ModuleConfig, LibConfig, Config } from '../config';
 
+/**
+ * Utility type that makes all properties of T required instead of partial
+ * This is the opposite of Partial<T>
+ */
+export type NotPartial<T> = {
+  [P in keyof T]-?: T[P];
+};
+
 export interface CliProps {
   build: boolean;
   types: boolean;
