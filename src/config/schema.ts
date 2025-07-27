@@ -93,7 +93,6 @@ export type Config = Partial<{
     option: TranspileOptions,
   ) => Promise<TranspileOutput | void>;
   compiler: Partial<{
-    tool: 'babel';
     react: Partial<LibwizReactConfig>;
     presets: TransformOptions['presets'];
     plugins: TransformOptions['plugins'];

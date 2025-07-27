@@ -45,7 +45,6 @@ export function initConfig(localConfig?: Config): Config {
     },
     customTranspiler: null,
     compiler: {
-      tool: 'babel',
       react: {
         runtime: 'automatic',
       },
