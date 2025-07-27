@@ -1,7 +1,6 @@
 import pc from 'picocolors';
 import { isMainThread, parentPort } from 'node:worker_threads';
-
-const isTTY = process.stdout.isTTY;
+import { isTTY } from './common';
 
 export function print(msg: string) {
   if (isMainThread) {
