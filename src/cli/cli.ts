@@ -29,7 +29,7 @@ async function run(argv: CliProps) {
     watchRun();
     return;
   }
-
+  const buildStartTime = Date.now();
   await prebuildRun();
 
   if (build) {
@@ -45,7 +45,7 @@ async function run(argv: CliProps) {
     }
   }
 
-  await postBuild();
+  await postBuild(buildStartTime);
 }
 
 export default run;

@@ -10,7 +10,7 @@ import {
 } from './utils';
 import { validateConfigSchema } from './schema';
 import store from './store';
-import type { Config } from '../types';
+import type { Config, NotPartial } from '../types';
 
 export function initConfig(localConfig?: Config): Config {
   const root = process.cwd();
@@ -212,7 +212,7 @@ export const getConfig = (localConfig?: Config) => {
   if (!store.hasConfig()) {
     initConfig(localConfig);
   }
-  return store.config();
+  return store.config() as NotPartial<Config>;
 };
 
 export default getConfig;

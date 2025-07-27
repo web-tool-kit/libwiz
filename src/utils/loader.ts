@@ -1,4 +1,5 @@
 import log, { clearLine } from './log';
+import { isProgressDisabled } from './common';
 
 function createProgressLoader(totalSteps: number) {
   let msg = '';
@@ -19,6 +20,7 @@ function createProgressLoader(totalSteps: number) {
 
   return {
     track: (done?: number, total = totalSteps) => {
+      if (isProgressDisabled()) return;
       updateBar(done, total);
 
       if (msg) {
@@ -28,6 +30,7 @@ function createProgressLoader(totalSteps: number) {
       }
     },
     stop: () => {
+      if (isProgressDisabled()) return;
       if (hasStarted) {
         clearLine();
       }
@@ -35,6 +38,11 @@ function createProgressLoader(totalSteps: number) {
       hasStarted = false;
     },
     updateProgressText: (text: string) => {
+      if (isProgressDisabled()) {
+        log.info(text);
+        log.raw('\n');
+        return;
+      }
       msg = text;
     },
   };

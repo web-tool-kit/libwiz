@@ -3,14 +3,12 @@ import fse from 'fs-extra';
 import glob from 'fast-glob';
 import { log, parallel, sequential } from '../utils';
 import { getConfig } from '../config';
-import type { Config } from '../config';
-import type { NotPartial } from '../types';
 
 /**
  * Copy required files of module in there folder
  */
 export async function copyRequiredFiles() {
-  const { assets, srcPath, buildPath } = getConfig() as NotPartial<Config>;
+  const { assets, srcPath, buildPath } = getConfig();
   if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
     return;
   }
@@ -54,8 +52,8 @@ export async function copyRequiredFiles() {
   await Promise.all(task);
 }
 
-async function postbuild() {
-  const { root, srcPath, buildPath } = getConfig() as NotPartial<Config>;
+async function postbuild(startTime: number) {
+  const { root, srcPath, buildPath } = getConfig();
 
   /**
    * Following function help to move project files like
@@ -213,7 +211,9 @@ async function postbuild() {
       parallel([createModulePackages(), createPackageFile()]),
       copyLibraryFiles(),
     ]);
-    log.success(`Build completed successfully\n`);
+    const endTime = Date.now();
+    const buildTime = (endTime - startTime) / 1000;
+    log.success(`Build completed successfully in ${buildTime.toFixed(1)}s\n`);
   } catch (err) {
     console.error(err);
     process.exit(1);

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { debounce } from '../../utils';
+import { debounce, isProgressDisabled } from '../../utils';
 import log, { print, clearLine } from '../../utils/log';
 import { copyRequiredFiles } from '../postbuild';
 
@@ -68,6 +68,7 @@ class WorkerNodes {
       try {
         clearLine();
         log.progress(`Change detected. Restarting build...`);
+        if (isProgressDisabled()) log.raw('\n');
         this.ready = false;
         this.running = false;
 
@@ -97,7 +98,7 @@ class WorkerNodes {
     if (this.isReady()) {
       this.manageRestart();
       this.running = true;
-      this.active.postMessage({ type: 'build', data });
+      this.active?.postMessage({ type: 'build', data });
     }
   });
 }

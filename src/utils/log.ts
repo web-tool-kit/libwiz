@@ -1,6 +1,6 @@
 import pc from 'picocolors';
 import { isMainThread, parentPort } from 'node:worker_threads';
-import { isTTY } from './common';
+import { isTTY, isProgressDisabled } from './common';
 
 export function print(msg: string) {
   if (isMainThread) {
@@ -17,27 +17,23 @@ export function print(msg: string) {
   console.log(msg);
 }
 
-function spacedStr(str: string) {
-  return ` ${str} `;
-}
-
 function formattedMsg(status: 'INFO' | 'ERROR' | 'WARN', msg: string) {
-  let statusMsg = pc.bgBlue(spacedStr(status));
+  let statusMsg = pc.bgBlue(status);
 
   switch (status) {
     case 'INFO':
-      statusMsg = pc.bgBlue(spacedStr(status));
+      statusMsg = pc.cyan(status);
       break;
     case 'ERROR':
-      statusMsg = pc.bgRed(spacedStr(status));
+      statusMsg = pc.red(status);
       break;
     case 'WARN':
-      statusMsg = pc.bgYellow(spacedStr(status));
+      statusMsg = pc.yellow(status);
       break;
     default:
       break;
   }
-  return `${statusMsg} ${msg}`.trim();
+  return `${pc.bold(statusMsg.toLocaleLowerCase())} ${msg}`.trim();
 }
 
 export const log = {
@@ -68,6 +64,7 @@ export const log = {
 };
 
 export function clearLine() {
+  if (isProgressDisabled()) return;
   if (isMainThread) {
     if (isTTY) {
       process.stdout.clearLine(0);

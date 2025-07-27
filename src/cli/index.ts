@@ -20,6 +20,9 @@ const version = getPackageVersion();
 const argv = yargs(hideBin(process.argv))
   .help()
   .strict()
+  .parserConfiguration({
+    'boolean-negation': false,
+  })
 
   // target will be used if you want to generate build for
   // specific case like cjs or esm
@@ -47,11 +50,10 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
   })
 
-  .option('verbose', {
-    alias: 'v',
+  .option('no-progress', {
     type: 'boolean',
-    default: false,
-    description: 'Run with verbose logging',
+    default: undefined,
+    description: 'Disable progress bar',
   })
   .help()
   .strict()
@@ -77,6 +79,11 @@ if (task === 'build') {
 }
 
 const cliProps = argv as unknown as CliProps;
+
+// Set environment variable if --no-progress is used or in CI environment
+if (cliProps.noProgress === true || process.env.CI === 'true') {
+  process.env.LIBWIZ_DISABLE_PROGRESS = 'true';
+}
 
 initCli();
 initConfig({

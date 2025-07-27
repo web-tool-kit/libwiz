@@ -4,6 +4,9 @@ import resolveFrom from 'resolve-from';
 import type { Config } from '../types';
 
 export const isTTY = process.stdout.isTTY || process.env.CI;
+// isProgressDisabled function is used to check if the progress bar should be disabled
+export const isProgressDisabled = () =>
+  process.env.LIBWIZ_DISABLE_PROGRESS === 'true';
 
 export function magicImport<T = any>(
   moduleId: string,
@@ -37,11 +40,8 @@ export function parallel(promises: Promise<unknown>[]) {
 export async function sequential(fxnArr: (unknown | Promise<unknown>)[]) {
   const results = [];
   for (const fn of fxnArr) {
-    if (fn instanceof Promise) {
-      results.push(await fn);
-    } else {
-      results.push(fn);
-    }
+    const result = fn instanceof Promise ? await fn : fn;
+    results.push(result as never);
   }
   return results;
 }
@@ -69,7 +69,7 @@ export function createFileHash(path: string) {
 }
 
 export function initCli() {
-  if (!process.stdout.isTTY) return;
+  if (!process.stdout.isTTY || isProgressDisabled()) return;
 
   process.stdout.write('\u001B[?25l');
   function restoreCursor() {

@@ -9,20 +9,15 @@
 - 🛠 **Customizable Build Directories**: Specify source and output directories as needed.
 - 🔄 **Dev Mode**: Automatically rebuild when files change.
 - 🗺 **Source Maps**: Generate source maps for easier debugging.
-- 📝 **Verbose Logging**: Get detailed build logs for debugging.
 - ⚙️ **Config File Support**: Customize the build with a configuration file (`libwiz.config.js`, `libwiz.config.json`, or `.libwizrc`).
 
 ## Installation
 
-You can install `libwiz` globally using npm:
-
 ```bash
+# Install globally
 npm install -g libwiz
-```
 
-Or, add it as a dev dependency in your project:
-
-```bash
+# Or add as dev dependency
 npm install --save-dev libwiz
 ```
 
@@ -35,16 +30,17 @@ npm install --save-dev libwiz
 1. **build**: Build the library in the desired format.
 2. **dev**: Run the build in watch mode for faster development.
 
-### Command Syntax
+### Basic Usage
 
 ```bash
-libwiz <command> [options]
-```
+# Build library
+libwiz build
 
-For example:
-
-```bash
+# Build with TypeScript types
 libwiz build --types
+
+# Watch mode for development
+libwiz dev
 ```
 
 ### Options
@@ -56,11 +52,11 @@ libwiz build --types
 | `--out-dir`     |       | string  | `./dist` | The output directory for the build files.        |
 | `--types`       |       | boolean | `false`  | Generate type definition files (`*.d.ts`).       |
 | `--source-maps` |       | boolean | `false`  | Generate source maps for the build.              |
-| `--verbose`     | `-v`  | boolean | `false`  | Enable verbose logging.                          |
+| `--no-progress` |       | boolean |          | Disable progress bar.                            |
 | `--help`        |       |         |          | Show help for all commands and options.          |
 | `--version`     |       |         |          | Show the version of `libwiz`.                    |
 
-### Config File Support
+### Configuration
 
 `libwiz` also supports configuration files to give you more control over your build process. You can create a config file named `libwiz.config.js`, `libwiz.config.json`, or `.libwizrc` in your project root. Here's an overview of the configuration options available:
 
@@ -236,3 +232,17 @@ module.exports = {
   },
 };
 ```
+
+### Disabling Progress Bar
+
+The `--no-progress` flag automatically disables the progress bar in CI environments or when explicitly used. You can also use the `LIBWIZ_DISABLE_PROGRESS` environment variable.
+
+```bash
+# CLI flag (recommended)
+libwiz build --no-progress
+
+# Environment variable
+LIBWIZ_DISABLE_PROGRESS=true libwiz build
+```
+
+**Use cases**: CI/CD pipelines, non-interactive terminals, monorepo builds where multiple builds run concurrently etc

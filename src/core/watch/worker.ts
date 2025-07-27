@@ -1,7 +1,7 @@
 import { parentPort, isMainThread } from 'node:worker_threads';
 import { globSync } from 'fast-glob';
 import log from '../../utils/log';
-import { createFileHash } from '../../utils';
+import { createFileHash, isProgressDisabled } from '../../utils';
 import { getConfig } from '../../config';
 import build from '../build';
 import runPostbuild from '../postbuild';
@@ -30,14 +30,17 @@ const actionOnWatch = async (
   async function runBuildProcess() {
     if (isInit) {
       log.success(`Change detected. Restarting build...`);
+      // if progress is disabled move to next line
+      if (isProgressDisabled()) log.raw('\n');
     }
+    const startTime = Date.now();
     try {
       isInit = true;
       await build();
     } catch (err) {
       throw err;
     }
-    await runPostbuild();
+    await runPostbuild(startTime);
   }
 
   switch (event) {
