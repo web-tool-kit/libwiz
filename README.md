@@ -83,7 +83,6 @@ The following configuration options allow you to customize or override the defau
 - **`target`** (`string` or `array`): Specifies build targets, such as `"esm"`, `"cjs"`, or an array with both.
 - **`customTranspiler`** (`function`): A custom function to handle transpilation if specific control is required.
 - **`compiler`** (`object`, optional): Compiler configuration settings (defaults will be used if not provided).
-  - **`tool`** (`string`): Compiler tool; currently supports only `babel`.
   - **`react`** (`object`): React-specific configuration options.
     - **`pragma`** (`string`): Specifies the React pragma for JSX transformation.
     - **`pragmaFrag`** (`string`): Specifies the React pragma for fragments.
@@ -126,7 +125,6 @@ module.exports = {
   },
   target: ['esm', 'cjs'],
   compiler: {
-    tool: 'babel',
     react: {
       runtime: 'automatic',
     },
