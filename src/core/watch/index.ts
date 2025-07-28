@@ -1,14 +1,13 @@
 import chokidar from 'chokidar';
 import log from '../../utils/log';
-import { clearConsole } from '../../utils';
 import { getConfig } from '../../config';
 import WorkerNodes from './WorkerNodes';
+import type { CliProps } from '../../types';
 
 const watchWorker = new WorkerNodes();
 
-async function watch() {
+async function watch(cliProps: CliProps) {
   const config = getConfig();
-  clearConsole();
   log.success(`Running in watch mode...`);
 
   const watcher = chokidar.watch(`${config.srcPath}/**/*`, {
@@ -19,7 +18,7 @@ async function watch() {
 
   watcher.on('all', async (event, path) => {
     await watchWorker.terminate();
-    watchWorker.run({ event, path });
+    watchWorker.run({ event, path, cliProps });
   });
 }
 

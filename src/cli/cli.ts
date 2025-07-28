@@ -5,9 +5,9 @@ import typesRun from '../core/types';
 import postBuild from '../core/postbuild';
 import type { CliProps } from '../types';
 
-async function run(argv: CliProps) {
+async function run(cliProps: CliProps) {
   const config = getConfig();
-  const { build, types, watch } = argv;
+  const { build, types, watch } = cliProps;
 
   // setup env before build start
   // production/devlopment can be there
@@ -26,7 +26,7 @@ async function run(argv: CliProps) {
 
   if (watch) {
     const { default: watchRun } = require('../core/watch');
-    watchRun();
+    watchRun(cliProps);
     return;
   }
   const buildStartTime = Date.now();

@@ -10,18 +10,45 @@ import {
 } from './utils';
 import { validateConfigSchema } from './schema';
 import store from './store';
-import type { Config, NotPartial } from '../types';
+import type { Config, CliProps, NotPartial } from '../types';
 
-export async function initConfig(localConfig?: Config): Promise<Config> {
+/**
+ * Get the initial config from the cli props
+ */
+function getInitialConfig(cliProps?: CliProps) {
+  if (!cliProps) return;
+  return {
+    srcPath: cliProps.srcDir,
+    buildPath: cliProps.outDir,
+    target: cliProps.target,
+    lib: {
+      esm: {
+        output: {
+          comments: true,
+          sourceMap: Boolean(cliProps.sourceMaps),
+        },
+      },
+      cjs: {
+        output: {
+          comments: true,
+          sourceMap: Boolean(cliProps.sourceMaps),
+        },
+      },
+    },
+  };
+}
+
+export async function initConfig(cliProps?: CliProps): Promise<Config> {
   // if config is already initialized, return it
   if (store.hasConfig()) {
     return store.config() as Config;
   }
 
+  const initialConfig = getInitialConfig(cliProps);
   const root = process.cwd();
 
-  if (localConfig) {
-    validateConfigSchema(localConfig);
+  if (initialConfig) {
+    validateConfigSchema(initialConfig);
   }
 
   const config: Config = {
@@ -58,8 +85,8 @@ export async function initConfig(localConfig?: Config): Promise<Config> {
     },
   };
 
-  // merge localConfig with config
-  mergeDeep(config, localConfig as Config);
+  // merge initialConfig with config
+  mergeDeep(config, initialConfig as Config);
 
   try {
     // handle root path

@@ -85,28 +85,10 @@ if (cliProps.progress === true) {
 }
 
 const shouldClearScreen = process.env.LIBWIZ_ENABLE_PROGRESS === 'true';
-initCli(shouldClearScreen || cliProps.watch);
+initCli(Boolean(shouldClearScreen || cliProps.watch));
 
 (async function start() {
-  await initConfig({
-    srcPath: cliProps.srcDir,
-    buildPath: cliProps.outDir,
-    target: cliProps.target,
-    lib: {
-      esm: {
-        output: {
-          comments: true,
-          sourceMap: Boolean(cliProps.sourceMaps),
-        },
-      },
-      cjs: {
-        output: {
-          comments: true,
-          sourceMap: Boolean(cliProps.sourceMaps),
-        },
-      },
-    },
-  });
+  await initConfig(cliProps);
   const { default: cli } = require('./cli');
   cli(cliProps);
 })();

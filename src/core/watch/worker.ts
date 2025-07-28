@@ -1,10 +1,11 @@
 import { parentPort, isMainThread } from 'node:worker_threads';
 import { globSync } from 'fast-glob';
 import log from '../../utils/log';
-import { createFileHash, isProgressDisabled } from '../../utils';
+import { createFileHash } from '../../utils';
 import { getConfig, initConfig } from '../../config';
 import build from '../build';
 import runPostbuild from '../postbuild';
+import type { CliProps } from '../../types';
 
 const fileHashes = new Map();
 
@@ -14,9 +15,10 @@ let isInit = false;
 const actionOnWatch = async (
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
   path: string,
+  cliProps: CliProps,
 ) => {
   // init config on first run to prevent empty config
-  await initConfig();
+  await initConfig(cliProps);
   const config = getConfig();
 
   if (event === 'unlink') {
@@ -80,13 +82,14 @@ type WorkerMessage = {
 interface BuildWorkerProps {
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir';
   path: string;
+  cliProps: CliProps;
 }
 
 if (!isMainThread && parentPort) {
   parentPort.on('message', ({ type, data }: WorkerMessage) => {
     if (type === 'build') {
-      const { event, path } = data as BuildWorkerProps;
-      actionOnWatch(event, path);
+      const { event, path, cliProps } = data as BuildWorkerProps;
+      actionOnWatch(event, path, cliProps);
     }
   });
 }
