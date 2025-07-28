@@ -42,6 +42,17 @@ jobs:
       - name: Install dependencies
         run: pnpm i
 
+      - name: Check version for RC publishing
+        if: ${{ github.event.inputs.publish_type == 'rc' }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ ! "$VERSION" =~ rc ]]; then
+            echo "❌ Error: Cannot publish RC when package.json version ($VERSION) does not contain 'rc'"
+            echo "Please update your package.json version to include 'rc' (e.g., 1.0.0-rc.1)"
+            exit 1
+          fi
+          echo "✅ Version $VERSION is valid for RC publishing"
+
       - name: Audit Signatures
         run: npm audit signatures
 
