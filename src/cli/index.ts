@@ -84,7 +84,8 @@ if (cliProps.progress === true) {
   process.env.LIBWIZ_ENABLE_PROGRESS = 'true';
 }
 
-initCli();
+const shouldClearScreen = process.env.LIBWIZ_ENABLE_PROGRESS === 'true';
+initCli(shouldClearScreen || cliProps.watch);
 
 (async function start() {
   await initConfig({

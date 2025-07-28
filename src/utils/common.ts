@@ -68,8 +68,8 @@ export function createFileHash(path: string) {
   }
 }
 
-export function initCli() {
-  if (!process.stdout.isTTY || isProgressDisabled()) return;
+export function initCli(shouldClearScreen = true) {
+  if (!process.stdout.isTTY || !shouldClearScreen) return;
 
   process.stdout.write('\u001B[?25l');
   function restoreCursor() {
