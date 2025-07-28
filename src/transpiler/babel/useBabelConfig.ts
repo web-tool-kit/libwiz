@@ -137,7 +137,8 @@ const getDefaultBabelConfig = (target: Bundles): TransformOptions => {
   };
 
   const plugins = getPluginConfig(target);
-  return { presets, plugins, ignore, env };
+  const overrides = compiler?.overrides;
+  return { presets, plugins, ignore, env, overrides };
 };
 
 const configCache = new Map<Bundles, TransformOptions>();

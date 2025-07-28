@@ -99,7 +99,8 @@ The following configuration options allow you to customize or override the defau
       - **`importSource`** (`string`): Specifies the source library for JSX imports, useful for custom JSX setups.
     - **`presets`** (`array`): Array of compiler presets; can be either `string` or `[string, object]` for custom options.
     - **`plugins`** (`array`): Array of compiler plugins; can be either `string` or `[string, object]` for custom options.
-    - **`browsers`** (`string` or `array`): Target browsers for code compilation. **Recommended:** Use a `.browserslistrc` file to manage browser targets instead for better control and reusability across tools.
+    - **`browsers`** (`string` or `array`): Target browsers for code compilation.
+    - **`overrides`** (`array`): Babel overrides configuration for conditional compilation based on file patterns or other criteria.
   - **As Function**: Dynamic compiler configuration that receives build context and returns compiler options.
     - **Function Signature**: `(context: CompilerContext) => CompilerConfig`
     - **Context Object**:

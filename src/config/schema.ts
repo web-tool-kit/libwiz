@@ -81,6 +81,7 @@ export interface CompilerConfig {
   presets?: TransformOptions['presets'];
   plugins?: TransformOptions['plugins'];
   browsers?: string | string[];
+  overrides?: TransformOptions['overrides'];
 }
 
 export interface CompilerContext {
@@ -134,6 +135,10 @@ const CompilerConfigSchema = z
       .union([z.string(), z.array(z.string())])
       .optional()
       .describe('Target browsers for compilation'),
+    overrides: z
+      .array(z.any())
+      .optional()
+      .describe('Babel overrides configuration'),
   })
   .strict();
 
