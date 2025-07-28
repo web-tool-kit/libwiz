@@ -314,11 +314,11 @@ libwiz dev
 
 | Plugin/Preset                       | Default Version |
 | ----------------------------------- | --------------- |
-| `@babel/core`                       | ^7.26.0         |
-| `@babel/preset-env`                 | ^7.26.0         |
-| `@babel/preset-react`               | ^7.25.9         |
-| `@babel/plugin-transform-react-jsx` | ^7.25.9         |
-| `@babel/preset-typescript`          | ^7.26.0         |
+| `@babel/core`                       | 7.28.0          |
+| `@babel/preset-env`                 | 7.28.0          |
+| `@babel/preset-react`               | 7.27.1          |
+| `@babel/plugin-transform-react-jsx` | 7.27.1          |
+| `@babel/preset-typescript`          | 7.27.1          |
 
 If your project already has any of these plugins or presets installed in either the root `node_modules` or workspace `node_modules`, `libwiz` will automatically use your project’s versions. This ensures seamless integration and maintains compatibility with your existing setup.
 
