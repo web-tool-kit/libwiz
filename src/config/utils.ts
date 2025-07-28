@@ -52,6 +52,18 @@ export function getConfigPath(root: string): string | undefined {
   return configPath;
 }
 
+export async function loadConfig(root: string): Promise<Config> {
+  const configPath = getConfigPath(root);
+  if (!configPath) return {};
+  if (configPath.endsWith('.js')) {
+    const configModule = await import(configPath);
+    return (configModule?.default || configModule) as Config;
+  }
+  return JSON.parse(
+    fse.readFileSync(configPath, { encoding: 'utf8' }),
+  ) as Config;
+}
+
 export const expectedTypeError = function (value: unknown, type: string) {
   return `expected type '${type}' but got '${typeof value}'`;
 };

@@ -87,10 +87,12 @@ export type Config = Partial<{
   lib: LibConfig;
   target: Bundles | Bundles[];
   assets: string | string[] | null;
-  customTranspiler: (
-    code: string,
-    option: TranspileOptions,
-  ) => Promise<TranspileOutput | void>;
+  customTranspiler:
+    | ((
+        code: string,
+        option: TranspileOptions,
+      ) => Promise<TranspileOutput | void>)
+    | null;
   compiler: Partial<{
     react: Partial<LibwizReactConfig>;
     presets: TransformOptions['presets'];

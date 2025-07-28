@@ -2,7 +2,7 @@ import { parentPort, isMainThread } from 'node:worker_threads';
 import { globSync } from 'fast-glob';
 import log from '../../utils/log';
 import { createFileHash, isProgressDisabled } from '../../utils';
-import { getConfig } from '../../config';
+import { getConfig, initConfig } from '../../config';
 import build from '../build';
 import runPostbuild from '../postbuild';
 
@@ -15,6 +15,8 @@ const actionOnWatch = async (
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
   path: string,
 ) => {
+  // init config on first run to prevent empty config
+  await initConfig();
   const config = getConfig();
 
   if (event === 'unlink') {

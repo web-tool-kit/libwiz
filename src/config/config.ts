@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import { log, mergeDeep } from '../utils';
 import {
   getTSConfigPath,
-  getConfigPath,
+  loadConfig,
   invalidTypeError,
   invalidValueTypeError,
   getBrowserslistConfig,
@@ -12,7 +12,12 @@ import { validateConfigSchema } from './schema';
 import store from './store';
 import type { Config, NotPartial } from '../types';
 
-export function initConfig(localConfig?: Config): Config {
+export async function initConfig(localConfig?: Config): Promise<Config> {
+  // if config is already initialized, return it
+  if (store.hasConfig()) {
+    return store.config() as Config;
+  }
+
   const root = process.cwd();
 
   if (localConfig) {
@@ -72,21 +77,9 @@ export function initConfig(localConfig?: Config): Config {
       config.root = root;
     }
 
-    const configPath = getConfigPath(root);
-
     // handle libwiz config and merge that into main config
-    if (configPath) {
-      let rootConfig: Config = {};
-      if (configPath.endsWith('.js')) {
-        rootConfig = (require(configPath) || {}) as Config;
-      } else {
-        rootConfig = JSON.parse(
-          fse.readFileSync(configPath, { encoding: 'utf8' }),
-        ) as Config;
-      }
-      rootConfig = validateConfigSchema(rootConfig);
-      mergeDeep(config, rootConfig);
-    }
+    const rootConfig = (await loadConfig(root)) || {};
+    mergeDeep(config, rootConfig);
 
     // Handle workspace path
     if (config.workspace) {
@@ -208,10 +201,7 @@ export function initConfig(localConfig?: Config): Config {
   return config as Config;
 }
 
-export const getConfig = (localConfig?: Config) => {
-  if (!store.hasConfig()) {
-    initConfig(localConfig);
-  }
+export const getConfig = () => {
   return store.config() as NotPartial<Config>;
 };
 

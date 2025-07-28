@@ -86,27 +86,27 @@ if (cliProps.noProgress === true || process.env.CI === 'true') {
 }
 
 initCli();
-initConfig({
-  srcPath: cliProps.srcDir,
-  buildPath: cliProps.outDir,
-  target: cliProps.target,
-  lib: {
-    esm: {
-      output: {
-        comments: true,
-        sourceMap: Boolean(cliProps.sourceMaps),
-      },
-    },
-    cjs: {
-      output: {
-        comments: true,
-        sourceMap: Boolean(cliProps.sourceMaps),
-      },
-    },
-  },
-});
 
-(function start() {
+(async function start() {
+  await initConfig({
+    srcPath: cliProps.srcDir,
+    buildPath: cliProps.outDir,
+    target: cliProps.target,
+    lib: {
+      esm: {
+        output: {
+          comments: true,
+          sourceMap: Boolean(cliProps.sourceMaps),
+        },
+      },
+      cjs: {
+        output: {
+          comments: true,
+          sourceMap: Boolean(cliProps.sourceMaps),
+        },
+      },
+    },
+  });
   const { default: cli } = require('./cli');
   cli(cliProps);
 })();
