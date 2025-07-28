@@ -1,5 +1,12 @@
 # libwiz
 
+<p>
+  <a href="https://npmjs.com/package/libwiz">
+   <img src="https://img.shields.io/npm/v/libwiz?style=flat-square&colorA=000000&colorB=8338EC" alt="npm" />
+  </a>
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=000000&colorB=8338EC" alt="license" />
+</p>
+
 `libwiz` is a powerful CLI tool designed to help you build JavaScript and TypeScript libraries, especially for React components. It supports output formats like ESM (ECMAScript Module) and CJS (CommonJS), while offering features like type generation, source maps, and more.
 
 ## Features
@@ -45,16 +52,16 @@ libwiz dev
 
 ### Options
 
-| Option          | Alias | Type    | Default  | Description                                      |
-| --------------- | ----- | ------- | -------- | ------------------------------------------------ |
-| `--target`      |       | string  |          | Target format for the build. Use `esm` or `cjs`. |
-| `--src-dir`     |       | string  | `./src`  | The source directory for your library code.      |
-| `--out-dir`     |       | string  | `./dist` | The output directory for the build files.        |
-| `--types`       |       | boolean | `false`  | Generate type definition files (`*.d.ts`).       |
-| `--source-maps` |       | boolean | `false`  | Generate source maps for the build.              |
-| `--no-progress` |       | boolean |          | Disable progress bar.                            |
-| `--help`        |       |         |          | Show help for all commands and options.          |
-| `--version`     |       |         |          | Show the version of `libwiz`.                    |
+| Option            | Description                                                                                 | Default   |
+| ----------------- | --------------------------------------------------------------------------------------------|-----------|
+| `--target`        | Build target format(s): `esm`, `cjs`, or both.                                              | both      |
+| `--src-dir`       | Source directory for your library code.                                                     | `./src`   |
+| `--out-dir`       | Output directory for build files.                                                           | `./dist`  |
+| `--types`         | Generate TypeScript definition files (`*.d.ts`).                                            | false     |
+| `--source-maps`   | Generate source maps for the build.                                                         | false     |
+| `--progress`      | Enable progress bar during build.                                                           | false     |
+| `--help`          | Show help for all commands and options.                                                     |           |
+| `--version`       | Show the installed version of `libwiz`.                                                     |           |
 
 ### Configuration
 
@@ -231,16 +238,14 @@ module.exports = {
 };
 ```
 
-### Disabling Progress Bar
+### Enabling Progress Bar
 
-The `--no-progress` flag automatically disables the progress bar in CI environments or when explicitly used. You can also use the `LIBWIZ_DISABLE_PROGRESS` environment variable.
+By default, the progress bar is disabled to keep the output clean. You can enable it using the `--progress` flag or the `LIBWIZ_ENABLE_PROGRESS` environment variable.
 
 ```bash
 # CLI flag (recommended)
-libwiz build --no-progress
+libwiz build --progress
 
 # Environment variable
-LIBWIZ_DISABLE_PROGRESS=true libwiz build
+LIBWIZ_ENABLE_PROGRESS=true libwiz build
 ```
-
-**Use cases**: CI/CD pipelines, non-interactive terminals, monorepo builds where multiple builds run concurrently etc

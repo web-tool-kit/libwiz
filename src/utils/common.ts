@@ -6,7 +6,7 @@ import type { Config } from '../types';
 export const isTTY = process.stdout.isTTY || process.env.CI;
 // isProgressDisabled function is used to check if the progress bar should be disabled
 export const isProgressDisabled = () =>
-  process.env.LIBWIZ_DISABLE_PROGRESS === 'true';
+  process.env.LIBWIZ_ENABLE_PROGRESS !== 'true';
 
 export function magicImport<T = any>(
   moduleId: string,

@@ -50,10 +50,10 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
   })
 
-  .option('no-progress', {
+  .option('progress', {
     type: 'boolean',
     default: undefined,
-    description: 'Disable progress bar',
+    description: 'Enable progress bar',
   })
   .help()
   .strict()
@@ -80,9 +80,8 @@ if (task === 'build') {
 
 const cliProps = argv as unknown as CliProps;
 
-// Set environment variable if --no-progress is used or in CI environment
-if (cliProps.noProgress === true || process.env.CI === 'true') {
-  process.env.LIBWIZ_DISABLE_PROGRESS = 'true';
+if (cliProps.progress === true) {
+  process.env.LIBWIZ_ENABLE_PROGRESS = 'true';
 }
 
 initCli();

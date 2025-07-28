@@ -18,7 +18,7 @@ export interface CliProps {
   srcDir: string;
   outDir: string;
   bundle: string;
-  noProgress: boolean;
+  progress: boolean;
   target: Bundles;
 }
 
