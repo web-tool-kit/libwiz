@@ -4,15 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       publish_type:
-        description: 'Choose publish type: dry-run or actual'
+        description: 'Choose publish type: dry-run, rc, or actual'
         required: true
         default: 'dry-run'
         type: choice
         options:
           - dry-run
+          - rc
           - actual
       confirm_publish:
-        description: 'Type YES to confirm actual publish'
+        description: 'Type YES to confirm publishing (required for rc and actual)'
         required: false
         default: ''
 
@@ -21,7 +22,7 @@ permissions:
 
 jobs:
   publish:
-    if: ${{ (github.event.inputs.publish_type == 'actual' && github.event.inputs.confirm_publish == 'YES' && github.ref_name == 'main') || github.event.inputs.publish_type == 'dry-run' }}
+    if: ${{ (github.event.inputs.publish_type == 'actual' && github.event.inputs.confirm_publish == 'YES' && github.ref_name == 'main') || (github.event.inputs.publish_type == 'rc' && github.event.inputs.confirm_publish == 'YES') || github.event.inputs.publish_type == 'dry-run' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -47,6 +48,14 @@ jobs:
       - name: Publish package (dry)
         if: ${{github.event.inputs.publish_type == 'dry-run' }}
         run: pnpm release:dry
+
+      - name: Publish RC package
+        if: ${{ github.event.inputs.publish_type == 'rc' && github.event.inputs.confirm_publish == 'YES' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          REF: ${{ github.ref }}
+        run: pnpm build && cd dist && pnpm publish --access public --tag rc
 
       - name: Publish package
         if: ${{ github.event.inputs.publish_type == 'actual' && github.event.inputs.confirm_publish == 'YES' }}
