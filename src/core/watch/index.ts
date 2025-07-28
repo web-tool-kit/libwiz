@@ -9,7 +9,7 @@ const watchWorker = new WorkerNodes();
 async function watch() {
   const config = getConfig();
   clearConsole();
-  log.success(`Running in watch mode...\n`);
+  log.success(`Running in watch mode...`);
 
   const watcher = chokidar.watch(`${config.srcPath}/**/*`, {
     ignored: config.ignore,

@@ -32,8 +32,6 @@ const actionOnWatch = async (
   async function runBuildProcess() {
     if (isInit) {
       log.success(`Change detected. Restarting build...`);
-      // if progress is disabled move to next line
-      if (isProgressDisabled()) log.raw('\n');
     }
     const startTime = Date.now();
     try {

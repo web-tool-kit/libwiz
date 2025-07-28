@@ -40,7 +40,6 @@ function createProgressLoader(totalSteps: number) {
     updateProgressText: (text: string) => {
       if (isProgressDisabled()) {
         log.info(text);
-        log.raw('\n');
         return;
       }
       msg = text;

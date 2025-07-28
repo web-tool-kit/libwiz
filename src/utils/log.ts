@@ -5,6 +5,7 @@ import { isTTY, isProgressDisabled } from './common';
 export function print(msg: string) {
   if (isMainThread) {
     if (isTTY) {
+      if (isProgressDisabled()) msg += '\n';
       process.stdout.write(msg);
       return;
     }
