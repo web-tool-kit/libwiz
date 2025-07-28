@@ -13,7 +13,7 @@ export async function transformFileAsync(
     workspace,
   });
 
-  const babelConfig = useBabelConfig();
+  const babelConfig = useBabelConfig(options.env);
   const transformedCode = await babel.transformFileAsync(sourceFile, {
     ...babelConfig,
     envName: options.env,

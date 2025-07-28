@@ -1,6 +1,13 @@
 import type { Bundles } from '../config';
 
-export type { Bundles, ModuleConfig, LibConfig, Config } from '../config';
+export type {
+  Bundles,
+  ModuleConfig,
+  LibConfig,
+  Config,
+  CompilerConfig,
+  CompilerContext,
+} from '../config';
 
 /**
  * Utility type that makes all properties of T required instead of partial

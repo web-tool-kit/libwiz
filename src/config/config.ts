@@ -106,7 +106,10 @@ export async function initConfig(cliProps?: CliProps): Promise<Config> {
 
     // handle libwiz config and merge that into main config
     const rootConfig = (await loadConfig(root)) || {};
-    mergeDeep(config, rootConfig);
+    if (rootConfig) {
+      validateConfigSchema(rootConfig);
+      mergeDeep(config, rootConfig);
+    }
 
     // Handle workspace path
     if (config.workspace) {

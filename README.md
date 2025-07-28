@@ -51,16 +51,16 @@ libwiz dev
 
 ### Options
 
-| Option            | Description                                                                                 | Default   |
-| ----------------- | --------------------------------------------------------------------------------------------|-----------|
-| `--target`        | Build target format(s): `esm`, `cjs`, or both.                                              | both      |
-| `--src-dir`       | Source directory for your library code.                                                     | `./src`   |
-| `--out-dir`       | Output directory for build files.                                                           | `./dist`  |
-| `--types`         | Generate TypeScript definition files (`*.d.ts`).                                            | false     |
-| `--source-maps`   | Generate source maps for the build.                                                         | false     |
-| `--progress`      | Enable progress bar during build.                                                           | false     |
-| `--help`          | Show help for all commands and options.                                                     |           |
-| `--version`       | Show the installed version of `libwiz`.                                                     |           |
+| Option          | Description                                      | Default  |
+| --------------- | ------------------------------------------------ | -------- |
+| `--target`      | Build target format(s): `esm`, `cjs`, or both.   | both     |
+| `--src-dir`     | Source directory for your library code.          | `./src`  |
+| `--out-dir`     | Output directory for build files.                | `./dist` |
+| `--types`       | Generate TypeScript definition files (`*.d.ts`). | false    |
+| `--source-maps` | Generate source maps for the build.              | false    |
+| `--progress`    | Enable progress bar during build.                | false    |
+| `--help`        | Show help for all commands and options.          |          |
+| `--version`     | Show the installed version of `libwiz`.          |          |
 
 ### Configuration
 
@@ -88,17 +88,25 @@ The following configuration options allow you to customize or override the defau
       - **`sourceMap`** (`boolean`): Generates source maps if `true`.
 - **`target`** (`string` or `array`): Specifies build targets, such as `"esm"`, `"cjs"`, or an array with both.
 - **`customTranspiler`** (`function`): A custom function to handle transpilation if specific control is required.
-- **`compiler`** (`object`, optional): Compiler configuration settings (defaults will be used if not provided).
-  - **`react`** (`object`): React-specific configuration options.
-    - **`pragma`** (`string`): Specifies the React pragma for JSX transformation.
-    - **`pragmaFrag`** (`string`): Specifies the React pragma for fragments.
-    - **`throwIfNamespace`** (`boolean`): Throws an error if a namespace is used in JSX if `true`.
-    - **`useBuiltins`** (`boolean`): Enables runtime optimizations if `true`.
-    - **`runtime`** (`string`): Sets React runtime mode; can be `"classic"` or `"automatic"`.
-    - **`importSource`** (`string`): Specifies the source library for JSX imports, useful for custom JSX setups.
-  - **`presets`** (`array`): Array of compiler presets; can be either `string` or `[string, object]` for custom options.
-  - **`plugins`** (`array`): Array of compiler plugins; can be either `string` or `[string, object]` for custom options.
-  - **`browsers`** (`string` or `array`): Target browsers for code compilation. **Recommended:** Use a `.browserslistrc` file to manage browser targets instead for better control and reusability across tools.
+- **`compiler`** (`object` or `function`, optional): Advanced compiler configuration that can be either a static object or a dynamic function based on build target.
+  - **As Object**: Static compiler configuration applied to all targets.
+    - **`react`** (`object`): React-specific configuration options.
+      - **`pragma`** (`string`): Specifies the React pragma for JSX transformation.
+      - **`pragmaFrag`** (`string`): Specifies the React pragma for fragments.
+      - **`throwIfNamespace`** (`boolean`): Throws an error if a namespace is used in JSX if `true`.
+      - **`useBuiltins`** (`boolean`): Enables runtime optimizations if `true`.
+      - **`runtime`** (`string`): Sets React runtime mode; can be `"classic"` or `"automatic"`.
+      - **`importSource`** (`string`): Specifies the source library for JSX imports, useful for custom JSX setups.
+    - **`presets`** (`array`): Array of compiler presets; can be either `string` or `[string, object]` for custom options.
+    - **`plugins`** (`array`): Array of compiler plugins; can be either `string` or `[string, object]` for custom options.
+    - **`browsers`** (`string` or `array`): Target browsers for code compilation. **Recommended:** Use a `.browserslistrc` file to manage browser targets instead for better control and reusability across tools.
+  - **As Function**: Dynamic compiler configuration that receives build context and returns compiler options.
+    - **Function Signature**: `(context: CompilerContext) => CompilerConfig`
+    - **Context Object**:
+      - **`target`** (`'esm' | 'cjs'`): Current build target
+      - **`isESM`** (`boolean`): Whether building for ESM format
+      - **`isCJS`** (`boolean`): Whether building for CommonJS format
+    - **Returns**: Same `CompilerConfig` object as above
 - **`assets`** (`string`, `array`, or `null`): Specifies additional assets to include in the build, like `['**/*.css']`. Set to `null` to exclude assets.
 
 ### Example Configuration
@@ -144,6 +152,120 @@ module.exports = {
     browsers: 'last 2 versions',
   },
   assets: '**/*.css',
+};
+```
+
+### Advanced Compiler Configuration Examples
+
+#### Static Compiler Configuration (Object)
+
+```js
+// libwiz.config.js
+module.exports = {
+  // ... other config
+  compiler: {
+    react: {
+      runtime: 'automatic',
+      importSource: '@emotion/react',
+    },
+    presets: [
+      '@babel/preset-env',
+      ['@babel/preset-react', { runtime: 'automatic' }],
+    ],
+    plugins: [
+      '@babel/plugin-proposal-class-properties',
+      '@babel/plugin-proposal-object-rest-spread',
+    ],
+    browsers: ['last 2 versions', 'not dead'],
+  },
+};
+```
+
+#### Dynamic Compiler Configuration (Function)
+
+```js
+// libwiz.config.js
+module.exports = {
+  // ... other config
+  compiler: context => {
+    const { isESM, isCJS } = context;
+
+    // Different configuration for ESM vs CJS
+    if (isESM) {
+      return {
+        react: {
+          runtime: 'automatic',
+          importSource: '@emotion/react',
+        },
+        presets: [
+          ['@babel/preset-env', { modules: false }],
+          '@babel/preset-react',
+        ],
+        plugins: [
+          '@babel/plugin-proposal-class-properties',
+          '@babel/plugin-transform-runtime',
+        ],
+        browsers: ['last 2 versions'],
+      };
+    }
+
+    // CommonJS configuration
+    if (isCJS) {
+      return {
+        react: {
+          runtime: 'classic',
+        },
+        presets: [
+          ['@babel/preset-env', { modules: 'commonjs' }],
+          '@babel/preset-react',
+        ],
+        plugins: ['@babel/plugin-proposal-class-properties'],
+        browsers: ['ie 11', 'last 2 versions'],
+      };
+    }
+
+    // Fallback configuration
+    return {
+      react: { runtime: 'automatic' },
+      presets: ['@babel/preset-env', '@babel/preset-react'],
+      browsers: 'last 2 versions',
+    };
+  },
+};
+```
+
+#### Conditional Plugin Loading
+
+```js
+// libwiz.config.js
+module.exports = {
+  // ... other config
+  compiler: ({ isESM }) => {
+    const baseConfig = {
+      react: { runtime: 'automatic' },
+      presets: ['@babel/preset-env', '@babel/preset-react'],
+    };
+
+    // Add tree-shaking optimizations for ESM
+    if (isESM) {
+      return {
+        ...baseConfig,
+        plugins: [
+          '@babel/plugin-transform-runtime',
+          '@babel/plugin-proposal-export-namespace-from',
+        ],
+      };
+    }
+
+    // Add legacy support for CommonJS
+    return {
+      ...baseConfig,
+      plugins: [
+        '@babel/plugin-proposal-class-properties',
+        '@babel/plugin-proposal-object-rest-spread',
+      ],
+    };
+  },
 };
 ```
 

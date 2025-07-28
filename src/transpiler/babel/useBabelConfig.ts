@@ -1,6 +1,25 @@
 import type { TransformOptions } from '@babel/core';
 import { getConfig } from '../../config';
 import { magicImport, isPlainObject } from '../../utils';
+import type { Bundles, CompilerConfig } from '../../types';
+
+// keep compiler config in cache to prevent re-computation
+const compilerConfigCache = new Map<Bundles, CompilerConfig>();
+function getCompilerConfig(target: Bundles) {
+  if (compilerConfigCache.has(target)) {
+    return compilerConfigCache.get(target);
+  }
+  const { compiler } = getConfig();
+  const isESM = target === 'esm';
+  const isCJS = target === 'cjs';
+
+  const compilerConfig =
+    typeof compiler === 'function'
+      ? compiler({ target, isESM, isCJS })
+      : compiler;
+  compilerConfigCache.set(target, compilerConfig);
+  return compilerConfig;
+}
 
 function resolvePluginPresets(moduleId: string, options = {}) {
   const { root, workspace } = getConfig();
@@ -10,8 +29,8 @@ function resolvePluginPresets(moduleId: string, options = {}) {
   return magicImport(moduleId, { root, workspace });
 }
 
-const getPluginConfig = () => {
-  const { compiler } = getConfig();
+const getPluginConfig = (target: Bundles) => {
+  const compiler = getCompilerConfig(target);
 
   const rootPluginConfigMap: Record<string, any> = {
     pluginTransformReactJSX: {},
@@ -41,8 +60,9 @@ const getPluginConfig = () => {
   ];
 };
 
-const getDefaultBabelConfig = (): TransformOptions => {
-  const { compiler, ignore, root, workspace } = getConfig();
+const getDefaultBabelConfig = (target: Bundles): TransformOptions => {
+  const { ignore, root, workspace } = getConfig();
+  const compiler = getCompilerConfig(target);
 
   const rootPresetConfigMap: Record<string, any> = {
     presetEnv: {},
@@ -116,12 +136,18 @@ const getDefaultBabelConfig = (): TransformOptions => {
     },
   };
 
-  const plugins = getPluginConfig();
+  const plugins = getPluginConfig(target);
   return { presets, plugins, ignore, env };
 };
 
-const useBabelConfig = () => {
-  const babelConfig = getDefaultBabelConfig();
+const configCache = new Map<Bundles, TransformOptions>();
+
+const useBabelConfig = (target: Bundles) => {
+  // return in case of cache hit to prevent re-computation
+  if (configCache.has(target)) return configCache.get(target);
+
+  const babelConfig = getDefaultBabelConfig(target);
+  configCache.set(target, babelConfig);
   return babelConfig;
 };
 

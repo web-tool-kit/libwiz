@@ -76,6 +76,19 @@ const LibwizReactConfigSchema = z
   .optional()
   .describe('React config for transpile');
 
+export interface CompilerConfig {
+  react?: Partial<LibwizReactConfig>;
+  presets?: TransformOptions['presets'];
+  plugins?: TransformOptions['plugins'];
+  browsers?: string | string[];
+}
+
+export interface CompilerContext {
+  target: Bundles;
+  isESM: boolean;
+  isCJS: boolean;
+}
+
 export type Config = Partial<{
   root: string;
   srcPath: string;
@@ -93,12 +106,7 @@ export type Config = Partial<{
         option: TranspileOptions,
       ) => Promise<TranspileOutput | void>)
     | null;
-  compiler: Partial<{
-    react: Partial<LibwizReactConfig>;
-    presets: TransformOptions['presets'];
-    plugins: TransformOptions['plugins'];
-    browsers: string | string[];
-  }>;
+  compiler: CompilerConfig | ((context: CompilerContext) => CompilerConfig);
 }>;
 
 const PluginAndPresetSchema = z.union([
@@ -108,7 +116,7 @@ const PluginAndPresetSchema = z.union([
     .describe('Plugin or preset with options'),
 ]);
 
-const CompilerSchema = z
+const CompilerConfigSchema = z
   .object({
     tool: z.enum(['babel']).optional().describe('Compiler tool'),
     react: LibwizReactConfigSchema.optional().describe(
@@ -128,6 +136,21 @@ const CompilerSchema = z
       .describe('Target browsers for compilation'),
   })
   .strict();
+
+const CompilerContextSchema = z.object({
+  target: VALID_BUNDLE_ENUM,
+  isESM: z.boolean(),
+  isCJS: z.boolean(),
+});
+
+const CompilerSchema = z.union([
+  CompilerConfigSchema.describe('Compiler configuration object'),
+  z
+    .function()
+    .args(CompilerContextSchema)
+    .returns(CompilerConfigSchema)
+    .describe('Compiler configuration function'),
+]);
 
 const CustomTranspileOptionsSchema = z.object({
   env: VALID_BUNDLE_ENUM,
