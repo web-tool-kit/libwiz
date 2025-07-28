@@ -40,10 +40,12 @@ async function postBuild() {
     'utf8',
   );
 
-  const readmeFile = path.resolve(sourcePath, 'README.md');
-  if (fse.existsSync(readmeFile)) {
-    fse.copyFileSync(readmeFile, path.resolve(distPath, 'README.md'));
-  }
+  ['README.md', 'LICENSE'].forEach(file => {
+    const filePath = path.resolve(sourcePath, file);
+    if (fse.existsSync(filePath)) {
+      fse.copyFileSync(filePath, path.resolve(distPath, file));
+    }
+  });
 
   await generateSchema(distPath);
 }
