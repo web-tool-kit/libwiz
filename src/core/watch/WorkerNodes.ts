@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { Worker } from 'node:worker_threads';
+import { isColorSupported } from '../../utils/picocolors';
 import { debounce } from '../../utils';
 import log, { print, clearLine } from '../../utils/log';
 import { copyRequiredFiles } from '../postbuild';
@@ -24,6 +25,7 @@ class WorkerNodes {
   }
 
   private attachEvents(worker: Worker) {
+    worker.postMessage({ type: 'picocolors', data: { isColorSupported } });
     worker.on('message', async data => {
       if (data.type === 'log') {
         print(data.message);

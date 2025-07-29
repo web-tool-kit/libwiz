@@ -1,8 +1,8 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
-import ps from 'picocolors';
 import ts, { ParsedCommandLine } from 'typescript';
+import pc from '../utils/picocolors';
 import { log, clearLine, removeBuildInfoFiles } from '../utils';
 import { getConfig } from '../config';
 
@@ -90,7 +90,7 @@ function compileDTS() {
           diagnostic.start,
         );
         const filePath = path.relative(process.cwd(), diagnostic.file.fileName);
-        const fileKey = `${filePath}${ps.gray(`:${line + 1}`)}`;
+        const fileKey = `${filePath}${pc.gray(`:${line + 1}`)}`;
         fileErrorCount.set(fileKey, (fileErrorCount.get(fileKey) || 0) + 1);
       }
     });

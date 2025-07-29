@@ -1,5 +1,5 @@
-import pc from 'picocolors';
 import { isMainThread, parentPort } from 'node:worker_threads';
+import pc from './picocolors';
 import { isTTY, isProgressDisabled } from './common';
 
 export function print(msg: string) {
