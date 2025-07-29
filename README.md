@@ -76,7 +76,7 @@ The following configuration options allow you to customize or override the defau
 - **`buildPath`** (`string`): Directory where build output files will be stored.
 - **`tsConfig`** (`string`): Path to the TypeScript configuration file, such as `tsconfig.json`.
 - **`extensions`** (`array of strings`): List of file extensions to process, e.g., `['.ts', '.tsx']`.
-- **`ignore`** (`array of strings`): Patterns to ignore during processing, like test files or specific directories.
+- **`ignore`** (`array of strings`): Glob patterns to ignore during build (e.g., `**/__tests__/**`, `**/*.test.ts`, `**/fixtures/**`). Useful for excluding test files, fixtures, and other non-production code.
 - **`lib`** (`object`): Library configuration settings for both ESM and CJS builds:
   - **`esm`** (`object`): Settings for ESM (EcmaScript Module) format output.
     - **`output`** (`object`): Configures ESM output settings.
@@ -360,7 +360,49 @@ module.exports = {
 };
 ```
 
-### Enabling Progress Bar
+### TypeScript Configuration for Type Generation
+
+When using `libwiz build --types` to generate TypeScript definition files, `libwiz` enhances TypeScript's configuration by supporting **glob patterns** in your `tsconfig.json` file. This allows you to use modern glob syntax, which TypeScript doesn't support by default.
+
+> **Note**: This feature is specifically for type generation (`--types`). For regular builds, `libwiz` already handles glob patterns through its own configuration system.
+
+#### Glob Pattern Examples
+
+**Brace Expansion:**
+
+- `{ts,tsx}` - Multiple extensions in one pattern
+- `{test,spec,stories}` - Multiple file types
+- `{ts,tsx,js,jsx}` - Multiple file extensions
+- **Example**: `src/**/*.{ts,tsx}` matches both .ts and .tsx files
+
+**Character Classes:**
+
+- `[jt]s` - Match .ts and .js files
+- `[jt]sx` - Match .tsx and .jsx files
+- **Example**: `src/**/*.[tj]s` matches .ts and .js files
+
+**Negative Patterns:**
+
+- `!` - Exclude files (works in include array)
+- `!src/**/*.test.{ts,tsx}` - Exclude test files using `!` in include array
+- `!src/**/*.spec.{ts,tsx}` - Exclude spec files
+- `!src/**/*.stories.{ts,tsx}` - Exclude story files
+- `!src/**/*.{test,spec,stories}.{ts,tsx}` - Exclude multiple file types at once
+
+#### Usage in tsconfig.json
+
+```json
+{
+  "include": [
+    "src/**/*.[jt]s",
+    "src/**/*.{ts,js}x",
+    "!src/**/*.{test,spec}.{ts,tsx}"
+  ],
+  "exclude": ["src/ignore/**/*.{ts,tsx}", "src/**/*.{doc,example}.{ts,tsx}"]
+}
+```
+
+### How to Enable Progress Bar?
 
 By default, the progress bar is disabled to keep the output clean. You can enable it using the `--progress` flag or the `LIBWIZ_ENABLE_PROGRESS` environment variable.
 

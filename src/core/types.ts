@@ -20,6 +20,7 @@ const formatHost = {
 
 function getParsedTSConfig() {
   const { tsConfig } = getConfig();
+  const configDir = path.dirname(tsConfig);
 
   const resolvedConfig = ts.readConfigFile(tsConfig, ts.sys.readFile);
   if (resolvedConfig.error) {
@@ -29,8 +30,7 @@ function getParsedTSConfig() {
     process.exit(1);
   }
 
-  const configDir = path.dirname(tsConfig);
-  const parsedConfig = ts.parseJsonConfigFileContent(
+  const parsed = ts.parseJsonConfigFileContent(
     resolvedConfig.config,
     host,
     configDir,
@@ -38,16 +38,38 @@ function getParsedTSConfig() {
     tsConfig,
   );
 
-  if (parsedConfig.errors.length > 0) {
+  if (parsed.errors.length > 0) {
     log.raw(
-      parsedConfig.errors
+      parsed.errors
         .map(e => ts.flattenDiagnosticMessageText(e.messageText, '\n'))
         .join('\n'),
     );
     process.exit(1);
   }
 
-  return parsedConfig;
+  const allowJs = parsed.options.allowJs ?? false;
+  const includePatterns = parsed.raw?.include ?? [
+    '**/*.ts',
+    '**/*.tsx',
+    '**/*.d.ts',
+    ...(allowJs ? ['**/*.js', '**/*.jsx'] : []),
+  ];
+
+  const excludePatterns = parsed.raw?.exclude ?? [
+    'node_modules',
+    'bower_components',
+    'jspm_packages',
+  ];
+
+  // resolve glob patterns, default ts does not support glob patterns
+  const fileNames = glob.sync(includePatterns, {
+    cwd: configDir,
+    ignore: excludePatterns,
+    absolute: true,
+  });
+
+  parsed.fileNames = fileNames;
+  return parsed;
 }
 
 function compileDTS() {
@@ -109,8 +131,14 @@ function compileDTS() {
     );
     log.newline();
 
-    log.raw(`\nFound ${totalErrors} errors in ${totalFiles} files.`);
-    log.newline();
+    log.raw(`\nFound ${totalErrors} errors in ${totalFiles} files.\n\n`);
+    log.raw(`Errors  Files`);
+
+    const detailFileErrorArr = [];
+    fileErrorCount.forEach((count, fileKey) => {
+      detailFileErrorArr.push(`${count.toString().padStart(6)}  ${fileKey}`);
+    });
+    log.raw(detailFileErrorArr.join('\n'));
     process.exit(1);
   }
 }
