@@ -366,6 +366,8 @@ When using `libwiz build --types` to generate TypeScript definition files, `libw
 
 > **Note**: This feature is specifically for type generation (`--types`). For regular builds, `libwiz` already handles glob patterns through its own configuration system.
 
+> **Important**: libwiz automatically overwrites `outDir` and `rootDir` settings in your tsconfig.json for optimal type generation. This ensures proper file structure and prevents conflicts with your build configuration.
+
 #### Glob Pattern Examples
 
 **Brace Expansion:**
