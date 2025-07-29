@@ -19,7 +19,7 @@ const formatHost = {
 };
 
 function getParsedTSConfig() {
-  const { tsConfig } = getConfig();
+  const { tsConfig, ignore } = getConfig();
   const configDir = path.dirname(tsConfig);
 
   const resolvedConfig = ts.readConfigFile(tsConfig, ts.sys.readFile);
@@ -55,11 +55,10 @@ function getParsedTSConfig() {
     ...(allowJs ? ['**/*.js', '**/*.jsx'] : []),
   ];
 
-  const excludePatterns = parsed.raw?.exclude ?? [
-    'node_modules',
-    'bower_components',
-    'jspm_packages',
-  ];
+  const excludePatterns =
+    Array.isArray(parsed.raw?.exclude) && parsed.raw.exclude.length > 0
+      ? parsed.raw.exclude
+      : ['node_modules', 'bower_components', 'jspm_packages', ...ignore];
 
   // resolve glob patterns, default ts does not support glob patterns
   const fileNames = glob.sync(includePatterns, {

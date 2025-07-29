@@ -76,7 +76,18 @@ The following configuration options allow you to customize or override the defau
 - **`buildPath`** (`string`): Directory where build output files will be stored.
 - **`tsConfig`** (`string`): Path to the TypeScript configuration file, such as `tsconfig.json`.
 - **`extensions`** (`array of strings`): List of file extensions to process, e.g., `['.ts', '.tsx']`.
-- **`ignore`** (`array of strings`): Glob patterns to ignore during build (e.g., `**/__tests__/**`, `**/*.test.ts`, `**/fixtures/**`). Useful for excluding test files, fixtures, and other non-production code.
+- **`ignore`** (`array of strings`): Glob patterns to exclude files from the build process. Defaults to:
+  ```js
+  [
+    '**/*.test.js',
+    '**/*.test.ts',
+    '**/*.test.tsx',
+    '**/*.spec.ts',
+    '**/*.spec.tsx',
+    '**/*.d.ts',
+  ];
+  ```
+  Useful for excluding test files, fixtures, stories, examples and other non-production code from your build output.
 - **`lib`** (`object`): Library configuration settings for both ESM and CJS builds:
   - **`esm`** (`object`): Settings for ESM (EcmaScript Module) format output.
     - **`output`** (`object`): Configures ESM output settings.
@@ -364,7 +375,7 @@ module.exports = {
 
 When using `libwiz build --types` to generate TypeScript definition files, `libwiz` enhances TypeScript's configuration by supporting **glob patterns** in your `tsconfig.json` file. This allows you to use modern glob syntax, which TypeScript doesn't support by default.
 
-> **Note**: This feature is specifically for type generation (`--types`). For regular builds, `libwiz` already handles glob patterns through its own configuration system.
+> This feature is specifically for type generation (`--types`). For regular builds, `libwiz` already handles glob patterns through its own configuration system.
 
 > **Important**: libwiz automatically overwrites `outDir` and `rootDir` settings in your tsconfig.json for optimal type generation. This ensures proper file structure and prevents conflicts with your build configuration.
 
@@ -403,6 +414,8 @@ When using `libwiz build --types` to generate TypeScript definition files, `libw
   "exclude": ["src/ignore/**/*.{ts,tsx}", "src/**/*.{doc,example}.{ts,tsx}"]
 }
 ```
+
+> **Note**: If no or empty `exclude` patterns are specified in your tsconfig.json, libwiz will automatically use its own `ignore` configuration as exclude patterns for type generation.
 
 ### How to Enable Progress Bar?
 
