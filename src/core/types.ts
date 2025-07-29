@@ -6,6 +6,11 @@ import pc from '../utils/picocolors';
 import { log, clearLine, removeBuildInfoFiles } from '../utils';
 import { getConfig } from '../config';
 
+const host: ts.ParseConfigHost = {
+  ...ts.sys,
+  useCaseSensitiveFileNames: true,
+};
+
 const formatHost = {
   getCanonicalFileName: (path: string) => path,
   getCurrentDirectory: ts.sys.getCurrentDirectory,
@@ -26,7 +31,7 @@ function getParsedTSConfig() {
 
   const clientConfig = ts.parseJsonConfigFileContent(
     result.config,
-    ts.sys,
+    host,
     path.dirname(tsConfig),
     undefined,
     tsConfig,
