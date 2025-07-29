@@ -1,7 +1,8 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
-import ts, { ParsedCommandLine } from 'typescript';
+import ts from 'typescript';
+import type { ParsedCommandLine } from 'typescript';
 import pc from '../utils/picocolors';
 import { log, clearLine, removeBuildInfoFiles } from '../utils';
 import { getConfig } from '../config';
@@ -19,34 +20,34 @@ const formatHost = {
 
 function getParsedTSConfig() {
   const { tsConfig } = getConfig();
-  const configFileText = fse.readFileSync(tsConfig, 'utf8');
-  const result = ts.parseConfigFileTextToJson(tsConfig, configFileText);
 
-  if (result.error) {
-    console.error(
-      ts.flattenDiagnosticMessageText(result.error.messageText, '\n'),
+  const resolvedConfig = ts.readConfigFile(tsConfig, ts.sys.readFile);
+  if (resolvedConfig.error) {
+    log.raw(
+      ts.flattenDiagnosticMessageText(resolvedConfig.error.messageText, '\n'),
     );
     process.exit(1);
   }
 
-  const clientConfig = ts.parseJsonConfigFileContent(
-    result.config,
+  const configDir = path.dirname(tsConfig);
+  const parsedConfig = ts.parseJsonConfigFileContent(
+    resolvedConfig.config,
     host,
-    path.dirname(tsConfig),
+    configDir,
     undefined,
     tsConfig,
   );
 
-  if (clientConfig.errors.length > 0) {
-    console.error(
-      clientConfig.errors
+  if (parsedConfig.errors.length > 0) {
+    log.raw(
+      parsedConfig.errors
         .map(e => ts.flattenDiagnosticMessageText(e.messageText, '\n'))
         .join('\n'),
     );
     process.exit(1);
   }
 
-  return clientConfig;
+  return parsedConfig;
 }
 
 function compileDTS() {
@@ -56,6 +57,7 @@ function compileDTS() {
   const finalConfig: ParsedCommandLine = {
     ...config,
     options: {
+      removeComments: false,
       ...config.options,
       composite: true,
       declaration: true,
@@ -63,7 +65,6 @@ function compileDTS() {
       emitDeclarationOnly: true,
       outDir: buildPath,
       rootDir: srcPath,
-      removeComments: false,
     },
   };
 
@@ -108,13 +109,7 @@ function compileDTS() {
     );
     log.newline();
 
-    log.raw(`\nFound ${totalErrors} errors in ${totalFiles} files.\n\n`);
-    log.raw(`Errors  Files`);
-
-    fileErrorCount.forEach((count, fileKey) => {
-      log.newline();
-      log.raw(`     ${count}  ${fileKey}`);
-    });
+    log.raw(`\nFound ${totalErrors} errors in ${totalFiles} files.`);
     log.newline();
     process.exit(1);
   }
