@@ -1,8 +1,8 @@
 {
   "name": "libwiz",
   "private": true,
-  "version": "0.0.3-rc.3",
-  "description": "Quick library build tool",
+  "version": "0.0.3-rc.4",
+  "description": "A powerful CLI tool for building modern JavaScript and TypeScript libraries",
   "sideEffects": false,
   "main": "./dist/index.js",
   "author": "xettri",
@@ -14,7 +14,7 @@
   "homepage": "https://github.com/ui-tool-kit/libwiz#readme",
   "scripts": {
     "prepare": "husky && npm run build",
-    "build": "rimraf dist && tsc && node scripts/postbuild.mjs && rimraf */*.tsbuildinfo",
+    "build": "rimraf dist && tsc && tsc-alias && node scripts/postbuild.mjs && rimraf */*.tsbuildinfo",
     "release": "pnpm build && cd dist && pnpm publish --access public",
     "release:dry": "pnpm release --dry-run --no-git-checks",
     "prettier": "prettier --write ./"
@@ -48,6 +48,7 @@
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "rimraf": "^5.0.10",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.8.3",
     "zod-to-json-schema": "^3.23.5"
   },

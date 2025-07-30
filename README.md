@@ -31,10 +31,11 @@ npm install --save-dev libwiz
 
 ### Commands
 
-`libwiz` provides two primary commands: `build` and `dev`.
+`libwiz` provides three primary commands: `build`, `dev`, and `types`.
 
 1. **build**: Build the library in the desired format.
 2. **dev**: Run the build in watch mode for faster development.
+3. **types**: Generate TypeScript definition files only (without building the library).
 
 ### Basic Usage
 
@@ -45,22 +46,29 @@ libwiz build
 # Build with TypeScript types
 libwiz build --types
 
+# Generate TypeScript types only
+libwiz types
+
+# Type check only (no file generation)
+libwiz types --check
+
 # Watch mode for development
 libwiz dev
 ```
 
 ### Options
 
-| Option          | Description                                      | Default  |
-| --------------- | ------------------------------------------------ | -------- |
-| `--target`      | Build target format(s): `esm`, `cjs`, or both.   | both     |
-| `--src-dir`     | Source directory for your library code.          | `./src`  |
-| `--out-dir`     | Output directory for build files.                | `./dist` |
-| `--types`       | Generate TypeScript definition files (`*.d.ts`). | false    |
-| `--source-maps` | Generate source maps for the build.              | false    |
-| `--progress`    | Enable progress bar during build.                | false    |
-| `--help`        | Show help for all commands and options.          |          |
-| `--version`     | Show the installed version of `libwiz`.          |          |
+| Option          | Description                                                   | Default  |
+| --------------- | ------------------------------------------------------------- | -------- |
+| `--target`      | Build target format(s): `esm`, `cjs`, or both.                | both     |
+| `--src-dir`     | Source directory for your library code.                       | `./src`  |
+| `--out-dir`     | Output directory for build files.                             | `./dist` |
+| `--types`       | Generate TypeScript definition files (`*.d.ts`).              | false    |
+| `--source-maps` | Generate source maps for the build.                           | false    |
+| `--progress`    | Enable progress bar during build.                             | false    |
+| `--check`       | Type check only without generating files (types command only) | false    |
+| `--help`        | Show help for all commands and options.                       |          |
+| `--version`     | Show the installed version of `libwiz`.                       |          |
 
 ### Configuration
 

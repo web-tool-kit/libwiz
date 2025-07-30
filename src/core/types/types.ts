@@ -1,24 +1,15 @@
 import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
-import ts from 'typescript';
-import type { ParsedCommandLine } from 'typescript';
-import pc from '../utils/picocolors';
-import { log, clearLine, removeBuildInfoFiles } from '../utils';
-import { getConfig } from '../config';
-
-const host: ts.ParseConfigHost = {
-  ...ts.sys,
-  useCaseSensitiveFileNames: true,
-};
-
-const formatHost = {
-  getCanonicalFileName: (path: string) => path,
-  getCurrentDirectory: ts.sys.getCurrentDirectory,
-  getNewLine: () => ts.sys.newLine,
-};
+import pc from '@/utils/picocolors';
+import { log, clearLine, removeBuildInfoFiles } from '@/utils';
+import { getConfig } from '@/config';
+import { getTypescript } from '@/typescript';
+import type { ParsedCommandLine, ParseConfigHost } from '@/typescript';
+import { postProcessDTS, getFormatHost } from './utils';
 
 function getParsedTSConfig() {
+  const ts = getTypescript();
   const { tsConfig, ignore } = getConfig();
   const configDir = path.dirname(tsConfig);
 
@@ -30,9 +21,14 @@ function getParsedTSConfig() {
     process.exit(1);
   }
 
+  const tsHost: ParseConfigHost = {
+    ...ts.sys,
+    useCaseSensitiveFileNames: true,
+  };
+
   const parsed = ts.parseJsonConfigFileContent(
     resolvedConfig.config,
-    host,
+    tsHost,
     configDir,
     undefined,
     tsConfig,
@@ -71,7 +67,8 @@ function getParsedTSConfig() {
   return parsed;
 }
 
-function compileDTS() {
+function compileDTS(onlyTypeCheck = false) {
+  const ts = getTypescript();
   const { srcPath, buildPath } = getConfig();
   const config = getParsedTSConfig();
 
@@ -80,11 +77,10 @@ function compileDTS() {
     options: {
       removeComments: false,
       ...config.options,
-      composite: true,
       declaration: true,
-      noEmit: false,
+      noEmit: onlyTypeCheck,
       emitDeclarationOnly: true,
-      outDir: buildPath,
+      outDir: onlyTypeCheck ? undefined : buildPath,
       rootDir: srcPath,
     },
   };
@@ -126,7 +122,7 @@ function compileDTS() {
     const totalFiles = fileErrorCount.size;
 
     log.raw(
-      ts.formatDiagnosticsWithColorAndContext(allDiagnostics, formatHost),
+      ts.formatDiagnosticsWithColorAndContext(allDiagnostics, getFormatHost()),
     );
     log.newline();
 
@@ -140,10 +136,13 @@ function compileDTS() {
     log.raw(detailFileErrorArr.join('\n'));
     process.exit(1);
   }
+
+  return emitResult;
 }
 
-async function types() {
-  log.progress('Generating types...');
+// this function is used to generate types
+async function types(onlyTypeCheck = false) {
+  log.progress(onlyTypeCheck ? 'Type checking...' : 'Generating types...');
   const { root, tsConfig, buildPath } = getConfig();
 
   if (!fse.existsSync(tsConfig)) {
@@ -164,31 +163,13 @@ async function types() {
     process.exit(1);
   }
 
-  compileDTS();
+  compileDTS(onlyTypeCheck);
 
-  const declarationFiles = await glob('**/*.d.ts', {
-    absolute: true,
-    cwd: buildPath,
-  });
-
-  async function removeUnWantedImports(declarationFile) {
-    const code = await fse.readFile(declarationFile, { encoding: 'utf8' });
-    const fixedCode = code
-      .replace(/import\s+['"].+\.(css|json|svg|jpg|png|webp)['"];/gi, '')
-      .replace(/\n{2,}/g, '\n');
-    await fse.writeFile(declarationFile, fixedCode);
+  if (!onlyTypeCheck) {
+    // in case of type generation, remove unwanted imports from .d.ts files
+    // like .css, .png etc
+    await postProcessDTS(buildPath);
   }
-
-  await Promise.all(
-    declarationFiles.map(async declarationFile => {
-      try {
-        await removeUnWantedImports(declarationFile);
-      } catch (error) {
-        console.error(error);
-        process.exit(1);
-      }
-    }),
-  );
 
   await removeBuildInfoFiles(root);
   clearLine();

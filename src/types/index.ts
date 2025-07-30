@@ -9,6 +9,8 @@ export type {
   CompilerContext,
 } from '../config';
 
+export type TaskTypes = 'build' | 'dev' | 'types';
+
 /**
  * Utility type that makes all properties of T required instead of partial
  * This is the opposite of Partial<T>
@@ -27,6 +29,7 @@ export interface CliProps {
   bundle: string;
   progress: boolean;
   target: Bundles;
+  check: boolean;
 }
 
 export interface TranspileOptions {

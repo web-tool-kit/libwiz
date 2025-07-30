@@ -18,34 +18,35 @@ export function print(msg: string) {
   console.log(msg);
 }
 
-function formattedMsg(status: 'INFO' | 'ERROR' | 'WARN', msg: string) {
-  let statusMsg = pc.bgBlue(status);
+type MessageStatus = 'info' | 'error' | 'warn';
 
+function formattedMsg(status: MessageStatus, msg: string) {
+  let statusMsg = pc.bgBlue(status);
   switch (status) {
-    case 'INFO':
+    case 'info':
       statusMsg = pc.cyan(status);
       break;
-    case 'ERROR':
+    case 'error':
       statusMsg = pc.red(status);
       break;
-    case 'WARN':
+    case 'warn':
       statusMsg = pc.yellow(status);
       break;
     default:
       break;
   }
-  return `${pc.bold(statusMsg.toLocaleLowerCase())} ${msg}`.trim();
+  return `${pc.bold(statusMsg)} ${msg}`.trim();
 }
 
 export const log = {
   info: (msg: string) => {
-    print(formattedMsg('INFO', msg));
+    print(formattedMsg('info', msg));
   },
   error: (msg: string) => {
-    print(formattedMsg('ERROR', msg));
+    print(formattedMsg('error', msg));
   },
   warn: (msg: string) => {
-    print(formattedMsg('WARN', msg));
+    print(formattedMsg('warn', msg));
   },
   success: (msg: string) => {
     print(`${pc.green('\u2713')} ${msg}`);
