@@ -49,8 +49,7 @@
     "prettier": "^3.3.3",
     "rimraf": "^5.0.10",
     "tsc-alias": "^1.8.16",
-    "typescript": "^5.8.3",
-    "zod-to-json-schema": "^3.23.5"
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"

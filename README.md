@@ -289,17 +289,6 @@ module.exports = {
 };
 ```
 
-Example `libwiz.config.json`
-
-```json
-{
-  "$schema": "./node_module/schemas/libwiz-schema.json",
-  "root": "./",
-  "srcPath": "./src",
-  "buildPath": "./dist"
-}
-```
-
 ### Examples
 
 #### Building for ESM format
