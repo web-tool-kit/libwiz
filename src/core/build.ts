@@ -1,4 +1,4 @@
-import glob from 'fast-glob';
+import { globSync } from 'fast-glob';
 import transformFilesAsync from '@/transpiler';
 import createProgressLoader from '@/utils/loader';
 import { getConfig } from '@/config';
@@ -6,8 +6,18 @@ import type { Bundles } from '@/types';
 
 function getAllSourceFiles() {
   const { extensions, ignore, srcPath } = getConfig();
+  // create proper glob pattern based on number of extensions
+  let globPattern: string;
+  if (extensions.length === 1) {
+    // for single extension, use simple pattern
+    globPattern = `**/*${extensions[0]}`;
+  } else {
+    // for multiple extensions, use brace expansion
+    globPattern = `**/*{${extensions.join(',')}}`;
+  }
+
   try {
-    return glob.globSync(`**/*{${extensions.join(',')}}`, {
+    return globSync(globPattern, {
       cwd: srcPath,
       ignore,
     });
