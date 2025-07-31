@@ -14,6 +14,10 @@ async function watch(cliProps: CliProps) {
     ignored: config.ignore,
     persistent: true,
     alwaysStat: true,
+    awaitWriteFinish: {
+      pollInterval: 100,
+      stabilityThreshold: 300,
+    },
   });
 
   watcher.on('all', async (event, path) => {
