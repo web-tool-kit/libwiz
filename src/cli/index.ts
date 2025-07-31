@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 import '@/typescript';
-import { initCli } from '../utils/common';
-import { initConfig } from '../config';
+import { initCli } from '@/utils/common';
+import { initConfig } from '@/config';
 import { parseArgs } from './parser';
+
+// suppress browserslist warning
+process.env.BROWSERSLIST_IGNORE_OLD_DATA = '1';
 
 (async function start() {
   const { cliProps, task } = parseArgs();

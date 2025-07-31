@@ -1,5 +1,5 @@
 import clone from 'clone-deep';
-import type { Config } from '../types';
+import type { Config } from '@/types';
 
 class ConfigStore {
   private cacheConfig: Config = {};

@@ -1,7 +1,7 @@
 import type { TransformOptions } from '@babel/core';
 import { z } from 'zod';
-import { log } from '../utils';
-import pc from '../utils/picocolors';
+import { log } from '@/utils';
+import pc from '@/utils/picocolors';
 import type { TranspileOutput, TranspileOptions } from '../types';
 
 export type Bundles = 'esm' | 'cjs';

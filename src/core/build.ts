@@ -1,8 +1,8 @@
 import glob from 'fast-glob';
-import transformFilesAsync from '../transpiler';
-import createProgressLoader from '../utils/loader';
-import { getConfig } from '../config';
-import type { Bundles } from '../types';
+import transformFilesAsync from '@/transpiler';
+import createProgressLoader from '@/utils/loader';
+import { getConfig } from '@/config';
+import type { Bundles } from '@/types';
 
 function getAllSourceFiles() {
   const { extensions, ignore, srcPath } = getConfig();

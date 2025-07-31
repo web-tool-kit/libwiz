@@ -1,4 +1,4 @@
-import type { Bundles } from '../config';
+import type { Bundles } from '@/config';
 
 export type {
   Bundles,

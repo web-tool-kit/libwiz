@@ -51,9 +51,6 @@ async function run(cliProps: CliProps, task: TaskTypes) {
     if (!process.env.BABEL_ENV) {
       process.env.BABEL_ENV = watch ? 'development' : 'production';
     }
-
-    // Suppress browserslist warning
-    process.env.BROWSERSLIST_IGNORE_OLD_DATA = '1';
   }
 
   if (watch) {

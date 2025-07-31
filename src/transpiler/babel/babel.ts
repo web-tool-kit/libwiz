@@ -1,7 +1,7 @@
+import getConfig from '@/config';
+import { magicImport } from '@/utils';
+import type { TranspileOptions, TranspileOutput } from '@/types';
 import useBabelConfig from './useBabelConfig';
-import getConfig from '../../config';
-import { magicImport } from '../../utils';
-import type { TranspileOptions, TranspileOutput } from '../../types';
 
 export async function transformFileAsync(
   sourceFile: string,

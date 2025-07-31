@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import { log } from '../utils';
-import type { Config } from '../types';
+import { log } from '@/utils';
+import type { Config } from '@/types';
 
 export const PACKAGE_NAME = 'libwiz';
 

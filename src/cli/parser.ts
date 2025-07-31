@@ -9,9 +9,7 @@ function getPackageVersion(): string | undefined {
     const packageJsonPath = resolve(__dirname, '../package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
     return packageJson.version;
-  } catch (e) {
-    return undefined;
-  }
+  } catch {}
 }
 
 export function parseArgs() {

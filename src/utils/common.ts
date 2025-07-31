@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import resolveFrom from 'resolve-from';
-import type { Config } from '../types';
+import type { Config } from '@/types';
 
 export const isTTY = process.stdout.isTTY || process.env.CI;
 // isProgressDisabled function is used to check if the progress bar should be disabled

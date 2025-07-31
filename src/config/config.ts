@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import { log, mergeDeep } from '../utils';
+import { log, mergeDeep } from '@/utils';
 import {
   getTSConfigPath,
   loadConfig,

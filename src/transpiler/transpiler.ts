@@ -1,8 +1,8 @@
 import path from 'node:path';
 import fse from 'fs-extra';
+import { getConfig } from '@/config';
 import * as babel from './babel';
-import { getConfig } from '../config';
-import type { ModuleConfig, Bundles, TranspileOutput } from '../types';
+import type { ModuleConfig, Bundles, TranspileOutput } from '@/types';
 
 export type ProgressCallback = ({
   completed,

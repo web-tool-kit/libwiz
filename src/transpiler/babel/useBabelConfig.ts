@@ -1,7 +1,7 @@
 import type { TransformOptions } from '@babel/core';
-import { getConfig } from '../../config';
-import { magicImport, isPlainObject } from '../../utils';
-import type { Bundles, CompilerConfig } from '../../types';
+import { getConfig } from '@/config';
+import { magicImport, isPlainObject } from '@/utils';
+import type { Bundles, CompilerConfig } from '@/types';
 
 // keep compiler config in cache to prevent re-computation
 const compilerConfigCache = new Map<Bundles, CompilerConfig>();

@@ -1,8 +1,8 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import glob from 'fast-glob';
-import { log, parallel, sequential } from '../utils';
-import { getConfig } from '../config';
+import { log, parallel, sequential } from '@/utils';
+import { getConfig } from '@/config';
 
 /**
  * Copy required files of module in there folder

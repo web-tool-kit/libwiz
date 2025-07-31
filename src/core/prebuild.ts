@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
-import { getConfig } from '../config';
-import { removeBuildInfoFiles } from '../utils';
+import { getConfig } from '@/config';
+import { removeBuildInfoFiles } from '@/utils';
 
 async function prebuild() {
   const { buildPath } = getConfig();
