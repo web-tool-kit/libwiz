@@ -21,7 +21,8 @@ async function watch(cliProps: CliProps) {
   });
 
   watcher.on('all', async (event, path) => {
-    await watchWorker.terminate();
+    // always send the event to worker, let it handle hash checking
+    // this ensures consistent behavior and prevents race conditions
     watchWorker.run({ event, path, cliProps });
   });
 }

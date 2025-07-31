@@ -6,7 +6,7 @@ import build from '@/core/build';
 import runPostbuild from '@/core/postbuild';
 import type { CliProps } from '@/types';
 
-const fileHashes = new Map();
+const fileHashes = new Map<string, string>();
 
 // to keep status of first init
 let isInit = false;
@@ -20,6 +20,7 @@ const actionOnWatch = async (
   await initConfig(cliProps);
   const config = getConfig();
 
+  // handle file hash management
   if (event === 'unlink') {
     fileHashes.delete(path);
   } else if (event === 'unlinkDir') {
@@ -42,6 +43,11 @@ const actionOnWatch = async (
       throw err;
     }
     await runPostbuild(buildTimer);
+
+    // notify main thread that build is completed
+    if (!isMainThread && parentPort) {
+      parentPort.postMessage({ type: 'completed', data: { event, path } });
+    }
   }
 
   switch (event) {
@@ -67,10 +73,6 @@ const actionOnWatch = async (
     default:
       break;
   }
-
-  if (!isMainThread && parentPort) {
-    parentPort.postMessage({ type: 'completed', data: { event, path } });
-  }
 };
 
 type WorkerMessage = {
@@ -88,7 +90,15 @@ if (!isMainThread && parentPort) {
   parentPort.on('message', ({ type, data }: WorkerMessage) => {
     if (type === 'build') {
       const { event, path, cliProps } = data as BuildWorkerProps;
-      actionOnWatch(event, path, cliProps);
+      actionOnWatch(event, path, cliProps).catch(err => {
+        parentPort.postMessage({
+          type: 'error',
+          data: {
+            message: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+          },
+        });
+      });
     }
   });
 }

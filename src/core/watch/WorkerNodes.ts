@@ -35,6 +35,16 @@ class WorkerNodes {
         await copyRequiredFiles();
         this.running = false;
         this.ready = true;
+      } else if (data.type === 'error') {
+        log.newline();
+        const er = data?.data;
+        if (er) {
+          if (er?.stack) {
+            log.raw(er.stack);
+          } else {
+            log.raw(er?.message);
+          }
+        }
       }
     });
 
@@ -65,8 +75,12 @@ class WorkerNodes {
     }
   }
 
+  isRunning(): boolean {
+    return Boolean(this.active && this.running);
+  }
+
   async terminate() {
-    if (this.active && this.running) {
+    if (this.isRunning()) {
       try {
         clearLine();
         log.info(`Change detected. Restarting build...`);
@@ -87,19 +101,26 @@ class WorkerNodes {
     return this.isReady() ? this.active : null;
   }
 
-  isRunning(): boolean {
-    return Boolean(this.active && this.running);
-  }
-
   isReady(): boolean {
     return Boolean(this.active && this.ready);
   }
 
+  triggerBuild(data: unknown) {
+    this.manageRestart();
+    this.running = true;
+    this.active?.postMessage({ type: 'build', data });
+  }
+
   run = debounce((data: unknown) => {
     if (this.isReady()) {
-      this.manageRestart();
-      this.running = true;
-      this.active?.postMessage({ type: 'build', data });
+      // Only terminate if we're currently running a build
+      if (this.running) {
+        // terminate and start new build
+        this.terminate().then(() => this.triggerBuild(data));
+      } else {
+        // no build running, start immediately
+        this.triggerBuild(data);
+      }
     }
   });
 }
