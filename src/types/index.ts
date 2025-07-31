@@ -1,14 +1,12 @@
-import type { Bundles } from '@/config';
-
 export type {
-  Bundles,
   ModuleConfig,
   LibConfig,
   Config,
   CompilerConfig,
   CompilerContext,
-} from '../config';
+} from '@/config';
 
+export type Bundles = 'esm' | 'cjs';
 export type TaskTypes = 'build' | 'dev' | 'types';
 
 /**

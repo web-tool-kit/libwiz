@@ -14,7 +14,9 @@ function getPackageVersion(): string | undefined {
 }
 
 function printPackageIntro(version: string) {
-  console.log(`${pc.bold(pc.cyan('   Libwiz'))} ${pc.green(`v${version}`)}\n`);
+  console.log(
+    pc.bold(`${pc.bold(pc.cyan('   Libwiz'))} ${pc.green(`v${version}`)}\n`),
+  );
 }
 
 export function parseArgs() {

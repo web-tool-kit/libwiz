@@ -2,9 +2,7 @@ import type { TransformOptions } from '@babel/core';
 import { z } from 'zod';
 import { log } from '@/utils';
 import pc from '@/utils/picocolors';
-import type { TranspileOutput, TranspileOptions } from '../types';
-
-export type Bundles = 'esm' | 'cjs';
+import type { Bundles, TranspileOutput, TranspileOptions } from '@/types';
 
 const VALID_BUNDLE_ENUM = z.enum(['esm', 'cjs']).describe('Valid bundle types');
 
@@ -202,22 +200,25 @@ export const ConfigSchema = z
   })
   .strict();
 
-function formatZodErrors(errors: any[]) {
-  const error = errors[0];
-  const { path, message } = error;
-  const pathString = `${pc.yellow(path.length ? path.join(' -> ') : 'root')}`;
+function configValidationErrors(errors: any[]) {
   const stackTrace = new Error().stack;
-  const filteredStackTrace = stackTrace
-    .split('\n')
-    .filter(line => line.includes('/'))
-    .join('\n');
-  return `Error in config ${pathString} : ${message} \n${filteredStackTrace}`;
+  const { path, expected, received } = errors[0];
+
+  const pathString = `${pc.bold(pc.yellow(path.length ? path.join(' → ') : 'root'))}`;
+  let errMsg = `Invalid configuration ${pathString} is expected to be a ${expected} but received ${received}`;
+
+  return `${errMsg}\n${pc.gray(
+    stackTrace
+      ?.split('\n')
+      .filter(line => line.includes('/'))
+      .join('\n'),
+  )}`;
 }
 
 export function validateConfigSchema(config: Config) {
   const configResult = ConfigSchema.safeParse(config);
   if (!configResult.success) {
-    log.error(formatZodErrors(configResult.error.errors));
+    log.error(configValidationErrors(configResult.error.issues));
     process.exit(1);
   }
   return configResult.data as Config;
