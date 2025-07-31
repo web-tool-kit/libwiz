@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
+import pc from '@/utils/picocolors';
 import type { CliProps, TaskTypes } from '@/types';
 
 function getPackageVersion(): string | undefined {
@@ -12,8 +13,13 @@ function getPackageVersion(): string | undefined {
   } catch {}
 }
 
+function printPackageIntro(version: string) {
+  console.log(`${pc.bold(pc.cyan('   Libwiz'))} ${pc.green(`v${version}`)}\n`);
+}
+
 export function parseArgs() {
   const version = getPackageVersion();
+  printPackageIntro(version);
 
   const argv = yargs(hideBin(process.argv))
     .help()

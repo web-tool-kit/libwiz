@@ -1,8 +1,9 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import glob from 'fast-glob';
-import { log, parallel, sequential } from '@/utils';
 import { getConfig } from '@/config';
+import pc from '@/utils/picocolors';
+import { log, parallel, sequential } from '@/utils';
 
 /**
  * Copy required files of module in there folder
@@ -213,7 +214,9 @@ async function postbuild(startTime: number) {
     ]);
     const endTime = Date.now();
     const buildTime = (endTime - startTime) / 1000;
-    log.success(`Build completed successfully in ${buildTime.toFixed(1)}s\n`);
+    log.success(
+      `Build completed successfully in ${pc.bold(buildTime.toFixed(1))}s\n`,
+    );
   } catch (err) {
     console.error(err);
     process.exit(1);

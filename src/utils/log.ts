@@ -35,7 +35,7 @@ function formattedMsg(status: MessageStatus, msg: string) {
     default:
       break;
   }
-  return `${pc.bold(statusMsg)} ${msg}`.trim();
+  return `${pc.bold(statusMsg)}   ${msg}`.trim();
 }
 
 export const log = {
