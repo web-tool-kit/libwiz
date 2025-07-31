@@ -2,7 +2,8 @@ import { isMainThread, parentPort } from 'node:worker_threads';
 import pc from 'picocolors';
 
 let colorEnabled = process.env.CI !== 'true' || process.env.TERM !== 'dumb';
-// handle colorEnabled babed on parent as worker directly post logs to parent
+
+// handle colorEnabled based on parent as worker directly post logs to parent
 parentPort?.on('message', message => {
   if (message.type === 'picocolors') {
     // only update flag in case parent send isColorSupported as boolean

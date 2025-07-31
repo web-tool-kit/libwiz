@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import glob from 'fast-glob';
 import { getConfig } from '@/config';
 import pc from '@/utils/picocolors';
-import { log, parallel, sequential } from '@/utils';
+import { log, parallel, sequential, createTimer } from '@/utils';
 
 /**
  * Copy required files of module in there folder
@@ -53,7 +53,7 @@ export async function copyRequiredFiles() {
   await Promise.all(task);
 }
 
-async function postbuild(startTime: number) {
+async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
   const { root, srcPath, buildPath } = getConfig();
 
   /**
@@ -212,9 +212,8 @@ async function postbuild(startTime: number) {
       parallel([createModulePackages(), createPackageFile()]),
       copyLibraryFiles(),
     ]);
-    const endTime = Date.now();
-    const buildTime = (endTime - startTime) / 1000;
-    log.success(
+    const buildTime = getBuildTime();
+    log.done(
       `Build completed successfully in ${pc.bold(buildTime.toFixed(1))}s\n`,
     );
   } catch (err) {

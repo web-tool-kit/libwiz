@@ -18,24 +18,28 @@ export function print(msg: string) {
   console.log(msg);
 }
 
-type MessageStatus = 'info' | 'error' | 'warn';
+type MessageStatus = 'info' | 'error' | 'warn' | 'done' | 'progress';
 
 function formattedMsg(status: MessageStatus, msg: string) {
-  let statusMsg = pc.bgBlue(status);
+  const paddedStatus = status.padEnd(8);
+  let statusMsg = pc.blue(paddedStatus);
   switch (status) {
     case 'info':
-      statusMsg = pc.cyan(status);
+      statusMsg = pc.cyan(paddedStatus);
       break;
     case 'error':
-      statusMsg = pc.red(status);
+      statusMsg = pc.red(paddedStatus);
       break;
     case 'warn':
-      statusMsg = pc.yellow(status);
+      statusMsg = pc.yellow(paddedStatus);
+      break;
+    case 'done':
+      statusMsg = pc.green(paddedStatus);
       break;
     default:
       break;
   }
-  return `${pc.bold(statusMsg)}   ${msg}`.trim();
+  return `${pc.bold(statusMsg)} ${msg}`.trim();
 }
 
 export const log = {
@@ -48,14 +52,8 @@ export const log = {
   warn: (msg: string) => {
     print(formattedMsg('warn', msg));
   },
-  success: (msg: string) => {
-    print(`${pc.green('\u2713')} ${msg}`);
-  },
-  fail: (msg: string) => {
-    print(`${pc.red('\u2717')} ${msg}`);
-  },
-  progress: (msg: string) => {
-    print(`${pc.green('○')} ${msg}`);
+  done: (msg: string) => {
+    print(formattedMsg('done', msg));
   },
   raw: (msg: string) => {
     print(msg);

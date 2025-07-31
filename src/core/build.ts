@@ -29,7 +29,7 @@ async function build() {
   }
 
   const loader = createProgressLoader(sourceFiles.length);
-  loader.updateProgressText('Building...');
+  loader.updateProgressText('Building... ');
 
   let i = 0;
   async function runBuildProcess(target: Bundles) {

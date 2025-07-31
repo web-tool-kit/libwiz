@@ -1,3 +1,4 @@
+import pc from '@/utils/picocolors';
 import log, { clearLine } from './log';
 import { isProgressDisabled } from './common';
 
@@ -14,7 +15,7 @@ function createProgressLoader(totalSteps: number) {
     }
     const completedLength = Math.round(barLength * (done / total));
     bar = ` ${
-      '▓'.repeat(completedLength) + '-'.repeat(barLength - completedLength)
+      '▓'.repeat(completedLength) + '░'.repeat(barLength - completedLength)
     } [${done} | ${total}]`;
   }
 
@@ -25,7 +26,7 @@ function createProgressLoader(totalSteps: number) {
 
       if (msg) {
         clearLine();
-        log.progress(`${msg}${bar}`);
+        log.raw(`${pc.bold(pc.green(msg.padEnd(8)))} ${bar}`);
         hasStarted = true;
       }
     },

@@ -94,3 +94,16 @@ export function mergeDeep(
     }
   }
 }
+
+/**
+ * when this function is called it starts the timer and returns a function,
+ * when that called it returns the time since the timer started
+ */
+export function createTimer() {
+  const startTime = Date.now();
+  return () => {
+    const stopTime = Date.now();
+    const totalTime = (stopTime - startTime) / 1000;
+    return totalTime;
+  };
+}

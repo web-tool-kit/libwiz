@@ -2,7 +2,7 @@ import path from 'node:path';
 import glob from 'fast-glob';
 import fse from 'fs-extra';
 import pc from '@/utils/picocolors';
-import { log, clearLine, removeBuildInfoFiles } from '@/utils';
+import { log, clearLine, removeBuildInfoFiles, createTimer } from '@/utils';
 import { getConfig } from '@/config';
 import { getTypescript } from '@/typescript';
 import type { ParsedCommandLine, ParseConfigHost } from '@/typescript';
@@ -141,8 +141,10 @@ function compileDTS(onlyTypeCheck = false) {
 }
 
 // this function is used to generate types
-async function types(onlyTypeCheck = false) {
-  log.progress(onlyTypeCheck ? 'Type checking...' : 'Generating types...');
+async function types(onlyTypeCheck = false, showTiming = true) {
+  const getTime = createTimer();
+
+  log.info(onlyTypeCheck ? 'Type checking...' : 'Generating types...');
   const { root, tsConfig, buildPath } = getConfig();
 
   if (!fse.existsSync(tsConfig)) {
@@ -173,6 +175,19 @@ async function types(onlyTypeCheck = false) {
 
   await removeBuildInfoFiles(root);
   clearLine();
+
+  if (showTiming) {
+    const finishedTime = getTime();
+    if (onlyTypeCheck) {
+      log.done(
+        `Type check completed successfully in ${pc.bold(finishedTime.toFixed(1))}s`,
+      );
+    } else {
+      log.done(
+        `Types generated successfully in ${pc.bold(finishedTime.toFixed(1))}s`,
+      );
+    }
+  }
 }
 
 export default types;

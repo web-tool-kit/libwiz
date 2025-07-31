@@ -1,11 +1,10 @@
 import { parentPort, isMainThread } from 'node:worker_threads';
 import { globSync } from 'fast-glob';
-import log from '../../utils/log';
-import { createFileHash } from '../../utils';
-import { getConfig, initConfig } from '../../config';
-import build from '../build';
-import runPostbuild from '../postbuild';
-import type { CliProps } from '../../types';
+import { log, createTimer, createFileHash } from '@/utils';
+import { getConfig, initConfig } from '@/config';
+import build from '@/core/build';
+import runPostbuild from '@/core/postbuild';
+import type { CliProps } from '@/types';
 
 const fileHashes = new Map();
 
@@ -33,16 +32,16 @@ const actionOnWatch = async (
 
   async function runBuildProcess() {
     if (isInit) {
-      log.success(`Change detected. Restarting build...`);
+      log.info('New change detected. Restarting build...');
     }
-    const startTime = Date.now();
+    const buildTimer = createTimer();
     try {
       isInit = true;
       await build();
     } catch (err) {
       throw err;
     }
-    await runPostbuild(startTime);
+    await runPostbuild(buildTimer);
   }
 
   switch (event) {

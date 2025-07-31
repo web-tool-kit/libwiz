@@ -1,19 +1,20 @@
-import { getConfig } from '../config';
+import { hasTypescript, notifyTypescriptNotInstalled } from '@/typescript';
+import { getConfig } from '@/config';
 import log from '@/utils/log';
 import prebuildRun from '@/core/prebuild';
 import buildRun from '@/core/build';
 import postBuild from '@/core/postbuild';
+import { createTimer } from '@/utils';
 import type { CliProps, TaskTypes } from '@/types';
-import { hasTypescript, notifyTypescriptNotInstalled } from '@/typescript';
 
-async function generateTypes(onlyTypeCheck: boolean) {
+async function generateTypes(onlyTypeCheck: boolean, showTiming = true) {
   try {
     if (!hasTypescript()) {
       notifyTypescriptNotInstalled(log.error);
       process.exit(1);
     }
     const { default: typesRun } = require('@/core/types');
-    await typesRun(onlyTypeCheck);
+    await typesRun(onlyTypeCheck, showTiming);
   } catch (err) {
     console.error(err);
     process.exit(1);
@@ -23,7 +24,7 @@ async function generateTypes(onlyTypeCheck: boolean) {
 
 async function run(cliProps: CliProps, task: TaskTypes) {
   const config = getConfig();
-  const { build, types, watch, check } = cliProps;
+  const { types, watch, check } = cliProps;
 
   // validate --check flag usage
   if (cliProps.check) {
@@ -60,22 +61,23 @@ async function run(cliProps: CliProps, task: TaskTypes) {
   }
 
   // Handle types-only command
-  if (types && !build && !watch) {
-    await generateTypes(check);
+  if (task === 'types') {
+    await generateTypes(check, true);
+    process.exit(0);
   }
 
-  const buildStartTime = Date.now();
   await prebuildRun();
 
-  if (build) {
+  const buildTimer = createTimer();
+  if (task === 'build') {
     await buildRun();
   }
 
-  if (config.tsConfig && types && !watch) {
-    await generateTypes(false);
+  if (config.tsConfig && types && task === 'build') {
+    await generateTypes(false, false);
   }
 
-  await postBuild(buildStartTime);
+  await postBuild(buildTimer);
 }
 
 export default run;

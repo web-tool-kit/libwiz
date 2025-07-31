@@ -1,9 +1,9 @@
 import path from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { isColorSupported } from '../../utils/picocolors';
-import { debounce } from '../../utils';
-import log, { print, clearLine } from '../../utils/log';
-import { copyRequiredFiles } from '../postbuild';
+import { isColorSupported } from '@/utils/picocolors';
+import { debounce } from '@/utils';
+import log, { print, clearLine } from '@/utils/log';
+import { copyRequiredFiles } from '@/core/postbuild';
 
 class WorkerNodes {
   private active: Worker | null = null;
@@ -69,7 +69,7 @@ class WorkerNodes {
     if (this.active && this.running) {
       try {
         clearLine();
-        log.progress(`Change detected. Restarting build...`);
+        log.info(`Change detected. Restarting build...`);
         this.ready = false;
         this.running = false;
 
