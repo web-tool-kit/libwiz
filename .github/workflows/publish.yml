@@ -58,7 +58,7 @@ jobs:
 
       - name: Publish package (dry)
         if: ${{github.event.inputs.publish_type == 'dry-run' }}
-        run: pnpm release:dry
+        run: pnpm release:dry --no-git-checks
 
       - name: Publish RC package
         if: ${{ github.event.inputs.publish_type == 'rc' && github.event.inputs.confirm_publish == 'YES' }}
@@ -66,7 +66,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           REF: ${{ github.ref }}
-        run: pnpm build && cd dist && pnpm publish --access public --tag rc
+        run: pnpm release:rc --no-git-checks
 
       - name: Publish package
         if: ${{ github.event.inputs.publish_type == 'actual' && github.event.inputs.confirm_publish == 'YES' }}
