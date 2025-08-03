@@ -1,29 +1,10 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import resolveFrom from 'resolve-from';
-import type { Config } from '@/types';
 
 export const isTTY = process.stdout.isTTY || process.env.CI;
 // isProgressDisabled function is used to check if the progress bar should be disabled
 export const isProgressDisabled = () =>
   process.env.LIBWIZ_ENABLE_PROGRESS !== 'true';
-
-export function magicImport<T = any>(
-  moduleId: string,
-  options: Pick<Config, 'root' | 'workspace'> = {},
-): T {
-  const { root = process.cwd(), workspace } = options;
-  const fromProject = resolveFrom.silent(root, moduleId);
-  if (fromProject) {
-    return require(fromProject) as T;
-  } else if (workspace) {
-    const fromWorkspace = resolveFrom.silent(root, moduleId);
-    if (fromWorkspace) {
-      return require(fromWorkspace) as T;
-    }
-  }
-  return require(moduleId) as T;
-}
 
 export function parallel(promises: Promise<unknown>[]) {
   return Promise.all(promises);
@@ -73,8 +54,51 @@ export function initCli(shouldClearScreen = true) {
   });
 }
 
-export function isPlainObject(item: unknown) {
-  return item && typeof item === 'object' && !Array.isArray(item);
+export function isPlainObject(obj: unknown) {
+  if (typeof obj !== 'object' || obj === null) return false;
+
+  let proto = obj;
+  while (Object.getPrototypeOf(proto) !== null) {
+    proto = Object.getPrototypeOf(proto);
+  }
+
+  return (
+    Object.getPrototypeOf(obj) === proto || Object.getPrototypeOf(obj) === null
+  );
+}
+
+export function clone<T = unknown>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => clone(item)) as T;
+  }
+
+  if (obj instanceof Map) {
+    const clonedMap = new Map();
+    obj.forEach((value, key) => clonedMap.set(clone(key), clone(value)));
+    return clonedMap as unknown as T;
+  }
+
+  if (obj instanceof RegExp) {
+    const re = new RegExp(obj.source, obj.flags);
+    re.lastIndex = obj.lastIndex;
+    return re as T;
+  }
+
+  if (isPlainObject(obj)) {
+    const cloned = {} as T;
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        cloned[key] = clone(obj[key]);
+      }
+    }
+    return cloned;
+  }
+
+  return obj;
 }
 
 export function mergeDeep(

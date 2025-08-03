@@ -1,4 +1,4 @@
-import clone from 'clone-deep';
+import { clone } from '@/utils';
 import type { Config } from '@/types';
 
 class ConfigStore {
