@@ -76,9 +76,6 @@ export async function initConfig(cliProps?: CliProps): Promise<Config> {
     },
     customTranspiler: null,
     compiler: {
-      react: {
-        runtime: 'automatic',
-      },
       plugins: [],
       presets: [],
       browsers: getBrowserslistConfig(root),

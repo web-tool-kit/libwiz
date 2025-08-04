@@ -1,7 +1,7 @@
 {
   "name": "libwiz",
   "private": true,
-  "version": "0.0.3-rc.5",
+  "version": "0.0.3-rc.6",
   "description": "A powerful CLI tool for building modern JavaScript and TypeScript libraries",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -25,9 +25,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.28.0",
-    "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-env": "^7.28.0",
-    "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
     "chokidar": "^3.6.0",
     "fast-glob": "^3.3.3",

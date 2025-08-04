@@ -1,7 +1,11 @@
-import type { TransformOptions } from '@babel/core';
+import type { TransformOptions, PluginOptions } from '@babel/core';
 import { getConfig } from '@/config';
 import { magicImport, isPlainObject } from '@/utils';
 import type { Bundles, CompilerConfig } from '@/types';
+
+function isTSEnabled(extensions: string[] = []) {
+  return Boolean(extensions.find(ext => /\.(tsx?|mts)$/.test(ext)));
+}
 
 // keep compiler config in cache to prevent re-computation
 const compilerConfigCache = new Map<Bundles, CompilerConfig>();
@@ -21,69 +25,56 @@ function getCompilerConfig(target: Bundles) {
   return compilerConfig;
 }
 
-function resolvePluginPresets(moduleId: string, options = {}) {
+function resolvePluginPresets(
+  moduleId: string,
+  options: PluginOptions,
+  name?: string,
+) {
   const { root, workspace } = getConfig();
-  if (options && Object.keys(options).length) {
-    return [magicImport(moduleId, { root, workspace }), { ...options }];
+  const pluginTarget = magicImport(moduleId, { root, workspace });
+
+  // if we have options or name, return array format
+  if (options !== undefined || name) {
+    return [pluginTarget, options, name];
   }
-  return magicImport(moduleId, { root, workspace });
+
+  return pluginTarget;
 }
 
-const getPluginConfig = (target: Bundles) => {
-  const compiler = getCompilerConfig(target);
-
-  const rootPluginConfigMap: Record<string, any> = {
-    pluginTransformReactJSX: {},
-  };
-
-  let rootPluginConfig = [];
-  if (compiler?.plugins?.length) {
-    rootPluginConfig = compiler.plugins.filter(plugin => {
-      if (Array.isArray(plugin)) {
-        if (isPlainObject(plugin[1])) {
-          if (plugin[0] === '@babel/plugin-transform-react-jsx') {
-            rootPluginConfigMap.pluginTransformReactJSX = plugin[1];
-            return;
-          }
-        }
-      }
-      return true;
-    });
-  }
-
-  return [
-    resolvePluginPresets('@babel/plugin-transform-react-jsx', {
-      ...compiler.react,
-      ...rootPluginConfigMap.pluginTransformReactJSX,
-    }),
-    ...rootPluginConfig,
-  ];
-};
-
 const getDefaultBabelConfig = (target: Bundles): TransformOptions => {
-  const { ignore, root, workspace } = getConfig();
+  const { ignore, extensions } = getConfig();
   const compiler = getCompilerConfig(target);
 
-  const rootPresetConfigMap: Record<string, any> = {
-    presetEnv: {},
-    presetReact: {},
-    presetTypescript: {},
+  const rootPresetConfigMap: Record<string, any[]> = {
+    presetEnv: [],
+    presetTypescript: [],
   };
 
   let rootPresetConfig = [];
-  if (compiler?.presets?.length) {
+  let isTypescriptPresetEnabled = isTSEnabled(extensions);
+
+  if (Array.isArray(compiler?.presets)) {
     rootPresetConfig = compiler.presets.filter(preset => {
+      if (preset === '@babel/preset-typescript') {
+        isTypescriptPresetEnabled = true;
+        return false;
+      }
+
+      // handle in case preset is array
       if (Array.isArray(preset)) {
-        if (isPlainObject(preset[1])) {
-          if (preset[0] === '@babel/preset-env') {
-            rootPresetConfigMap.presetEnv = preset[1];
-            return;
-          } else if (preset[0] === '@babel/preset-react') {
-            rootPresetConfigMap.presetReact = preset[1];
-            return;
-          } else if (preset[0] === '@babel/preset-typescript') {
-            rootPresetConfigMap.presetTypescript = preset[1];
-            return;
+        const [presetModuleName, presetOptions, presetCustomName] = preset;
+
+        if (isPlainObject(presetOptions)) {
+          if (presetModuleName === '@babel/preset-env') {
+            rootPresetConfigMap.presetEnv = [presetOptions];
+            return true;
+          } else if (presetModuleName === '@babel/preset-typescript') {
+            rootPresetConfigMap.presetTypescript = [
+              presetOptions,
+              presetCustomName,
+            ];
+            isTypescriptPresetEnabled = true;
+            return false;
           }
         }
       }
@@ -91,52 +82,51 @@ const getDefaultBabelConfig = (target: Bundles): TransformOptions => {
     });
   }
 
-  const presets: TransformOptions['presets'] = [
-    ...rootPresetConfig,
-    resolvePluginPresets(
-      '@babel/preset-typescript',
-      rootPresetConfigMap.presetTypescript,
-    ),
-    resolvePluginPresets('@babel/preset-react', {
-      ...rootPresetConfigMap.presetReact,
-      runtime: compiler?.react?.runtime || 'automatic',
-    }),
-  ];
+  const presets: TransformOptions['presets'] = [...rootPresetConfig];
+
+  if (isTypescriptPresetEnabled) {
+    const [tsPresetOptions, tsPresetCustomName] =
+      rootPresetConfigMap.presetTypescript;
+    presets.push(
+      resolvePluginPresets(
+        '@babel/preset-typescript',
+        tsPresetOptions,
+        tsPresetCustomName,
+      ),
+    );
+  }
+
+  const babelPresetEnv = {
+    shippedProposals: true,
+    ...rootPresetConfigMap.presetEnv[0],
+  };
+
+  if (compiler?.browsers) {
+    babelPresetEnv.targets = {
+      browsers: compiler?.browsers,
+    };
+  }
 
   const env: TransformOptions['env'] = {
     esm: {
       presets: [
-        [
-          magicImport('@babel/preset-env', { root, workspace }),
-          {
-            ...rootPresetConfigMap.presetEnv,
-            modules: false,
-            shippedProposals: true,
-            targets: {
-              browsers: compiler?.browsers,
-            },
-          },
-        ],
+        resolvePluginPresets('@babel/preset-env', {
+          ...babelPresetEnv,
+          modules: false,
+        }),
       ],
     },
     cjs: {
       presets: [
-        [
-          magicImport('@babel/preset-env', { root, workspace }),
-          {
-            ...rootPresetConfigMap.presetEnv,
-            modules: 'commonjs',
-            shippedProposals: true,
-            targets: {
-              browsers: compiler?.browsers,
-            },
-          },
-        ],
+        resolvePluginPresets('@babel/preset-env', {
+          ...babelPresetEnv,
+          modules: 'commonjs',
+        }),
       ],
     },
   };
 
-  const plugins = getPluginConfig(target);
+  const plugins = compiler?.plugins;
   const overrides = compiler?.overrides;
   return { presets, plugins, ignore, env, overrides };
 };

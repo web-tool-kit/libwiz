@@ -23,6 +23,7 @@ export const ModuleConfigSchema = z
           .describe('Include comments in the output'),
         sourceMap: z.boolean().optional().describe('Generate source maps'),
       })
+      .strict()
       .optional()
       .describe('Output configuration'),
   })
@@ -37,45 +38,16 @@ export interface LibConfig {
 
 export const LibConfigSchema = z
   .object({
-    esm: ModuleConfigSchema.describe('ESM module configuration'),
-    cjs: ModuleConfigSchema.describe('CommonJS module configuration'),
+    esm: ModuleConfigSchema.optional().describe('ESM module configuration'),
+    cjs: ModuleConfigSchema.optional().describe(
+      'CommonJS module configuration',
+    ),
   })
   .strict()
   .optional()
   .describe('Library configuration');
 
-export interface LibwizReactConfig {
-  pragma: string;
-  pragmaFrag: string;
-  throwIfNamespace?: boolean;
-  useBuiltins?: boolean;
-  runtime?: 'classic' | 'automatic';
-  importSource?: string;
-}
-
-const LibwizReactConfigSchema = z
-  .object({
-    pragma: z.string().optional().describe('React pragma for JSX'),
-    pragmaFrag: z.string().optional().describe('React pragma for fragment'),
-    throwIfNamespace: z
-      .boolean()
-      .optional()
-      .describe('Throw if namespace is used in JSX'),
-    useBuiltins: z
-      .boolean()
-      .optional()
-      .describe('Enable built-in runtime optimizations'),
-    runtime: z
-      .enum(['classic', 'automatic'])
-      .optional()
-      .describe('React runtime mode'),
-    importSource: z.string().optional().describe('React import source'),
-  })
-  .optional()
-  .describe('React config for transpile');
-
 export interface CompilerConfig {
-  react?: Partial<LibwizReactConfig>;
   presets?: TransformOptions['presets'];
   plugins?: TransformOptions['plugins'];
   browsers?: string | string[];
@@ -117,10 +89,6 @@ const PluginAndPresetSchema = z.union([
 
 const CompilerConfigSchema = z
   .object({
-    tool: z.enum(['babel']).optional().describe('Compiler tool'),
-    react: LibwizReactConfigSchema.optional().describe(
-      'React specific configuration',
-    ),
     presets: z
       .array(PluginAndPresetSchema)
       .optional()
@@ -200,19 +168,39 @@ export const ConfigSchema = z
   })
   .strict();
 
-function configValidationErrors(errors: any[]) {
-  const stackTrace = new Error().stack;
-  const { path, expected, received } = errors[0];
-
-  const pathString = `${pc.bold(pc.yellow(path.length ? path.join(' → ') : 'root'))}`;
-  let errMsg = `Invalid configuration ${pathString} is expected to be a ${expected} but received ${received}`;
-
-  return `${errMsg}\n${pc.gray(
+function printError(errMsg: string, stackTrace: string) {
+  const msg = errMsg.trim();
+  return `${msg}\n${pc.gray(
     stackTrace
       ?.split('\n')
       .filter(line => line.includes('/'))
       .join('\n'),
   )}`;
+}
+
+function configValidationErrors(errors: any[]) {
+  const stackTrace = new Error().stack;
+  const { code, path, keys, expected, received, message } = errors[0] || {};
+
+  let fullPath = Array.isArray(path) ? path : [path];
+  if (Array.isArray(keys)) {
+    fullPath = fullPath.concat(keys);
+  }
+
+  const pathString = `${pc.bold(pc.yellow(fullPath.length ? fullPath.join(' → ') : 'root'))}`;
+
+  if (code === 'invalid_type') {
+    const msg = `Invalid configuration at ${pathString}, expected to be a ${expected} but received ${received}`;
+    return printError(msg, stackTrace);
+  }
+
+  if (code === 'unrecognized_keys') {
+    const msg = `Unrecognized key ${pathString}`;
+    return printError(msg, stackTrace);
+  }
+
+  const msg = `${pathString} ${message}`;
+  return printError(msg, stackTrace);
 }
 
 export function validateConfigSchema(config: Config) {
