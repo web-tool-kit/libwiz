@@ -10,6 +10,7 @@ export interface ModuleConfig {
   output?: {
     comments?: boolean;
     sourceMap?: boolean;
+    path?: string;
   };
 }
 
@@ -22,6 +23,10 @@ export const ModuleConfigSchema = z
           .optional()
           .describe('Include comments in the output'),
         sourceMap: z.boolean().optional().describe('Generate source maps'),
+        path: z
+          .string()
+          .optional()
+          .describe('Custom output directory path for this module format'),
       })
       .strict()
       .optional()

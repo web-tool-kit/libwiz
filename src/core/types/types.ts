@@ -68,9 +68,19 @@ function getParsedTSConfig() {
 }
 
 function compileDTS(onlyTypeCheck = false) {
+  const { srcPath, buildPath, lib } = getConfig();
   const ts = getTypescript();
-  const { srcPath, buildPath } = getConfig();
   const config = getParsedTSConfig();
+
+  const esmDistPath = lib?.esm?.output?.path;
+  const cjsDistPath = lib?.cjs?.output?.path;
+
+  let outDir = buildPath;
+  if (fse.existsSync(esmDistPath)) {
+    outDir = esmDistPath;
+  } else if (fse.existsSync(cjsDistPath)) {
+    outDir = cjsDistPath;
+  }
 
   const finalConfig: ParsedCommandLine = {
     ...config,
@@ -80,8 +90,8 @@ function compileDTS(onlyTypeCheck = false) {
       declaration: true,
       noEmit: onlyTypeCheck,
       emitDeclarationOnly: true,
-      outDir: onlyTypeCheck ? undefined : buildPath,
       rootDir: srcPath,
+      outDir: onlyTypeCheck ? undefined : outDir,
     },
   };
 

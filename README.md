@@ -100,10 +100,12 @@ The following configuration options allow you to customize or override the defau
 - **`lib`** (`object`): Library configuration settings for both ESM and CJS builds:
   - **`esm`** (`object`): Settings for ESM (EcmaScript Module) format output.
     - **`output`** (`object`): Configures ESM output settings.
+      - **`path`** (`string`): Custom output directory path for ESM format (e.g., `'esm'`, `'modern'`). Defaults to root of buildPath.
       - **`comments`** (`boolean`): Includes comments in the output if `true`.
       - **`sourceMap`** (`boolean`): Generates source maps if `true`.
   - **`cjs`** (`object`): Settings for CJS (CommonJS) format output.
     - **`output`** (`object`): Configures CJS output settings.
+      - **`path`** (`string`): Custom output directory path for CJS format (e.g., `'cjs'`, `'legacy'`). Defaults to `'cjs'` in buildPath.
       - **`comments`** (`boolean`): Includes comments in the output if `true`.
       - **`sourceMap`** (`boolean`): Generates source maps if `true`.
 - **`target`** (`string` or `array`): Specifies build targets, such as `"esm"`, `"cjs"`, or an array with both.
@@ -164,12 +166,14 @@ module.exports = {
   lib: {
     esm: {
       output: {
+        path: 'esm', // custom path for ESM output (defaults to root of buildPath)
         comments: true,
         sourceMap: true,
       },
     },
     cjs: {
       output: {
+        path: 'cjs', // custom path for CJS output (default cjs inside buildPath)
         comments: true,
         sourceMap: true,
       },

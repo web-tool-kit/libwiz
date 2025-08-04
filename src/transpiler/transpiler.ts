@@ -89,14 +89,13 @@ export const transformFilesAsync = async (
   }
 
   let moduleConfig: ModuleConfig;
-  let outPath = './';
-
   if (target === 'cjs') {
     moduleConfig = lib.cjs as ModuleConfig;
-    outPath = './cjs';
   } else if (target === 'esm') {
     moduleConfig = lib.esm as ModuleConfig;
   }
+
+  const outPath = moduleConfig?.output?.path;
 
   const outDir = path.resolve(
     buildPath,

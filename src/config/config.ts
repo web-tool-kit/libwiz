@@ -24,12 +24,14 @@ function getInitialConfig(cliProps?: CliProps) {
     lib: {
       esm: {
         output: {
+          path: './',
           comments: true,
           sourceMap: Boolean(cliProps.sourceMaps),
         },
       },
       cjs: {
         output: {
+          path: './cjs',
           comments: true,
           sourceMap: Boolean(cliProps.sourceMaps),
         },
@@ -187,7 +189,6 @@ export async function initConfig(cliProps?: CliProps): Promise<Config> {
         '**/*.test.tsx',
         '**/*.spec.ts',
         '**/*.spec.tsx',
-        '**/*.d.ts',
       ];
     }
 
@@ -223,6 +224,16 @@ export async function initConfig(cliProps?: CliProps): Promise<Config> {
   } else {
     config.buildPath = path.resolve(root, './dist');
   }
+
+  // resolve output paths w.r.t buildPath with defaults
+  config.lib.esm.output.path = path.resolve(
+    config.buildPath,
+    config.lib.esm.output.path,
+  );
+  config.lib.cjs.output.path = path.resolve(
+    config.buildPath,
+    config.lib.cjs.output.path,
+  );
 
   store.setConfig(config);
   return config as Config;

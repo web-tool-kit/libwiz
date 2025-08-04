@@ -9,18 +9,22 @@ import { log, parallel, sequential, createTimer } from '@/utils';
  * Copy required files of module in there folder
  */
 export async function copyRequiredFiles() {
-  const { assets, srcPath, buildPath } = getConfig();
-  if (!assets || (Array.isArray(assets) && Boolean(assets.length))) {
+  const { assets, srcPath, buildPath, lib } = getConfig();
+  if (!assets || (Array.isArray(assets) && assets.length === 0)) {
     return;
   }
 
   if (!(await fse.pathExists(buildPath))) {
-    log.warn(`[assets] path ${buildPath} does not exists to copy`);
+    log.warn(`build path ${buildPath} does not exists to copy assets`);
     return [];
   }
 
-  const hasCJS = await fse.pathExists(`${buildPath}/cjs`);
-  const hasESM = await fse.pathExists(`${buildPath}/esm`);
+  // get custom paths from config or use defaults
+  const cjsPath = lib?.cjs?.output?.path;
+  const esmPath = lib?.esm?.output?.path;
+
+  const hasCJS = await fse.pathExists(cjsPath);
+  const hasESM = await fse.pathExists(esmPath);
 
   const files = await glob(assets, {
     cwd: srcPath,
@@ -32,29 +36,26 @@ export async function copyRequiredFiles() {
   files.forEach(file => {
     if (hasCJS) {
       task.push(
-        fse.copy(
-          path.resolve(srcPath, file),
-          path.resolve(`${buildPath}/cjs`, file),
-        ),
+        fse.copy(path.resolve(srcPath, file), path.resolve(cjsPath, file)),
       );
     }
     if (hasESM) {
       task.push(
-        fse.copy(
-          path.resolve(srcPath, file),
-          path.resolve(`${buildPath}/esm`, file),
-        ),
+        fse.copy(path.resolve(srcPath, file), path.resolve(esmPath, file)),
       );
     }
-    task.push(
-      fse.copy(path.resolve(srcPath, file), path.resolve(buildPath, file)),
-    );
   });
   await Promise.all(task);
 }
 
 async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
-  const { root, srcPath, buildPath } = getConfig();
+  const { root, srcPath, buildPath, lib } = getConfig();
+
+  const cjsPath = lib?.cjs?.output?.path;
+  const esmPath = lib?.esm?.output?.path;
+
+  const hasCJS = fse.pathExistsSync(cjsPath);
+  const hasESM = fse.pathExistsSync(esmPath);
 
   /**
    * Following function help to move project files like
@@ -73,9 +74,24 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
   }
 
   /**
-   * used to create tree-shakeable package.json in each module of project
+   * createModulePackages used to create tree-shakeable package.json in each module of project
+   * in case of esm and cjs co exist and esm path is in root then we create module packages
+   * ```js
+   * import { someModule } from 'your-lib';
+   * const { someModule } = require('your-lib');
+   *
+   * import someModule from 'your-lib/some-module';
+   * const someModule = require('your-lib/some-module');
+   * ```
    */
   async function createModulePackages() {
+    // in case esm and cjs co exist then we create module packages
+    if (!(hasESM && hasCJS)) return;
+
+    // if esm path is not in root then we don't create module packages
+    // in case or root it will be empty string which is falsy
+    if (path.relative(buildPath, esmPath)) return;
+
     const packageData = JSON.parse(
       await fse.readFile(path.resolve(root, './package.json'), 'utf8'),
     );
@@ -92,11 +108,15 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
           'package.json',
         );
 
-        const packageJson: Record<string, any> = {
+        const esmDir = path.join(esmPath, directoryPackage);
+        const cjsDir = path.join(cjsPath, directoryPackage);
+
+        const packageJson = {
+          name: `${packageData.name}/${directoryPackage}`,
           version: packageData.version,
           sideEffects: false,
           module: './index.js',
-          main: path.posix.join('../cjs', directoryPackage, 'index.js'),
+          main: path.posix.join(path.relative(esmDir, cjsDir), 'index.js'),
           types: './index.d.ts',
         };
 
@@ -167,14 +187,17 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
       fse.readFileSync(path.resolve(root, './package.json'), 'utf8'),
     );
 
+    const cjsDir = path.relative(buildPath, cjsPath);
+    const esmDir = path.relative(buildPath, esmPath);
+
     const newPackageData = {
       ...restPackageData,
       private: false,
-      main: fse.existsSync(path.resolve(buildPath, './cjs/index.js'))
-        ? './cjs/index.js'
+      main: fse.existsSync(path.join(cjsPath, 'index.js'))
+        ? `.${cjsDir ? `/${cjsDir}` : ''}/index.js`
         : './index.js',
-      module: fse.existsSync(path.resolve(buildPath, './esm/index.js'))
-        ? './esm/index.js'
+      module: fse.existsSync(path.join(esmPath, 'index.js'))
+        ? `.${esmDir ? `/${esmDir}` : ''}/index.js`
         : './index.js',
     };
 
@@ -190,13 +213,13 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
       delete newPackageData.main;
     }
 
-    const hasDefinitionsFile = fse.pathExistsSync(
-      path.resolve(buildPath, './index.d.ts'),
-    );
-
-    if (hasDefinitionsFile) {
-      newPackageData.types = './index.d.ts';
+    // if esm path exists then by default types will be in esm path else in cjs path
+    const dtsIndex = path.resolve(hasESM ? esmPath : cjsPath, './index.d.ts');
+    // if dts file exists then add it to package.json
+    if (fse.pathExistsSync(dtsIndex)) {
+      newPackageData.types = `./${path.relative(buildPath, dtsIndex)}`;
     }
+
     fse.writeFileSync(
       path.resolve(buildPath, './package.json'),
       JSON.stringify(newPackageData, null, 2),
