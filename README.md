@@ -6,7 +6,7 @@
   <a href="https://github.com/ui-tool-kit/libwiz/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=000000&colorB=8338EC" alt="license" /></a>
 </p>
 
-`libwiz` is a powerful CLI tool designed to help you build JavaScript and TypeScript libraries, especially for React components. It supports output formats like ESM (ECMAScript Module) and CJS (CommonJS), while offering features like type generation, source maps, and more.
+`libwiz` is a powerful CLI tool designed to help you build JavaScript and TypeScript libraries. It supports output formats like ESM (ECMAScript Module) and CJS (CommonJS), while offering features like type generation, source maps, and more.
 
 ## Features
 
@@ -16,6 +16,7 @@
 - 🔄 **Dev Mode**: Automatically rebuild when files change.
 - 🗺 **Source Maps**: Generate source maps for easier debugging.
 - ⚙️ **Config File Support**: Customize the build with a configuration file (`libwiz.config.js`, `libwiz.config.json`, or `.libwizrc`).
+- 🔧 **Framework Agnostic**: No framework-specific dependencies included by default. Add React, Vue, or any other framework support as needed.
 
 ## Installation
 
@@ -109,13 +110,6 @@ The following configuration options allow you to customize or override the defau
 - **`customTranspiler`** (`function`): A custom function to handle transpilation if specific control is required.
 - **`compiler`** (`object` or `function`, optional): Advanced compiler configuration that can be either a static object or a dynamic function based on build target.
   - **As Object**: Static compiler configuration applied to all targets.
-    - **`react`** (`object`): React-specific configuration options.
-      - **`pragma`** (`string`): Specifies the React pragma for JSX transformation.
-      - **`pragmaFrag`** (`string`): Specifies the React pragma for fragments.
-      - **`throwIfNamespace`** (`boolean`): Throws an error if a namespace is used in JSX if `true`.
-      - **`useBuiltins`** (`boolean`): Enables runtime optimizations if `true`.
-      - **`runtime`** (`string`): Sets React runtime mode; can be `"classic"` or `"automatic"`.
-      - **`importSource`** (`string`): Specifies the source library for JSX imports, useful for custom JSX setups.
     - **`presets`** (`array`): Array of compiler presets; can be either `string` or `[string, object]` for custom options.
     - **`plugins`** (`array`): Array of compiler plugins; can be either `string` or `[string, object]` for custom options.
     - **`browsers`** (`string` or `array`): Target browsers for code compilation.
@@ -128,6 +122,30 @@ The following configuration options allow you to customize or override the defau
       - **`isCJS`** (`boolean`): Whether building for CommonJS format
     - **Returns**: Same `CompilerConfig` object as above
 - **`assets`** (`string`, `array`, or `null`): Specifies additional assets to include in the build, like `['**/*.css']`. Set to `null` to exclude assets.
+
+### Adding React Support
+
+To add React support to your library:
+
+1. **Install React preset:**
+
+   ```bash
+   npm install --save-dev @babel/preset-react
+   ```
+
+2. **Add to your `libwiz.config.js`:**
+   ```js
+   module.exports = {
+     // ... other config
+     compiler: {
+       presets: [['@babel/preset-react', { runtime: 'automatic' }]],
+       plugins: [
+         '@babel/plugin-proposal-class-properties',
+         '@babel/plugin-proposal-object-rest-spread',
+       ],
+     },
+   };
+   ```
 
 ### Example Configuration
 
@@ -159,11 +177,8 @@ module.exports = {
   },
   target: ['esm', 'cjs'],
   compiler: {
-    react: {
-      runtime: 'automatic',
-    },
     presets: [
-      // ...any presets if exist
+      // you can add your presets
     ],
     plugins: [
       '@babel/plugin-proposal-object-rest-spread',
@@ -184,17 +199,10 @@ module.exports = {
 module.exports = {
   // ... other config
   compiler: {
-    react: {
-      runtime: 'automatic',
-      importSource: '@emotion/react',
-    },
-    presets: [
-      '@babel/preset-env',
-      ['@babel/preset-react', { runtime: 'automatic' }],
-    ],
     plugins: [
       '@babel/plugin-proposal-class-properties',
       '@babel/plugin-proposal-object-rest-spread',
+      '@babel/plugin-transform-runtime',
     ],
     browsers: ['last 2 versions', 'not dead'],
   },
@@ -213,14 +221,6 @@ module.exports = {
     // Different configuration for ESM vs CJS
     if (isESM) {
       return {
-        react: {
-          runtime: 'automatic',
-          importSource: '@emotion/react',
-        },
-        presets: [
-          ['@babel/preset-env', { modules: false }],
-          '@babel/preset-react',
-        ],
         plugins: [
           '@babel/plugin-proposal-class-properties',
           '@babel/plugin-transform-runtime',
@@ -232,24 +232,36 @@ module.exports = {
     // CommonJS configuration
     if (isCJS) {
       return {
-        react: {
-          runtime: 'classic',
-        },
-        presets: [
-          ['@babel/preset-env', { modules: 'commonjs' }],
-          '@babel/preset-react',
-        ],
         plugins: ['@babel/plugin-proposal-class-properties'],
-        browsers: ['ie 11', 'last 2 versions'],
+        browsers: ['last 2 versions'],
       };
     }
 
-    // Fallback configuration
     return {
-      react: { runtime: 'automatic' },
-      presets: ['@babel/preset-env', '@babel/preset-react'],
-      browsers: 'last 2 versions',
+      plugins: ['@babel/plugin-proposal-class-properties'],
     };
+  },
+};
+```
+
+#### Conditional Configuration Based on Environment
+
+```js
+// libwiz.config.js
+module.exports = {
+  // ... other config
+  compiler: context => {
+    const { target } = context;
+    const baseConfig = {
+      plugins: ['@babel/plugin-proposal-class-properties'],
+    };
+
+    // Add framework-specific presets based on your needs
+    if (process.env.USE_REACT === 'true') {
+      baseConfig.presets = [['@babel/preset-react', { runtime: 'automatic' }]];
+    }
+
+    return baseConfig;
   },
 };
 ```
@@ -262,8 +274,7 @@ module.exports = {
   // ... other config
   compiler: ({ isESM }) => {
     const baseConfig = {
-      react: { runtime: 'automatic' },
-      presets: ['@babel/preset-env', '@babel/preset-react'],
+      plugins: ['@babel/plugin-proposal-class-properties'],
     };
 
     // Add tree-shaking optimizations for ESM
@@ -271,6 +282,7 @@ module.exports = {
       return {
         ...baseConfig,
         plugins: [
+          ...baseConfig.plugins,
           '@babel/plugin-transform-runtime',
           '@babel/plugin-proposal-export-namespace-from',
         ],
@@ -281,7 +293,7 @@ module.exports = {
     return {
       ...baseConfig,
       plugins: [
-        '@babel/plugin-proposal-class-properties',
+        ...baseConfig.plugins,
         '@babel/plugin-proposal-object-rest-spread',
       ],
     };
@@ -321,15 +333,15 @@ libwiz dev
 
 `libwiz` comes with a set of default Babel plugins and presets to simplify your build configuration. If your project doesn't specify these plugins or presets in its configuration, `libwiz` will automatically use the following versions:
 
-| Plugin/Preset                       | Default Version |
-| ----------------------------------- | --------------- |
-| `@babel/core`                       | 7.28.0          |
-| `@babel/preset-env`                 | 7.28.0          |
-| `@babel/preset-react`               | 7.27.1          |
-| `@babel/plugin-transform-react-jsx` | 7.27.1          |
-| `@babel/preset-typescript`          | 7.27.1          |
+| Plugin/Preset              | Default Version |
+| -------------------------- | --------------- |
+| `@babel/core`              | 7.28.0          |
+| `@babel/preset-env`        | 7.28.0          |
+| `@babel/preset-typescript` | 7.27.1          |
 
-If your project already has any of these plugins or presets installed in either the root `node_modules` or workspace `node_modules`, `libwiz` will automatically use your project’s versions. This ensures seamless integration and maintains compatibility with your existing setup.
+If your project already has any of these plugins or presets installed in either the root `node_modules` or workspace `node_modules`, `libwiz` will automatically use your project's versions. This ensures seamless integration and maintains compatibility with your existing setup.
+
+> **Note**: Framework-specific presets like React, Vue, etc. are not included by default. You can add them to your project dependencies and configure them in your `libwiz.config.js` as needed.
 
 ### Using `customTranspiler` for Custom Transpilation
 
