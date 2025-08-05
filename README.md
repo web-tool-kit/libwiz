@@ -125,30 +125,6 @@ The following configuration options allow you to customize or override the defau
     - **Returns**: Same `CompilerConfig` object as above
 - **`assets`** (`string`, `array`, or `null`): Specifies additional assets to include in the build, like `['**/*.css']`. Set to `null` to exclude assets.
 
-### Adding React Support
-
-To add React support to your library:
-
-1. **Install React preset:**
-
-   ```bash
-   npm install --save-dev @babel/preset-react
-   ```
-
-2. **Add to your `libwiz.config.js`:**
-   ```js
-   module.exports = {
-     // ... other config
-     compiler: {
-       presets: [['@babel/preset-react', { runtime: 'automatic' }]],
-       plugins: [
-         '@babel/plugin-proposal-class-properties',
-         '@babel/plugin-proposal-object-rest-spread',
-       ],
-     },
-   };
-   ```
-
 ### Example Configuration
 
 Here is an example of a configuration file (`libwiz.config.js`):
@@ -193,6 +169,30 @@ module.exports = {
   assets: '**/*.css',
 };
 ```
+
+### Adding React Support
+
+To add React support to your library:
+
+1. **Install React preset:**
+
+   ```bash
+   npm install --save-dev @babel/preset-react
+   ```
+
+2. **Add to your `libwiz.config.js`:**
+   ```js
+   module.exports = {
+     // ... other config
+     compiler: {
+       presets: [['@babel/preset-react', { runtime: 'automatic' }]],
+       plugins: [
+         '@babel/plugin-proposal-class-properties',
+         '@babel/plugin-proposal-object-rest-spread',
+       ],
+     },
+   };
+   ```
 
 ### Advanced Compiler Configuration Examples
 
