@@ -48,6 +48,73 @@ export async function copyRequiredFiles() {
   await Promise.all(task);
 }
 
+// function to unlink files from build path, this expect files paths exist in src
+// this used when watch mode is enabled and we need to unlink files from build path
+// when file is deleted in src path
+export async function unlinkFilesFormBuild(
+  files: string | string[],
+  isDir: boolean = false,
+) {
+  const { srcPath, lib } = getConfig();
+
+  const cjsPath = lib?.cjs?.output?.path;
+  const esmPath = lib?.esm?.output?.path;
+
+  const hasCJS = fse.pathExistsSync(cjsPath);
+  const hasESM = fse.pathExistsSync(esmPath);
+
+  const tasks: Promise<void>[] = [];
+  const isTS = (ext: string) => ['.ts', '.tsx', '.mts'].includes(ext);
+
+  function removeFile(file: string) {
+    const relativePath = path.relative(srcPath, file);
+
+    // helper function to remove from both CJS and ESM paths
+    const removeFromBuildPaths = (targetPath: string) => {
+      if (hasCJS) {
+        const cjsTarget = path.resolve(cjsPath, targetPath);
+        if (fse.existsSync(cjsTarget)) {
+          tasks.push(fse.remove(cjsTarget));
+        }
+      }
+
+      if (hasESM) {
+        const esmTarget = path.resolve(esmPath, targetPath);
+        if (fse.existsSync(esmTarget)) {
+          tasks.push(fse.remove(esmTarget));
+        }
+      }
+    };
+
+    if (isDir) {
+      // for directories, remove directly from both CJS and ESM paths
+      removeFromBuildPaths(relativePath);
+    } else {
+      // for files, handle extension conversion
+      const dirName = path.dirname(relativePath);
+      const fileName = path.basename(relativePath);
+      const ext = path.extname(fileName);
+
+      const buildFileName =
+        // in case file is ts group then we need to unlink the js file
+        // but for dts files we do not convert to js
+        isTS(ext) && !fileName.endsWith('.d.ts')
+          ? fileName.replace(ext, '.js')
+          : fileName;
+
+      removeFromBuildPaths(path.join(dirName, buildFileName));
+    }
+  }
+
+  if (Array.isArray(files)) {
+    files.forEach(removeFile);
+  } else {
+    removeFile(files);
+  }
+
+  await Promise.all(tasks);
+}
+
 async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
   const { root, srcPath, buildPath, lib } = getConfig();
 

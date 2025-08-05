@@ -1,9 +1,8 @@
 import { parentPort, isMainThread } from 'node:worker_threads';
-import { globSync } from 'fast-glob';
 import { log, createTimer, createFileHash } from '@/utils';
-import { getConfig, initConfig } from '@/config';
+import { initConfig } from '@/config';
 import build from '@/core/build';
-import runPostbuild from '@/core/postbuild';
+import runPostbuild, { unlinkFilesFormBuild } from '@/core/postbuild';
 import type { CliProps } from '@/types';
 
 const fileHashes = new Map<string, string>();
@@ -18,17 +17,19 @@ const actionOnWatch = async (
 ) => {
   // init config on first run to prevent empty config
   await initConfig(cliProps);
-  const config = getConfig();
 
   // handle file hash management
   if (event === 'unlink') {
     fileHashes.delete(path);
+    await unlinkFilesFormBuild([path]);
   } else if (event === 'unlinkDir') {
-    globSync(`${path}/**/*`, {
-      ignore: config.ignore,
-    }).forEach(file => {
-      fileHashes.delete(file);
-    });
+    // iterate through fileHashes to find files that were in the deleted directory
+    for (const [filePath] of Array.from(fileHashes.entries())) {
+      if (filePath.startsWith(path + '/')) {
+        fileHashes.delete(filePath);
+      }
+    }
+    await unlinkFilesFormBuild(path, true);
   }
 
   async function runBuildProcess() {
