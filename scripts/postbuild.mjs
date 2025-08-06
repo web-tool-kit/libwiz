@@ -2,20 +2,34 @@
 import url from 'node:url';
 import path from 'node:path';
 import fse from 'fs-extra';
+import glob from 'fast-glob';
+
+const currentDirectory = url.fileURLToPath(new URL('.', import.meta.url));
+function resolve(...paths) {
+  return path.resolve(currentDirectory, '../', ...paths);
+}
+const distPath = resolve('dist');
+
+// omit keys from object
+function omit(obj, keys) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keys.includes(key)),
+  );
+}
 
 async function postBuild() {
-  const currentDirectory = url.fileURLToPath(new URL('.', import.meta.url));
-  const sourcePath = path.resolve(currentDirectory, '../');
-  const distPath = path.resolve(sourcePath, 'dist');
+  // remove tsbuildinfo files from project
+  const tsbuildinfoFiles = await glob('**/*.tsbuildinfo');
+  tsbuildinfoFiles.forEach(file => fse.unlinkSync(path.resolve(file)));
 
-  const packageJson = fse.readJsonSync(
-    path.resolve(sourcePath, 'package.json'),
-  );
+  const packageJson = fse.readJsonSync(resolve('package.json'));
 
-  delete packageJson['lint-staged'];
-  delete packageJson['private'];
-
-  const { scripts, devDependencies, ...restPackageData } = packageJson;
+  const restPackageData = omit(packageJson, [
+    'private',
+    'scripts',
+    'lint-staged',
+    'devDependencies',
+  ]);
 
   restPackageData.name = 'libwiz';
   restPackageData.main = './index.js';
@@ -29,7 +43,6 @@ async function postBuild() {
 
   restPackageData.publishConfig = {
     access: 'public',
-    provenance: true,
     registry: 'https://registry.npmjs.org/',
   };
 
@@ -40,7 +53,7 @@ async function postBuild() {
   );
 
   ['README.md', 'LICENSE'].forEach(file => {
-    const filePath = path.resolve(sourcePath, file);
+    const filePath = resolve(file);
     if (fse.existsSync(filePath)) {
       fse.copyFileSync(filePath, path.resolve(distPath, file));
     }

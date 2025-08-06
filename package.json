@@ -1,7 +1,7 @@
 {
   "name": "libwiz",
   "private": true,
-  "version": "0.0.3-rc.6",
+  "version": "0.0.3-rc.7",
   "description": "A powerful CLI tool for building modern JavaScript and TypeScript libraries",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -14,7 +14,7 @@
   "homepage": "https://github.com/ui-tool-kit/libwiz#readme",
   "scripts": {
     "prepare": "husky && npm run build",
-    "build": "rimraf dist && tsc && tsc-alias && node scripts/postbuild.mjs && rimraf */*.tsbuildinfo",
+    "build": "rimraf dist && tsc && tsc-alias && node scripts/postbuild.mjs",
     "release": "pnpm build && cd dist && pnpm publish --access public",
     "release:rc": "pnpm release --tag rc",
     "release:dry": "pnpm release --dry-run",
