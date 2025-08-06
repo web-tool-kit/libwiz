@@ -3,7 +3,7 @@
 <p>
   <a href="https://npmjs.com/package/libwiz?activeTab=readme"><img src="https://img.shields.io/npm/v/libwiz?style=flat-square&colorA=000000&colorB=8338EC" alt="npm version" /></a>
   <a href="https://nodejs.org/en/about/previous-releases"><img src="https://img.shields.io/node/v/libwiz.svg?style=flat-square&colorA=000000&colorB=8338EC" alt="node version"></a>
-  <a href="https://github.com/ui-tool-kit/libwiz/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=000000&colorB=8338EC" alt="license" /></a>
+  <a href="https://github.com/xettri/libwiz/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=000000&colorB=8338EC" alt="license" /></a>
 </p>
 
 `libwiz` is a powerful CLI tool designed to help you build JavaScript and TypeScript libraries. It supports output formats like ESM (ECMAScript Module) and CJS (CommonJS), while offering features like type generation, source maps, and more.

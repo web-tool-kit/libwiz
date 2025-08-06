@@ -1,7 +1,7 @@
 {
   "name": "libwiz",
   "private": true,
-  "version": "0.0.3-rc.9",
+  "version": "0.0.3-rc.10",
   "description": "A powerful CLI tool for building modern JavaScript and TypeScript libraries",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -9,9 +9,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ui-tool-kit/libwiz"
+    "url": "https://github.com/xettri/libwiz"
   },
-  "homepage": "https://github.com/ui-tool-kit/libwiz#readme",
+  "homepage": "https://github.com/xettri/libwiz#readme",
   "scripts": {
     "prepare": "husky && npm run build",
     "build": "rimraf dist && tsc && tsc-alias && node scripts/postbuild.mjs",
