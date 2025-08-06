@@ -67,7 +67,7 @@ function getParsedTSConfig() {
   return parsed;
 }
 
-function compileDTS(onlyTypeCheck = false) {
+async function compileDTS(onlyTypeCheck = false) {
   const { srcPath, buildPath, lib } = getConfig();
   const ts = getTypescript();
   const config = getParsedTSConfig();
@@ -76,9 +76,9 @@ function compileDTS(onlyTypeCheck = false) {
   const cjsDistPath = lib?.cjs?.output?.path;
 
   let outDir = buildPath;
-  if (fse.existsSync(esmDistPath)) {
+  if (await fse.pathExists(esmDistPath)) {
     outDir = esmDistPath;
-  } else if (fse.existsSync(cjsDistPath)) {
+  } else if (await fse.pathExists(cjsDistPath)) {
     outDir = cjsDistPath;
   }
 
@@ -157,15 +157,15 @@ async function types(onlyTypeCheck = false, showTiming = true) {
   log.info(onlyTypeCheck ? 'Type checking...' : 'Generating types...');
   const { root, tsConfig, buildPath } = getConfig();
 
-  if (!fse.existsSync(tsConfig)) {
+  if (!(await fse.pathExists(tsConfig))) {
     let packageJsonFile: string | null = path.resolve(root, 'package.json');
 
-    if (!fse.existsSync(packageJsonFile)) {
+    if (!(await fse.pathExists(packageJsonFile))) {
       packageJsonFile = null;
     }
 
     const packageJson = packageJsonFile
-      ? JSON.parse(fse.readFileSync(packageJsonFile, { encoding: 'utf8' }))
+      ? JSON.parse(await fse.readFile(packageJsonFile, { encoding: 'utf8' }))
       : { name: root };
 
     console.error(
@@ -175,7 +175,7 @@ async function types(onlyTypeCheck = false, showTiming = true) {
     process.exit(1);
   }
 
-  compileDTS(onlyTypeCheck);
+  await compileDTS(onlyTypeCheck);
 
   if (!onlyTypeCheck) {
     // in case of type generation, remove unwanted imports from .d.ts files

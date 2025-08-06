@@ -33,9 +33,10 @@ export function debounce<T extends (...args: readonly unknown[]) => unknown>(
   };
 }
 
-export function createFileHash(path: string) {
+export async function createFileHash(path: string) {
   try {
-    return crypto.createHash('md5').update(fs.readFileSync(path)).digest('hex');
+    const buffer = await fs.promises.readFile(path);
+    return crypto.createHash('md5').update(buffer).digest('hex');
   } catch (error) {
     return null;
   }
@@ -130,4 +131,22 @@ export function createTimer() {
     const totalTime = (stopTime - startTime) / 1000;
     return totalTime;
   };
+}
+
+/**
+ * selective memory optimization when usage is high
+ */
+export function optimizeMemory() {
+  if (!global.gc) return;
+
+  // check memory usage before clearing
+  const memUsage = process.memoryUsage();
+  const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
+
+  // only clear if memory usage is above threshold
+  // 200MB threshold: appropriate for modern systems (8GB+ RAM)
+  if (heapUsedMB < 200) return;
+
+  // force garbage collection
+  global.gc();
 }

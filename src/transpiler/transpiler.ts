@@ -39,9 +39,13 @@ async function transpileFile(options: TranspileFileOptions) {
   const sourceFileAbsPath = path.resolve(srcPath, sourceFileRelPath);
   const outputFileAbsPath = path.resolve(outDir, outputFileRelPath);
 
-  // in case source file not exists, remove the output file (that need to sync in case of watch mode)
-  if (!fse.existsSync(sourceFileAbsPath)) {
-    fse.removeSync(path.resolve(outDir, sourceFileRelPath));
+  if (!(await fse.pathExists(sourceFileAbsPath))) {
+    // in case source file not exists, remove the output file (that need to sync in case of watch mode)
+    const outputFile = path.resolve(outDir, sourceFileRelPath);
+    // fse.remove() is safe for non-existent files, but we should check for null/undefined
+    if (outputFile) {
+      await fse.remove(outputFile);
+    }
     return;
   }
 
@@ -54,7 +58,7 @@ async function transpileFile(options: TranspileFileOptions) {
   let output: TranspileOutput;
 
   if (typeof customTranspiler === 'function') {
-    const code = fse.readFileSync(sourceFileAbsPath, 'utf8');
+    const code = await fse.readFile(sourceFileAbsPath, 'utf8');
     const tmp = await customTranspiler(code, transpileOptions);
     if (tmp && tmp.code) {
       output = { code: tmp.code, map: tmp.map };
@@ -68,13 +72,15 @@ async function transpileFile(options: TranspileFileOptions) {
     );
   }
 
+  const writeOps: Promise<void>[] = [];
   if (output.map) {
     // use relative path for source map URL
     output.code += `\n//# sourceMappingURL=${path.basename(outputFileAbsPath)}.map`;
-    await fse.outputFile(`${outputFileAbsPath}.map`, output.map);
+    writeOps.push(fse.outputFile(`${outputFileAbsPath}.map`, output.map));
   }
 
-  await fse.outputFile(outputFileAbsPath, output.code);
+  writeOps.push(fse.outputFile(outputFileAbsPath, output.code));
+  await Promise.all(writeOps);
 }
 
 export const transformFilesAsync = async (
@@ -83,8 +89,10 @@ export const transformFilesAsync = async (
   progress: ProgressCallback,
 ) => {
   const { lib, srcPath, buildPath, customTranspiler } = getConfig();
+  const noprogress = isProgressDisabled();
 
   function callbackProgress(completed: number) {
+    if (noprogress) return;
     return progress({ completed, target });
   }
 
@@ -119,10 +127,16 @@ export const transformFilesAsync = async (
       customTranspiler,
     };
 
-    // if progress is disabled, we can use Promise.all to process all files at once
-    if (isProgressDisabled()) {
+    // dynamic batch size
+    const BATCH_SIZE = noprogress ? sourceFiles.length : 5;
+
+    let completed = 0;
+
+    // batched parallel processing for better performance
+    for (let i = 0; i < sourceFiles.length; i += BATCH_SIZE) {
+      const batch = sourceFiles.slice(i, i + BATCH_SIZE);
       await Promise.all(
-        sourceFiles.map(async sourceFileRelPath => {
+        batch.map(async sourceFileRelPath => {
           const transpileFileOptions: TranspileFileOptions = {
             ...baseTranspileFileOptions,
             sourceFileRelPath,
@@ -130,18 +144,8 @@ export const transformFilesAsync = async (
           await transpileFile(transpileFileOptions);
         }),
       );
-    } else {
-      // if progress is enabled, we need to process one by one
-      for (let i = 0; i < sourceFiles.length; i++) {
-        const transpileFileOptions: TranspileFileOptions = {
-          ...baseTranspileFileOptions,
-          sourceFileRelPath: sourceFiles[i],
-        };
-        await transpileFile(transpileFileOptions);
-
-        // update progress after file is transpiled
-        callbackProgress(i + 1);
-      }
+      completed += batch.length;
+      callbackProgress(completed);
     }
   } catch (error) {
     console.error(error);

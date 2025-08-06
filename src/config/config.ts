@@ -80,7 +80,7 @@ export async function initConfig(cliProps?: CliProps): Promise<Config> {
     compiler: {
       plugins: [],
       presets: [],
-      browsers: getBrowserslistConfig(root),
+      browsers: await getBrowserslistConfig(root),
     },
   };
 

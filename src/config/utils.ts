@@ -60,7 +60,7 @@ export async function loadConfig(root: string): Promise<Config> {
     return (configModule?.default || configModule) as Config;
   }
   return JSON.parse(
-    fse.readFileSync(configPath, { encoding: 'utf8' }),
+    await fse.readFile(configPath, { encoding: 'utf8' }),
   ) as Config;
 }
 
@@ -89,9 +89,11 @@ export function invalidValueTypeError(
   process.exit(1);
 }
 
-export function getBrowserslistConfig(root: string): string | string[] {
-  if (fse.existsSync(path.resolve(root, 'package.json'))) {
-    const pkg = fse.readJSONSync(path.resolve(root, 'package.json'));
+export async function getBrowserslistConfig(
+  root: string,
+): Promise<string | string[]> {
+  if (await fse.pathExists(path.resolve(root, 'package.json'))) {
+    const pkg = await fse.readJSON(path.resolve(root, 'package.json'));
     if (pkg.browserslist) {
       return pkg.browserslist;
     }

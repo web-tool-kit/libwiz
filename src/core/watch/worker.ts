@@ -1,5 +1,5 @@
 import { parentPort, isMainThread } from 'node:worker_threads';
-import { log, createTimer, createFileHash } from '@/utils';
+import { log, createTimer, createFileHash, optimizeMemory } from '@/utils';
 import { initConfig } from '@/config';
 import build from '@/core/build';
 import runPostbuild, { unlinkFilesFormBuild } from '@/core/postbuild';
@@ -40,6 +40,8 @@ const actionOnWatch = async (
     try {
       isInit = true;
       await build();
+      // memory optimization for long-running watch mode
+      optimizeMemory();
     } catch (err) {
       throw err;
     }
@@ -55,7 +57,7 @@ const actionOnWatch = async (
     case 'add':
     case 'addDir':
     case 'change':
-      const currentHash = createFileHash(path);
+      const currentHash = await createFileHash(path);
       const previousHash = fileHashes.get(path);
       let changeFound = currentHash === null;
       if (currentHash !== null) {

@@ -23,8 +23,10 @@ export async function copyRequiredFiles() {
   const cjsPath = lib?.cjs?.output?.path;
   const esmPath = lib?.esm?.output?.path;
 
-  const hasCJS = await fse.pathExists(cjsPath);
-  const hasESM = await fse.pathExists(esmPath);
+  const [hasCJS, hasESM] = await Promise.all([
+    fse.pathExists(cjsPath),
+    fse.pathExists(esmPath),
+  ]);
 
   const files = await glob(assets, {
     cwd: srcPath,
@@ -56,31 +58,32 @@ export async function unlinkFilesFormBuild(
   isDir: boolean = false,
 ) {
   const { srcPath, lib } = getConfig();
-
   const cjsPath = lib?.cjs?.output?.path;
   const esmPath = lib?.esm?.output?.path;
 
-  const hasCJS = fse.pathExistsSync(cjsPath);
-  const hasESM = fse.pathExistsSync(esmPath);
+  const [hasCJS, hasESM] = await Promise.all([
+    fse.pathExists(cjsPath),
+    fse.pathExists(esmPath),
+  ]);
 
   const tasks: Promise<void>[] = [];
   const isTS = (ext: string) => ['.ts', '.tsx', '.mts'].includes(ext);
 
-  function removeFile(file: string) {
+  async function removeFile(file: string) {
     const relativePath = path.relative(srcPath, file);
 
     // helper function to remove from both CJS and ESM paths
-    const removeFromBuildPaths = (targetPath: string) => {
+    const removeFromBuildPaths = async (targetPath: string) => {
       if (hasCJS) {
         const cjsTarget = path.resolve(cjsPath, targetPath);
-        if (fse.existsSync(cjsTarget)) {
+        if (await fse.pathExists(cjsTarget)) {
           tasks.push(fse.remove(cjsTarget));
         }
       }
 
       if (hasESM) {
         const esmTarget = path.resolve(esmPath, targetPath);
-        if (fse.existsSync(esmTarget)) {
+        if (await fse.pathExists(esmTarget)) {
           tasks.push(fse.remove(esmTarget));
         }
       }
@@ -88,7 +91,7 @@ export async function unlinkFilesFormBuild(
 
     if (isDir) {
       // for directories, remove directly from both CJS and ESM paths
-      removeFromBuildPaths(relativePath);
+      await removeFromBuildPaths(relativePath);
     } else {
       // for files, handle extension conversion
       const dirName = path.dirname(relativePath);
@@ -102,14 +105,14 @@ export async function unlinkFilesFormBuild(
           ? fileName.replace(ext, '.js')
           : fileName;
 
-      removeFromBuildPaths(path.join(dirName, buildFileName));
+      await removeFromBuildPaths(path.join(dirName, buildFileName));
     }
   }
 
   if (Array.isArray(files)) {
-    files.forEach(removeFile);
+    await Promise.all(files.map(removeFile));
   } else {
-    removeFile(files);
+    await removeFile(files);
   }
 
   await Promise.all(tasks);
@@ -121,8 +124,10 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
   const cjsPath = lib?.cjs?.output?.path;
   const esmPath = lib?.esm?.output?.path;
 
-  const hasCJS = fse.pathExistsSync(cjsPath);
-  const hasESM = fse.pathExistsSync(esmPath);
+  const [hasCJS, hasESM] = await Promise.all([
+    fse.pathExists(cjsPath),
+    fse.pathExists(esmPath),
+  ]);
 
   /**
    * Following function help to move project files like
@@ -130,11 +135,11 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
    */
   async function copyLibraryFiles() {
     await Promise.all(
-      ['./README.md', './LICENSE'].map(file => {
+      ['./README.md', './LICENSE'].map(async file => {
         const sourcePath = path.resolve(root, file);
-        if (fse.existsSync(sourcePath)) {
+        if (await fse.pathExists(sourcePath)) {
           const targetPath = path.resolve(buildPath, path.basename(file));
-          fse.copyFileSync(sourcePath, targetPath);
+          await fse.copy(sourcePath, targetPath);
         }
       }),
     );
@@ -222,8 +227,8 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
    * Function ensure build dir exist
    */
   async function ensureBuildDirExists() {
-    if (!fse.existsSync(buildPath)) {
-      fse.mkdirSync(buildPath, { recursive: true });
+    if (!(await fse.pathExists(buildPath))) {
+      await fse.mkdir(buildPath, { recursive: true });
     }
   }
 
@@ -251,7 +256,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
       publishConfig,
       ...restPackageData
     } = JSON.parse(
-      fse.readFileSync(path.resolve(root, './package.json'), 'utf8'),
+      await fse.readFile(path.resolve(root, './package.json'), 'utf8'),
     );
 
     const cjsDir = path.relative(buildPath, cjsPath);
@@ -260,18 +265,18 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     const newPackageData = {
       ...restPackageData,
       private: false,
-      main: fse.existsSync(path.join(cjsPath, 'index.js'))
+      main: (await fse.pathExists(path.join(cjsPath, 'index.js')))
         ? `.${cjsDir ? `/${cjsDir}` : ''}/index.js`
         : './index.js',
-      module: fse.existsSync(path.join(esmPath, 'index.js'))
+      module: (await fse.pathExists(path.join(esmPath, 'index.js')))
         ? `.${esmDir ? `/${esmDir}` : ''}/index.js`
         : './index.js',
     };
 
-    const [moduleEntryExists, mainEntryExists] = [
-      fse.pathExistsSync(path.resolve(buildPath, newPackageData.module)),
-      fse.pathExistsSync(path.resolve(buildPath, newPackageData.main)),
-    ];
+    const [moduleEntryExists, mainEntryExists] = await Promise.all([
+      fse.pathExists(path.resolve(buildPath, newPackageData.module)),
+      fse.pathExists(path.resolve(buildPath, newPackageData.main)),
+    ]);
 
     if (!moduleEntryExists) {
       delete newPackageData.module;
@@ -283,11 +288,11 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     // if esm path exists then by default types will be in esm path else in cjs path
     const dtsIndex = path.resolve(hasESM ? esmPath : cjsPath, './index.d.ts');
     // if dts file exists then add it to package.json
-    if (fse.pathExistsSync(dtsIndex)) {
+    if (await fse.pathExists(dtsIndex)) {
       newPackageData.types = `./${path.relative(buildPath, dtsIndex)}`;
     }
 
-    fse.writeFileSync(
+    await fse.writeFile(
       path.resolve(buildPath, './package.json'),
       JSON.stringify(newPackageData, null, 2),
       'utf8',
