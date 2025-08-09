@@ -18,6 +18,7 @@
     "release": "pnpm build && cd dist && pnpm publish --access public",
     "release:rc": "pnpm release --tag rc",
     "release:dry": "pnpm release --dry-run",
+    "release:local": "pnpm release --no-git-checks --tag local --registry http://localhost:4873",
     "prettier": "prettier --write ./"
   },
   "bin": {
