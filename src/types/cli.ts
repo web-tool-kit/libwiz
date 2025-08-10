@@ -2,7 +2,7 @@ import type { Bundles } from './config';
 
 export type CliTaskTypes = 'build' | 'dev' | 'types';
 
-export interface CliProps {
+export interface CliOptions {
   build: boolean;
   types: boolean;
   watch: boolean;

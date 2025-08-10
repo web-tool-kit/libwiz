@@ -3,7 +3,7 @@ import { log, createTimer, createFileHash, optimizeMemory } from '@/utils';
 import { initConfig } from '@/config';
 import build from '@/core/build';
 import runPostbuild, { unlinkFilesFormBuild } from '@/core/postbuild';
-import type { CliProps } from '@/types';
+import type { CliOptions } from '@/types';
 
 const fileHashes = new Map<string, string>();
 
@@ -13,10 +13,10 @@ let isInit = false;
 const actionOnWatch = async (
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
   path: string,
-  cliProps: CliProps,
+  cliOptions: CliOptions,
 ) => {
   // init config on first run to prevent empty config
-  await initConfig(cliProps);
+  await initConfig(cliOptions);
 
   // handle file hash management
   if (event === 'unlink') {
@@ -86,14 +86,14 @@ type WorkerMessage = {
 interface BuildWorkerProps {
   event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir';
   path: string;
-  cliProps: CliProps;
+  cliOptions: CliOptions;
 }
 
 if (!isMainThread && parentPort) {
   parentPort.on('message', ({ type, data }: WorkerMessage) => {
     if (type === 'build') {
-      const { event, path, cliProps } = data as BuildWorkerProps;
-      actionOnWatch(event, path, cliProps).catch(err => {
+      const { event, path, cliOptions } = data as BuildWorkerProps;
+      actionOnWatch(event, path, cliOptions).catch(err => {
         parentPort.postMessage({
           type: 'error',
           data: {

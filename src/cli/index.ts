@@ -8,11 +8,11 @@ import { parseArgs } from './parser';
 process.env.BROWSERSLIST_IGNORE_OLD_DATA = '1';
 
 (async function start() {
-  const { cliProps, task } = parseArgs();
+  const { cliOptions, task } = parseArgs();
   const shouldClearScreen = process.env.LIBWIZ_ENABLE_PROGRESS === 'true';
-  initCli(Boolean(shouldClearScreen || cliProps.watch));
+  initCli(Boolean(shouldClearScreen || cliOptions.watch));
 
-  await initConfig(cliProps);
+  await initConfig(cliOptions);
   const { default: cli } = require('./cli');
-  cli(cliProps, task);
+  cli(cliOptions, task);
 })();

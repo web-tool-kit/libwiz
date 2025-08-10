@@ -8,45 +8,45 @@ import {
   invalidValueTypeError,
   getBrowserslistConfig,
 } from './utils';
-import type { Config, CliProps, NotPartial } from '@/types';
+import type { Config, CliOptions, NotPartial } from '@/types';
 import { validateConfigSchema } from './schema';
 import store from './store';
 
 /**
  * Get the initial config from the cli props
  */
-function getInitialConfig(cliProps?: CliProps) {
-  if (!cliProps) return;
+function getInitialConfig(cliOptions?: CliOptions) {
+  if (!cliOptions) return;
   return {
-    srcPath: cliProps.srcDir,
-    buildPath: cliProps.outDir,
-    target: cliProps.target,
+    srcPath: cliOptions.srcDir,
+    buildPath: cliOptions.outDir,
+    target: cliOptions.target,
     lib: {
       esm: {
         output: {
           path: './',
           comments: true,
-          sourceMap: Boolean(cliProps.sourceMaps),
+          sourceMap: Boolean(cliOptions.sourceMaps),
         },
       },
       cjs: {
         output: {
           path: './cjs',
           comments: true,
-          sourceMap: Boolean(cliProps.sourceMaps),
+          sourceMap: Boolean(cliOptions.sourceMaps),
         },
       },
     },
   };
 }
 
-export async function initConfig(cliProps?: CliProps): Promise<Config> {
+export async function initConfig(cliOptions?: CliOptions): Promise<Config> {
   // if config is already initialized, return it
   if (store.hasConfig()) {
     return store.config() as Config;
   }
 
-  const initialConfig = getInitialConfig(cliProps);
+  const initialConfig = getInitialConfig(cliOptions);
   const root = process.cwd();
 
   if (initialConfig) {

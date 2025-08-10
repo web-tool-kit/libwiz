@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import pc from '@/utils/picocolors';
-import type { CliProps, CliTaskTypes } from '@/types';
+import type { CliOptions, CliTaskTypes } from '@/types';
 
 function getPackageVersion(): string | undefined {
   try {
@@ -93,11 +93,11 @@ export function parseArgs() {
     process.exit(1);
   }
 
-  const cliProps = argv as unknown as CliProps;
+  const cliOptions = argv as unknown as CliOptions;
 
-  if (cliProps.progress === true) {
+  if (cliOptions.progress === true) {
     process.env.LIBWIZ_ENABLE_PROGRESS = 'true';
   }
 
-  return { cliProps, task };
+  return { cliOptions, task };
 }

@@ -5,7 +5,7 @@ import prebuildRun from '@/core/prebuild';
 import buildRun from '@/core/build';
 import postBuild from '@/core/postbuild';
 import { createTimer } from '@/utils';
-import type { CliProps, CliTaskTypes } from '@/types';
+import type { CliOptions, CliTaskTypes } from '@/types';
 
 async function generateTypes(onlyTypeCheck: boolean, showTiming = true) {
   try {
@@ -22,12 +22,12 @@ async function generateTypes(onlyTypeCheck: boolean, showTiming = true) {
   return;
 }
 
-async function run(cliProps: CliProps, task: CliTaskTypes) {
+async function run(cliOptions: CliOptions, task: CliTaskTypes) {
   const config = getConfig();
-  const { types, watch, check } = cliProps;
+  const { types, watch, check } = cliOptions;
 
   // validate --check flag usage
-  if (cliProps.check) {
+  if (cliOptions.check) {
     if (task !== 'types') {
       log.error(
         '--check flag is only valid with the "types" command (libwiz types --check)',
@@ -56,7 +56,7 @@ async function run(cliProps: CliProps, task: CliTaskTypes) {
 
   if (watch) {
     const { default: watchRun } = require('@/core/watch');
-    watchRun(cliProps);
+    watchRun(cliOptions);
     return;
   }
 

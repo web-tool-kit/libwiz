@@ -1,12 +1,12 @@
 import chokidar from 'chokidar';
 import log from '@/utils/log';
 import { getConfig } from '@/config';
-import type { CliProps } from '@/types';
+import type { CliOptions } from '@/types';
 import WorkerNodes from './WorkerNodes';
 
 const watchWorker = new WorkerNodes();
 
-async function watch(cliProps: CliProps) {
+async function watch(cliOptions: CliOptions) {
   const config = getConfig();
   log.info('Running in watch mode...');
 
@@ -23,7 +23,7 @@ async function watch(cliProps: CliProps) {
   watcher.on('all', async (event, path) => {
     // always send the event to worker, let it handle hash checking
     // this ensures consistent behavior and prevents race conditions
-    watchWorker.run({ event, path, cliProps });
+    watchWorker.run({ event, path, cliOptions });
   });
 }
 
