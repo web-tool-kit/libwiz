@@ -43,7 +43,7 @@ async function run(cliProps: CliProps, task: TaskTypes) {
   }
 
   // setup env before build start
-  // production/devlopment can be there
+  // production/development can be there
   {
     if (!process.env.NODE_ENV) {
       process.env.NODE_ENV = watch ? 'development' : 'production';
