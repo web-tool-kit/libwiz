@@ -2,7 +2,7 @@ import fse from 'fs-extra';
 import glob from 'fast-glob';
 import log from './log';
 
-async function removeBuildInfoFiles(cwd: string): Promise<void> {
+export async function removeBuildInfoFiles(cwd: string): Promise<void> {
   if (!cwd) {
     log.warn('cwd is not available to remove tsbuildinfo');
     return;
