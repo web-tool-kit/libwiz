@@ -68,6 +68,10 @@ export function isPlainObject(obj: unknown) {
   );
 }
 
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
 export function clone<T = unknown>(obj: T): T {
   if (obj === null || typeof obj !== 'object') {
     return obj;

@@ -59,6 +59,15 @@ class WorkerNodes {
     });
   }
 
+  private async cleanupWorker(worker: Worker | null) {
+    if (worker) {
+      try {
+        worker.removeAllListeners();
+        await worker.terminate();
+      } catch {}
+    }
+  }
+
   private switchWorkers() {
     if (this.active) {
       this.ready = false;
@@ -87,8 +96,8 @@ class WorkerNodes {
         this.ready = false;
         this.running = false;
 
-        this.active.removeAllListeners();
-        await this.active.terminate();
+        await this.cleanupWorker(this.active);
+        this.active = null;
 
         this.switchWorkers();
       } catch (error) {
@@ -111,12 +120,13 @@ class WorkerNodes {
     this.active?.postMessage({ type: 'build', data });
   }
 
-  run = debounce((data: unknown) => {
+  run = debounce(async (data: unknown) => {
     if (this.isReady()) {
       // Only terminate if we're currently running a build
       if (this.running) {
         // terminate and start new build
-        this.terminate().then(() => this.triggerBuild(data));
+        await this.terminate();
+        this.triggerBuild(data);
       } else {
         // no build running, start immediately
         this.triggerBuild(data);

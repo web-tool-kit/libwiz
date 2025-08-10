@@ -42,10 +42,7 @@ async function transpileFile(options: TranspileFileOptions) {
   if (!(await fse.pathExists(sourceFileAbsPath))) {
     // in case source file not exists, remove the output file (that need to sync in case of watch mode)
     const outputFile = path.resolve(outDir, sourceFileRelPath);
-    // fse.remove() is safe for non-existent files, but we should check for null/undefined
-    if (outputFile) {
-      await fse.remove(outputFile);
-    }
+    await fse.remove(outputFile);
     return;
   }
 
@@ -88,7 +85,7 @@ export const transformFilesAsync = async (
   sourceFiles: string[],
   progress: ProgressCallback,
 ) => {
-  const { lib, srcPath, buildPath, customTranspiler } = getConfig();
+  const { lib, srcPath, output, customTranspiler } = getConfig();
   const noprogress = isProgressDisabled();
 
   function callbackProgress(completed: number) {
@@ -106,7 +103,7 @@ export const transformFilesAsync = async (
   const outPath = moduleConfig?.output?.path;
 
   const outDir = path.resolve(
-    buildPath,
+    output.dir,
     // It will support top level path
     // `import Component from 'library/Component'`
     outPath,

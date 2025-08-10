@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import { log, mergeDeep } from '@/utils';
+import { isPlainObject, isBoolean, log, mergeDeep } from '@/utils';
 import {
   getTSConfigPath,
   loadConfig,
@@ -8,52 +8,34 @@ import {
   invalidValueTypeError,
   getBrowserslistConfig,
 } from './utils';
-import type { Config, CliOptions, NotPartial } from '@/types';
+import type { Config, CliOptions, NotPartial, NormalizedConfig } from '@/types';
 import { validateConfigSchema } from './schema';
 import store from './store';
 
 /**
  * Get the initial config from the cli props
  */
-function getInitialConfig(cliOptions?: CliOptions) {
-  if (!cliOptions) return;
-  return {
-    srcPath: cliOptions.srcDir,
-    buildPath: cliOptions.outDir,
-    target: cliOptions.target,
+function getInitialConfig(cliOptions?: CliOptions): NormalizedConfig {
+  const initialConfig: NormalizedConfig = {
+    srcPath: './src',
+    output: {
+      dir: './dist',
+      target: ['esm', 'cjs'],
+      comments: false,
+      sourceMap: false,
+    },
     lib: {
       esm: {
         output: {
           path: './',
-          comments: true,
-          sourceMap: Boolean(cliOptions.sourceMaps),
         },
       },
       cjs: {
         output: {
           path: './cjs',
-          comments: true,
-          sourceMap: Boolean(cliOptions.sourceMaps),
         },
       },
     },
-  };
-}
-
-export async function initConfig(cliOptions?: CliOptions): Promise<Config> {
-  // if config is already initialized, return it
-  if (store.hasConfig()) {
-    return store.config() as Config;
-  }
-
-  const initialConfig = getInitialConfig(cliOptions);
-  const root = process.cwd();
-
-  if (initialConfig) {
-    validateConfigSchema(initialConfig);
-  }
-
-  const config: Config = {
     ignore: [
       '**/*.test.js',
       '**/*.test.ts',
@@ -62,30 +44,91 @@ export async function initConfig(cliOptions?: CliOptions): Promise<Config> {
       '**/*.spec.tsx',
       '**/*.d.ts',
     ],
-    lib: {
-      esm: {
-        output: {
-          comments: true,
-          sourceMap: false,
-        },
-      },
-      cjs: {
-        output: {
-          comments: true,
-          sourceMap: false,
-        },
-      },
-    },
+  };
+
+  if (cliOptions) {
+    if (cliOptions.srcDir) {
+      initialConfig.srcPath = cliOptions.srcDir;
+    }
+
+    if (cliOptions.outDir) {
+      initialConfig.output.dir = cliOptions.outDir;
+    }
+
+    if (cliOptions.target) {
+      initialConfig.output.target = cliOptions.target;
+    }
+
+    if (cliOptions.sourceMaps) {
+      const sourceMaps = Boolean(cliOptions.sourceMaps);
+      initialConfig.output.sourceMap = sourceMaps;
+      initialConfig.lib.esm.output.sourceMap = sourceMaps;
+      initialConfig.lib.cjs.output.sourceMap = sourceMaps;
+    }
+  }
+
+  return initialConfig;
+}
+
+function normalizeConfig(config: Config): NormalizedConfig {
+  if (typeof config.output === 'string') {
+    config.output = { dir: config.output };
+  }
+  return config as NormalizedConfig;
+}
+
+function normalizeLibConfig(config: NormalizedConfig) {
+  const outputSourceMap = Boolean(config.output.sourceMap);
+  const outputComments = Boolean(config.output.comments);
+  if (isPlainObject(config.lib)) {
+    if (isPlainObject(config.lib.esm)) {
+      if (!isBoolean(config.lib.esm.output.sourceMap)) {
+        config.lib.esm.output.sourceMap = outputSourceMap;
+      }
+      if (!isBoolean(config.lib.esm.output.comments)) {
+        config.lib.esm.output.comments = outputComments;
+      }
+    }
+
+    if (isPlainObject(config.lib.cjs)) {
+      if (!isBoolean(config.lib.cjs.output.sourceMap)) {
+        config.lib.cjs.output.sourceMap = outputSourceMap;
+      }
+      if (!isBoolean(config.lib.cjs.output.comments)) {
+        config.lib.cjs.output.comments = outputComments;
+      }
+    }
+  }
+}
+
+export async function initConfig(
+  cliOptions?: CliOptions,
+): Promise<NormalizedConfig> {
+  // if config is already initialized, return it
+  if (store.hasConfig()) {
+    return store.config() as NormalizedConfig;
+  }
+
+  const initialConfig = getInitialConfig(cliOptions);
+  validateConfigSchema(initialConfig);
+
+  const root = process.cwd();
+
+  const config = {
+    ...initialConfig,
     customTranspiler: null,
     compiler: {
       plugins: [],
       presets: [],
       browsers: await getBrowserslistConfig(root),
     },
-  };
+  } as NormalizedConfig;
 
   // merge initialConfig with config
-  mergeDeep(config, initialConfig as Config);
+  if (initialConfig) {
+    normalizeConfig(initialConfig);
+    mergeDeep(config, initialConfig);
+  }
 
   try {
     // handle root path
@@ -107,6 +150,7 @@ export async function initConfig(cliOptions?: CliOptions): Promise<Config> {
     const rootConfig = (await loadConfig(root)) || {};
     if (rootConfig) {
       validateConfigSchema(rootConfig);
+      normalizeConfig(rootConfig);
       mergeDeep(config, rootConfig);
     }
 
@@ -147,7 +191,7 @@ export async function initConfig(cliOptions?: CliOptions): Promise<Config> {
       });
     }
 
-    // Handle extensions
+    // handle extensions
     if (config.extensions) {
       if (!Array.isArray(config.extensions)) {
         invalidTypeError('extensions', config.extensions, 'string');
@@ -192,15 +236,16 @@ export async function initConfig(cliOptions?: CliOptions): Promise<Config> {
       ];
     }
 
-    if (config.target) {
-      if (typeof config.target !== 'string') {
-        if (!Array.isArray(config.target)) {
-          invalidTypeError('target', config.target, ['Array', 'String']);
+    if (typeof config.output === 'object' && config.output.target) {
+      const target = config.output.target;
+      if (typeof target !== 'string') {
+        if (!Array.isArray(target)) {
+          invalidTypeError('output.target', target, ['Array', 'String']);
         }
 
-        for (let i = 0; i < config.target.length; i++) {
-          if (typeof config.target[i] !== 'string') {
-            invalidValueTypeError('target', config.target[i], 'string');
+        for (let i = 0; i < target.length; i++) {
+          if (typeof target[i] !== 'string') {
+            invalidValueTypeError('output.target', target[i], 'string');
           }
         }
       }
@@ -219,28 +264,30 @@ export async function initConfig(cliOptions?: CliOptions): Promise<Config> {
     config.srcPath = path.resolve(root, './src');
   }
 
-  if (config.buildPath) {
-    config.buildPath = path.resolve(root, config.buildPath);
+  if (config.output.dir) {
+    config.output.dir = path.resolve(root, config.output.dir);
   } else {
-    config.buildPath = path.resolve(root, './dist');
+    config.output.dir = path.resolve(root, './dist');
   }
 
-  // resolve output paths w.r.t buildPath with defaults
+  // resolve output paths w.r.t output path with defaults
   config.lib.esm.output.path = path.resolve(
-    config.buildPath,
+    config.output.dir,
     config.lib.esm.output.path,
   );
   config.lib.cjs.output.path = path.resolve(
-    config.buildPath,
+    config.output.dir,
     config.lib.cjs.output.path,
   );
 
+  normalizeLibConfig(config);
+
   store.setConfig(config);
-  return config as Config;
+  return config as NormalizedConfig;
 }
 
 export const getConfig = () => {
-  return store.config() as NotPartial<Config>;
+  return store.config() as NotPartial<NormalizedConfig>;
 };
 
 export default getConfig;

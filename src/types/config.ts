@@ -48,17 +48,28 @@ type CompilerOptions =
   | CompilerConfig
   | ((context: CompilerContext) => CompilerConfig);
 
+type OutputConfig = {
+  dir?: string;
+  target?: Bundles | Bundles[];
+  comments?: boolean;
+  sourceMap?: boolean;
+};
+
 export type Config = Partial<{
   root: string;
   srcPath: string;
-  buildPath: string;
+  output: string | OutputConfig;
   workspace: string;
   tsConfig: string;
   extensions: string[];
   ignore: string[];
   lib: LibConfig;
-  target: Bundles | Bundles[];
   assets: string | string[] | null;
   compiler: CompilerOptions;
   customTranspiler: CustomTranspiler | null;
 }>;
+
+// normalized config type where output is always an object
+export interface NormalizedConfig extends Omit<Config, 'output'> {
+  output: OutputConfig;
+}

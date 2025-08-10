@@ -21,7 +21,7 @@ function printPackageIntro(version: string) {
 
 export function parseArgs() {
   const version = getPackageVersion();
-  printPackageIntro(version);
+  printPackageIntro(version || 'unknown');
 
   const argv = yargs(hideBin(process.argv))
     .help()
@@ -70,7 +70,7 @@ export function parseArgs() {
     })
     .help()
     .strict()
-    .version(version)
+    .version(version || 'unknown')
     .demandCommand(
       1,
       1,
@@ -78,14 +78,14 @@ export function parseArgs() {
     )
     .parse();
 
-  const task = argv['_'][0] as CliTaskTypes;
+  const task = (argv as any)['_'][0] as CliTaskTypes;
 
   if (task === 'build') {
-    argv['build'] = true;
+    (argv as any)['build'] = true;
   } else if (task === 'dev') {
-    argv['watch'] = true;
+    (argv as any)['watch'] = true;
   } else if (task === 'types') {
-    argv['types'] = true;
+    (argv as any)['types'] = true;
   } else {
     console.error(
       'Please specify the correct command: `build`, `dev`, or `types` (eg: libwiz build)',

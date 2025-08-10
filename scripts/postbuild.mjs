@@ -33,7 +33,7 @@ async function postBuild() {
 
   restPackageData.name = 'libwiz';
   restPackageData.main = './index.js';
-  restPackageData.types = './index.d.js';
+  restPackageData.types = './index.d.ts';
   Object.keys(restPackageData.bin).forEach(key => {
     restPackageData.bin[key] = restPackageData.bin[key].replace(
       /\.\/dist\//,

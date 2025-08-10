@@ -17,6 +17,7 @@
 - 🗺 **Source Maps**: Generate source maps for easier debugging.
 - ⚙️ **Config File Support**: Customize the build with a configuration file (`libwiz.config.js`, `libwiz.config.json`, or `.libwizrc`).
 - 🔧 **Framework Agnostic**: No framework-specific dependencies included by default. Add React, Vue, or any other framework support as needed.
+- ✅ **Type Checking**: Built-in TypeScript type checking without file generation.
 
 ## Installation
 
@@ -55,13 +56,17 @@ libwiz types --check
 
 # Watch mode for development
 libwiz dev
+
+# Build for specific target format
+libwiz build --target esm
+libwiz build --target cjs
 ```
 
 ### Options
 
 | Option          | Description                                                   | Default  |
 | --------------- | ------------------------------------------------------------- | -------- |
-| `--target`      | Build target format(s): `esm`, `cjs`, or both.                | both     |
+| `--target`      | Build target format: `esm` or `cjs`.                          | both     |
 | `--src-dir`     | Source directory for your library code.                       | `./src`  |
 | `--out-dir`     | Output directory for build files.                             | `./dist` |
 | `--types`       | Generate TypeScript definition files (`*.d.ts`).              | false    |
@@ -73,16 +78,24 @@ libwiz dev
 
 ### Configuration
 
-`libwiz` also supports configuration files to give you more control over your build process. You can create a config file named `libwiz.config.js`, `libwiz.config.json`, or `.libwizrc` in your project root. Here's an overview of the configuration options available:
+`libwiz` supports configuration files to give you more control over your build process. You can create a config file named `libwiz.config.js`, `libwiz.config.json`, or `.libwizrc` in your project root.
 
 #### Config Schema Overview
 
-The following configuration options allow you to customize or override the default flow. By default, `libwiz` will use sensible values, but you can specify these options as needed to fine-tune the build process.
+The configuration options allow you to customize or override the default flow. By default, `libwiz` will use sensible values, but you can specify these options as needed to fine-tune the build process.
+
+**Note**: All build-related configuration is consolidated under the `output` section.
 
 - **`root`** (`string`): Specifies the root directory of the project.
 - **`workspace`** (`string`): Defines a workspace directory within the project.
 - **`srcPath`** (`string`): Path to the source files of the library.
-- **`buildPath`** (`string`): Directory where build output files will be stored.
+- **`output`** (`string` or `object`): Output configuration that can be either a simple string path or a detailed object:
+  - **As String**: Simple output directory path (e.g., `'./dist'`)
+  - **As Object**: Detailed output configuration:
+    - **`dir`** (`string`): Output directory path (defaults to `'./dist'`)
+    - **`target`** (`string` or `array`): Build targets, such as `"esm"`, `"cjs"`, or an array with both
+    - **`comments`** (`boolean`): Include comments in output for all targets
+    - **`sourceMap`** (`boolean`): Generate source maps for all targets
 - **`tsConfig`** (`string`): Path to the TypeScript configuration file, such as `tsconfig.json`.
 - **`extensions`** (`array of strings`): List of file extensions to process, e.g., `['.ts', '.tsx']`.
 - **`ignore`** (`array of strings`): Glob patterns to exclude files from the build process. Defaults to:
@@ -97,18 +110,17 @@ The following configuration options allow you to customize or override the defau
   ];
   ```
   Useful for excluding test files, fixtures, stories, examples and other non-production code from your build output.
-- **`lib`** (`object`): Library configuration settings for both ESM and CJS builds:
+- **`lib`** (`object`): Library configuration settings for both ESM and CJS builds (can override output-level settings):
   - **`esm`** (`object`): Settings for ESM (EcmaScript Module) format output.
     - **`output`** (`object`): Configures ESM output settings.
-      - **`path`** (`string`): Custom output directory path for ESM format (e.g., `'esm'`, `'modern'`). Defaults to root of buildPath.
+      - **`path`** (`string`): Custom output directory path for ESM format (e.g., `'esm'`, `'modern'`). Defaults to root of output directory.
       - **`comments`** (`boolean`): Includes comments in the output if `true`.
       - **`sourceMap`** (`boolean`): Generates source maps if `true`.
   - **`cjs`** (`object`): Settings for CJS (CommonJS) format output.
     - **`output`** (`object`): Configures CJS output settings.
-      - **`path`** (`string`): Custom output directory path for CJS format (e.g., `'cjs'`, `'legacy'`). Defaults to `'cjs'` in buildPath.
+      - **`path`** (`string`): Custom output directory path for CJS format (e.g., `'cjs'`, `'legacy'`). Defaults to `'cjs'` in output directory.
       - **`comments`** (`boolean`): Includes comments in the output if `true`.
       - **`sourceMap`** (`boolean`): Generates source maps if `true`.
-- **`target`** (`string` or `array`): Specifies build targets, such as `"esm"`, `"cjs"`, or an array with both.
 - **`customTranspiler`** (`function`): A custom function to handle transpilation if specific control is required.
 - **`compiler`** (`object` or `function`, optional): Advanced compiler configuration that can be either a static object or a dynamic function based on build target.
   - **As Object**: Static compiler configuration applied to all targets.
@@ -135,27 +147,31 @@ module.exports = {
   root: './',
   workspace: '../../',
   srcPath: './src',
-  buildPath: './dist',
+  output: {
+    dir: './dist',
+    target: ['esm', 'cjs'],
+    sourceMap: false,
+    comments: false,
+  },
   tsConfig: './tsconfig.json',
   extensions: ['.ts', '.tsx'],
   ignore: ['**/__tests__/**'],
   lib: {
     esm: {
       output: {
-        path: 'esm', // custom path for ESM output (defaults to root of buildPath)
+        path: 'esm', // custom path for ESM output (defaults to root of output directory)
         comments: true,
         sourceMap: true,
       },
     },
     cjs: {
       output: {
-        path: 'cjs', // custom path for CJS output (default cjs inside buildPath)
+        path: 'cjs', // custom path for CJS output (default cjs inside output directory)
         comments: true,
         sourceMap: true,
       },
     },
   },
-  target: ['esm', 'cjs'],
   compiler: {
     presets: [
       // you can add your presets
@@ -168,6 +184,57 @@ module.exports = {
   },
   assets: '**/*.css',
 };
+```
+
+### Output Configuration Examples
+
+The `output` configuration is the central place for all build-related settings. It provides a clean, unified way to specify build settings while maintaining compatibility with the existing `lib` configuration.
+
+#### Simple Output Configuration
+
+```js
+// Simple string path
+{
+  output: './dist'
+}
+
+// Object with basic settings
+{
+  output: {
+    dir: './dist',
+    target: 'esm',
+    sourceMap: true
+  }
+}
+```
+
+#### Advanced Configuration with Lib Overrides
+
+The `lib` configuration can still override output-level settings for fine-grained control:
+
+```js
+{
+  output: {
+    dir: './dist',
+    target: ['esm', 'cjs'],
+    sourceMap: true,        // Applies to all targets
+    comments: true          // Applies to all targets
+  },
+  lib: {
+    esm: {
+      output: {
+        path: 'modern',     // Override ESM output path
+        sourceMap: false    // Override sourceMap for ESM only
+      }
+    },
+    cjs: {
+      output: {
+        path: 'legacy',     // Override CJS output path
+        comments: false     // Override comments for CJS only
+      }
+    }
+  }
+}
 ```
 
 ### Adding React Support
@@ -307,24 +374,35 @@ module.exports = {
 
 ### Examples
 
-#### Building for ESM format
+#### Building for specific formats
 
 ```bash
+# Build for ESM format only
 libwiz build --target esm
-```
 
-#### Building for CommonJS format
-
-```bash
+# Build for CommonJS format only
 libwiz build --target cjs
+
+# Build for both formats (default)
+libwiz build
 ```
 
 #### Generating build with TypeScript definition files
 
-To create types libwiz need `tsconfig.json` or `tsconfig.build.json`
+To create types libwiz needs `tsconfig.json` or `tsconfig.build.json`
 
 ```bash
 libwiz build --types
+```
+
+#### Type checking without file generation
+
+```bash
+# Type check only (requires tsconfig.json)
+libwiz types --check
+
+# Generate types and type check
+libwiz types
 ```
 
 #### Running in watch mode
@@ -367,7 +445,7 @@ If `customTranspiler` returns nothing, or if it returns invalid data, `libwiz` w
 
 #### Example Usage
 
-Here’s an example of how you might set up `customTranspiler` in your `libwiz.config.js`:
+Here's an example of how you might set up `customTranspiler` in your `libwiz.config.js`:
 
 ```js
 module.exports = {

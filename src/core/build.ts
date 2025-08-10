@@ -30,7 +30,8 @@ function getAllSourceFiles() {
 }
 
 async function build() {
-  const { target, extensions } = getConfig();
+  const { extensions, output } = getConfig();
+  const target = output.target;
 
   const sourceFiles = getAllSourceFiles();
   if (sourceFiles.length === 0) {

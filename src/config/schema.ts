@@ -97,7 +97,29 @@ export const ConfigSchema = z
     root: z.string().optional().describe('Root directory'),
     workspace: z.string().optional().describe('Workspace directory'),
     srcPath: z.string().optional().describe('Source path'),
-    buildPath: z.string().optional().describe('Build output path'),
+    output: z
+      .union([
+        z.string().describe('Output directory path'),
+        z
+          .object({
+            dir: z
+              .string()
+              .optional()
+              .describe('Output directory path (defaults to "dist")'),
+            target: z
+              .union([VALID_BUNDLE_ENUM, z.array(VALID_BUNDLE_ENUM)])
+              .optional()
+              .describe('Build targets'),
+            comments: z
+              .boolean()
+              .optional()
+              .describe('Include comments in output'),
+            sourceMap: z.boolean().optional().describe('Generate source maps'),
+          })
+          .describe('Output configuration object'),
+      ])
+      .optional()
+      .describe('Output configuration'),
     tsConfig: z
       .string()
       .optional()
@@ -108,10 +130,6 @@ export const ConfigSchema = z
       .describe('File extensions to process'),
     ignore: z.array(z.string()).optional().describe('Patterns to ignore'),
     lib: LibConfigSchema,
-    target: z
-      .union([VALID_BUNDLE_ENUM, z.array(VALID_BUNDLE_ENUM)])
-      .optional()
-      .describe('Build targets'),
     assets: z
       .union([z.string(), z.array(z.string()), z.null()])
       .optional()
@@ -140,12 +158,13 @@ function configValidationErrors(errors: any[]) {
   const stackTrace = new Error().stack;
   const { code, path, keys, expected, received, message } = errors[0] || {};
 
-  let fullPath = Array.isArray(path) ? path : [path];
-  if (Array.isArray(keys)) {
-    fullPath = fullPath.concat(keys);
+  const fullPath = Array.isArray(path) ? path : [path];
+
+  if (code === 'unrecognized_keys') {
+    fullPath.push(keys[0]);
   }
 
-  const pathString = `${pc.bold(pc.yellow(fullPath.length ? fullPath.join(' → ') : 'root'))}`;
+  const pathString = `${pc.bold(pc.yellow(fullPath.join(' → ')))}`;
 
   if (code === 'invalid_type') {
     const msg = `Invalid configuration at ${pathString}, expected to be a ${expected} but received ${received}`;

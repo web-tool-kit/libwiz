@@ -1,7 +1,7 @@
 {
   "name": "libwiz",
   "private": true,
-  "version": "0.0.3-rc.12",
+  "version": "0.0.3-rc.13",
   "description": "A powerful CLI tool for building modern JavaScript and TypeScript libraries",
   "sideEffects": false,
   "main": "./dist/index.js",

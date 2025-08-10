@@ -68,14 +68,14 @@ function getParsedTSConfig() {
 }
 
 async function compileDTS(onlyTypeCheck = false) {
-  const { srcPath, buildPath, lib } = getConfig();
+  const { srcPath, output, lib } = getConfig();
   const ts = getTypescript();
   const config = getParsedTSConfig();
 
   const esmDistPath = lib?.esm?.output?.path;
   const cjsDistPath = lib?.cjs?.output?.path;
 
-  let outDir = buildPath;
+  let outDir = output.dir;
   if (await fse.pathExists(esmDistPath)) {
     outDir = esmDistPath;
   } else if (await fse.pathExists(cjsDistPath)) {
@@ -155,7 +155,7 @@ async function types(onlyTypeCheck = false, showTiming = true) {
   const getTime = createTimer();
 
   log.info(onlyTypeCheck ? 'Type checking...' : 'Generating types...');
-  const { root, tsConfig, buildPath } = getConfig();
+  const { root, tsConfig, output } = getConfig();
 
   if (!(await fse.pathExists(tsConfig))) {
     let packageJsonFile: string | null = path.resolve(root, 'package.json');
@@ -180,7 +180,7 @@ async function types(onlyTypeCheck = false, showTiming = true) {
   if (!onlyTypeCheck) {
     // in case of type generation, remove unwanted imports from .d.ts files
     // like .css, .png etc
-    await postProcessDTS(buildPath);
+    await postProcessDTS(output.dir);
   }
 
   await removeBuildInfoFiles(root);

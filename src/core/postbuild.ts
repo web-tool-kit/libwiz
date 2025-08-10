@@ -9,13 +9,14 @@ import { log, parallel, sequential, createTimer } from '@/utils';
  * Copy required files of module in there folder
  */
 export async function copyRequiredFiles() {
-  const { assets, srcPath, buildPath, lib } = getConfig();
+  const { assets, srcPath, output, lib } = getConfig();
+
   if (!assets || (Array.isArray(assets) && assets.length === 0)) {
     return;
   }
 
-  if (!(await fse.pathExists(buildPath))) {
-    log.warn(`build path ${buildPath} does not exists to copy assets`);
+  if (!(await fse.pathExists(output.dir))) {
+    log.warn(`build path ${output.dir} does not exists to copy assets`);
     return [];
   }
 
@@ -119,7 +120,7 @@ export async function unlinkFilesFormBuild(
 }
 
 async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
-  const { root, srcPath, buildPath, lib } = getConfig();
+  const { root, srcPath, output, lib } = getConfig();
 
   const cjsPath = lib?.cjs?.output?.path;
   const esmPath = lib?.esm?.output?.path;
@@ -138,7 +139,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
       ['./README.md', './LICENSE'].map(async file => {
         const sourcePath = path.resolve(root, file);
         if (await fse.pathExists(sourcePath)) {
-          const targetPath = path.resolve(buildPath, path.basename(file));
+          const targetPath = path.resolve(output.dir, path.basename(file));
           await fse.copy(sourcePath, targetPath);
         }
       }),
@@ -162,7 +163,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
 
     // if esm path is not in root then we don't create module packages
     // in case or root it will be empty string which is falsy
-    if (path.relative(buildPath, esmPath)) return;
+    if (path.relative(output.dir, esmPath)) return;
 
     const packageData = JSON.parse(
       await fse.readFile(path.resolve(root, './package.json'), 'utf8'),
@@ -175,7 +176,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     await Promise.all(
       directoryPackages.map(async directoryPackage => {
         const packageJsonPath = path.join(
-          buildPath,
+          output.dir,
           directoryPackage,
           'package.json',
         );
@@ -227,8 +228,8 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
    * Function ensure build dir exist
    */
   async function ensureBuildDirExists() {
-    if (!(await fse.pathExists(buildPath))) {
-      await fse.mkdir(buildPath, { recursive: true });
+    if (!(await fse.pathExists(output.dir))) {
+      await fse.mkdir(output.dir, { recursive: true });
     }
   }
 
@@ -236,14 +237,14 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
    * Copy type definition if exist in module files
    */
   async function typescriptCopy() {
-    if (!(await fse.pathExists(buildPath))) {
-      log.warn(`[types] path ${buildPath} does not exists`);
+    if (!(await fse.pathExists(output.dir))) {
+      log.warn(`[types] path ${output.dir} does not exists`);
       return [];
     }
     const files = await glob('**/*.d.ts', { cwd: srcPath });
     await Promise.all(
       files.map(file =>
-        fse.copy(path.resolve(srcPath, file), path.resolve(buildPath, file)),
+        fse.copy(path.resolve(srcPath, file), path.resolve(output.dir, file)),
       ),
     );
   }
@@ -259,8 +260,8 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
       await fse.readFile(path.resolve(root, './package.json'), 'utf8'),
     );
 
-    const cjsDir = path.relative(buildPath, cjsPath);
-    const esmDir = path.relative(buildPath, esmPath);
+    const cjsDir = path.relative(output.dir, cjsPath);
+    const esmDir = path.relative(output.dir, esmPath);
 
     const newPackageData = {
       ...restPackageData,
@@ -274,8 +275,8 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     };
 
     const [moduleEntryExists, mainEntryExists] = await Promise.all([
-      fse.pathExists(path.resolve(buildPath, newPackageData.module)),
-      fse.pathExists(path.resolve(buildPath, newPackageData.main)),
+      fse.pathExists(path.resolve(output.dir, newPackageData.module)),
+      fse.pathExists(path.resolve(output.dir, newPackageData.main)),
     ]);
 
     if (!moduleEntryExists) {
@@ -289,11 +290,11 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     const dtsIndex = path.resolve(hasESM ? esmPath : cjsPath, './index.d.ts');
     // if dts file exists then add it to package.json
     if (await fse.pathExists(dtsIndex)) {
-      newPackageData.types = `./${path.relative(buildPath, dtsIndex)}`;
+      newPackageData.types = `./${path.relative(output.dir, dtsIndex)}`;
     }
 
     await fse.writeFile(
-      path.resolve(buildPath, './package.json'),
+      path.resolve(output.dir, './package.json'),
       JSON.stringify(newPackageData, null, 2),
       'utf8',
     );

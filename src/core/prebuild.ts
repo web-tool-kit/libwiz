@@ -3,9 +3,9 @@ import { getConfig } from '@/config';
 import { removeBuildInfoFiles } from '@/utils';
 
 async function prebuild() {
-  const { buildPath } = getConfig();
-  if (fse.existsSync(buildPath)) {
-    fse.removeSync(buildPath);
+  const { output } = getConfig();
+  if (fse.existsSync(output.dir)) {
+    fse.removeSync(output.dir);
   }
   await removeBuildInfoFiles(process.cwd());
 }
