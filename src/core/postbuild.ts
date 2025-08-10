@@ -3,12 +3,19 @@ import fse from 'fs-extra';
 import glob from 'fast-glob';
 import { getConfig } from '@/config';
 import pc from '@/utils/picocolors';
-import { log, parallel, sequential, createTimer } from '@/utils';
+import {
+  log,
+  parallel,
+  sequential,
+  createTimer,
+  checkBuildAbortSignal,
+} from '@/utils';
 
 /**
  * Copy required files of module in there folder
  */
-export async function copyRequiredFiles() {
+export async function copyRequiredFiles(abortSignal?: AbortSignal) {
+  checkBuildAbortSignal(abortSignal);
   const { assets, srcPath, output, lib } = getConfig();
 
   if (!assets || (Array.isArray(assets) && assets.length === 0)) {
@@ -37,6 +44,7 @@ export async function copyRequiredFiles() {
   const task: Promise<void>[] = [];
 
   files.forEach(file => {
+    checkBuildAbortSignal(abortSignal);
     if (hasCJS) {
       task.push(
         fse.copy(path.resolve(srcPath, file), path.resolve(cjsPath, file)),
@@ -119,7 +127,11 @@ export async function unlinkFilesFormBuild(
   await Promise.all(tasks);
 }
 
-async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
+async function postbuild(
+  getBuildTime: ReturnType<typeof createTimer>,
+  abortSignal?: AbortSignal,
+) {
+  checkBuildAbortSignal(abortSignal);
   const { root, srcPath, output, lib } = getConfig();
 
   const cjsPath = lib?.cjs?.output?.path as string;
@@ -137,6 +149,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
   async function copyLibraryFiles() {
     await Promise.all(
       ['./README.md', './LICENSE'].map(async file => {
+        checkBuildAbortSignal(abortSignal);
         const sourcePath = path.resolve(root, file);
         if (await fse.pathExists(sourcePath)) {
           const targetPath = path.resolve(output.dir, path.basename(file));
@@ -158,6 +171,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
    * ```
    */
   async function createModulePackages() {
+    checkBuildAbortSignal(abortSignal);
     // in case esm and cjs co exist then we create module packages
     if (!(hasESM && hasCJS)) return;
 
@@ -175,6 +189,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
 
     await Promise.all(
       directoryPackages.map(async directoryPackage => {
+        checkBuildAbortSignal(abortSignal);
         const packageJsonPath = path.join(
           output.dir,
           directoryPackage,
@@ -237,19 +252,26 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
    * Copy type definition if exist in module files
    */
   async function typescriptCopy() {
+    checkBuildAbortSignal(abortSignal);
     if (!(await fse.pathExists(output.dir))) {
       log.warn(`[types] path ${output.dir} does not exists`);
       return [];
     }
     const files = await glob('**/*.d.ts', { cwd: srcPath });
+
     await Promise.all(
-      files.map(file =>
-        fse.copy(path.resolve(srcPath, file), path.resolve(output.dir, file)),
-      ),
+      files.map(file => {
+        checkBuildAbortSignal(abortSignal);
+        return fse.copy(
+          path.resolve(srcPath, file),
+          path.resolve(output.dir, file),
+        );
+      }),
     );
   }
 
   async function createPackageFile() {
+    checkBuildAbortSignal(abortSignal);
     const {
       scripts,
       devDependencies,
@@ -304,7 +326,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     await sequential([
       ensureBuildDirExists(),
       typescriptCopy(),
-      copyRequiredFiles(),
+      copyRequiredFiles(abortSignal),
       parallel([createModulePackages(), createPackageFile()]),
       copyLibraryFiles(),
     ]);

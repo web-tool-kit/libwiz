@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
+import { BuildCancelledError } from './errors';
 
 export const isTTY = process.stdout.isTTY || process.env.CI;
 // isProgressDisabled function is used to check if the progress bar should be disabled
@@ -121,6 +122,15 @@ export function mergeDeep(
         target[key] = source[key];
       }
     }
+  }
+}
+
+/**
+ * Check if an abort signal is aborted and throw BuildCancelledError if so
+ */
+export function checkBuildAbortSignal(abortSignal?: AbortSignal): void {
+  if (abortSignal?.aborted) {
+    throw new BuildCancelledError();
   }
 }
 

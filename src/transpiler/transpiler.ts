@@ -2,7 +2,11 @@ import path from 'node:path';
 import fse from 'fs-extra';
 import { getConfig } from '@/config';
 import * as babel from './babel';
-import { isProgressDisabled } from '@/utils';
+import {
+  isProgressDisabled,
+  checkBuildAbortSignal,
+  isBuildCancelledError,
+} from '@/utils';
 import type { ModuleConfig, Bundles, TranspileOutput, Config } from '@/types';
 
 export type ProgressCallback = ({
@@ -84,12 +88,17 @@ export const transformFilesAsync = async (
   target: Bundles,
   sourceFiles: string[],
   progress: ProgressCallback,
+  abortSignal?: AbortSignal,
 ) => {
   const { lib, srcPath, output, customTranspiler } = getConfig();
   const noprogress = isProgressDisabled();
 
   function callbackProgress(completed: number) {
     if (noprogress) return;
+
+    // check abort signal during progress updates
+    checkBuildAbortSignal(abortSignal);
+
     return progress({ completed, target });
   }
 
@@ -127,9 +136,15 @@ export const transformFilesAsync = async (
 
     // batched parallel processing for better performance
     for (let i = 0; i < sourceFiles.length; i += BATCH_SIZE) {
+      // Check abort signal before each batch
+      checkBuildAbortSignal(abortSignal);
+
       const batch = sourceFiles.slice(i, i + BATCH_SIZE);
       await Promise.all(
         batch.map(async sourceFileRelPath => {
+          // Check abort signal before each file
+          checkBuildAbortSignal(abortSignal);
+
           const transpileFileOptions: TranspileFileOptions = {
             ...baseTranspileFileOptions,
             sourceFileRelPath,
@@ -141,6 +156,10 @@ export const transformFilesAsync = async (
       callbackProgress(completed);
     }
   } catch (error) {
+    if (isBuildCancelledError(error)) {
+      //throw error to abort the build
+      throw error;
+    }
     console.error(error);
     process.exit(1);
   }
