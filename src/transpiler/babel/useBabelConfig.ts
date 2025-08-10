@@ -1,7 +1,11 @@
-import type { TransformOptions, PluginOptions } from '@babel/core';
 import { getConfig } from '@/config';
 import { magicImport, isPlainObject } from '@/utils';
-import type { Bundles, CompilerConfig } from '@/types';
+import type {
+  Bundles,
+  CompilerConfig,
+  PluginOptions,
+  TransformOptions,
+} from '@/types';
 
 function isTSEnabled(extensions: string[] = []) {
   return Boolean(extensions.find(ext => /\.(tsx?|mts)$/.test(ext)));

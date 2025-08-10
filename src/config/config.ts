@@ -8,9 +8,9 @@ import {
   invalidValueTypeError,
   getBrowserslistConfig,
 } from './utils';
+import type { Config, CliProps, NotPartial } from '@/types';
 import { validateConfigSchema } from './schema';
 import store from './store';
-import type { Config, CliProps, NotPartial } from '../types';
 
 /**
  * Get the initial config from the cli props

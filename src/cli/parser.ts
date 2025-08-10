@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import pc from '@/utils/picocolors';
-import type { CliProps, TaskTypes } from '@/types';
+import type { CliProps, CliTaskTypes } from '@/types';
 
 function getPackageVersion(): string | undefined {
   try {
@@ -78,7 +78,7 @@ export function parseArgs() {
     )
     .parse();
 
-  const task = argv['_'][0] as TaskTypes;
+  const task = argv['_'][0] as CliTaskTypes;
 
   if (task === 'build') {
     argv['build'] = true;

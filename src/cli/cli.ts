@@ -5,7 +5,7 @@ import prebuildRun from '@/core/prebuild';
 import buildRun from '@/core/build';
 import postBuild from '@/core/postbuild';
 import { createTimer } from '@/utils';
-import type { CliProps, TaskTypes } from '@/types';
+import type { CliProps, CliTaskTypes } from '@/types';
 
 async function generateTypes(onlyTypeCheck: boolean, showTiming = true) {
   try {
@@ -22,7 +22,7 @@ async function generateTypes(onlyTypeCheck: boolean, showTiming = true) {
   return;
 }
 
-async function run(cliProps: CliProps, task: TaskTypes) {
+async function run(cliProps: CliProps, task: CliTaskTypes) {
   const config = getConfig();
   const { types, watch, check } = cliProps;
 

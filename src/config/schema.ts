@@ -1,18 +1,9 @@
-import type { TransformOptions } from '@babel/core';
 import { z } from 'zod';
 import { log } from '@/utils';
 import pc from '@/utils/picocolors';
-import type { Bundles, TranspileOutput, TranspileOptions } from '@/types';
+import type { Config } from '@/types';
 
 const VALID_BUNDLE_ENUM = z.enum(['esm', 'cjs']).describe('Valid bundle types');
-
-export interface ModuleConfig {
-  output?: {
-    comments?: boolean;
-    sourceMap?: boolean;
-    path?: string;
-  };
-}
 
 export const ModuleConfigSchema = z
   .object({
@@ -36,11 +27,6 @@ export const ModuleConfigSchema = z
   .optional()
   .describe('Module configuration');
 
-export interface LibConfig {
-  esm?: ModuleConfig;
-  cjs?: ModuleConfig;
-}
-
 export const LibConfigSchema = z
   .object({
     esm: ModuleConfigSchema.optional().describe('ESM module configuration'),
@@ -51,39 +37,6 @@ export const LibConfigSchema = z
   .strict()
   .optional()
   .describe('Library configuration');
-
-export interface CompilerConfig {
-  presets?: TransformOptions['presets'];
-  plugins?: TransformOptions['plugins'];
-  browsers?: string | string[];
-  overrides?: TransformOptions['overrides'];
-}
-
-export interface CompilerContext {
-  target: Bundles;
-  isESM: boolean;
-  isCJS: boolean;
-}
-
-export type Config = Partial<{
-  root: string;
-  srcPath: string;
-  buildPath: string;
-  workspace: string;
-  tsConfig: string;
-  extensions: string[];
-  ignore: string[];
-  lib: LibConfig;
-  target: Bundles | Bundles[];
-  assets: string | string[] | null;
-  customTranspiler:
-    | ((
-        code: string,
-        option: TranspileOptions,
-      ) => Promise<TranspileOutput | void>)
-    | null;
-  compiler: CompilerConfig | ((context: CompilerContext) => CompilerConfig);
-}>;
 
 const PluginAndPresetSchema = z.union([
   z.string().describe('Plugin or preset name'),
