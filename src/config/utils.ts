@@ -9,7 +9,7 @@ export function getTSConfigPath({
   root,
   workspace,
 }: {
-  root: Config['root'];
+  root: NonNullable<Config['root']>;
   workspace?: Config['workspace'];
 }): string | undefined {
   const TsConfigFiles = ['tsconfig.build.json', 'tsconfig.json'];

@@ -21,7 +21,7 @@ function getAllSourceFiles() {
     return globSync(globPattern, {
       cwd: srcPath,
       // ignore d.ts as its not needed to be transpiled
-      ignore: [...ignore, !hasDts && '**/*.d.ts'].filter(Boolean),
+      ignore: [...ignore, !hasDts && '**/*.d.ts'].filter(Boolean) as string[],
     });
   } catch (err) {
     console.error(err);

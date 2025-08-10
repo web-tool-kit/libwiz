@@ -1,12 +1,12 @@
 {
   "include": ["src/**/*.ts"],
   "compilerOptions": {
+    "strict": true,
     "paths": {
       "@/*": ["./src/*"]
     },
     "skipLibCheck": true,
     "preserveConstEnums": true,
-    "strict": false,
     "target": "ES5",
     "lib": ["es2021"],
     "module": "NodeNext",

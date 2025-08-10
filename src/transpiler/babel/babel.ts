@@ -14,13 +14,14 @@ export async function transformFileAsync(
   });
 
   const babelConfig = useBabelConfig(options.env);
-  const transformedCode = await babel.transformFileAsync(sourceFile, {
+  const transformedCode = (await babel.transformFileAsync(sourceFile, {
     ...babelConfig,
     envName: options.env,
     sourceMaps: Boolean(options.sourceMaps),
     comments: Boolean(options.comments),
     configFile: false,
-  });
+  })) as TranspileOutput;
+
   const output: TranspileOutput = { code: transformedCode.code };
   if (transformedCode.map) {
     output.map = JSON.stringify(transformedCode.map);

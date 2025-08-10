@@ -11,7 +11,7 @@ export function parallel(promises: Promise<unknown>[]) {
 }
 
 export async function sequential(fxnArr: (unknown | Promise<unknown>)[]) {
-  const results = [];
+  const results: unknown[] = [];
   for (const fn of fxnArr) {
     const result = fn instanceof Promise ? await fn : fn;
     results.push(result as never);

@@ -1,4 +1,6 @@
-let tsModule: typeof import('typescript') | null = null;
+export type TS = typeof import('typescript');
+
+let tsModule: TS | null = null;
 
 export function initTypescript() {
   if (tsModule) return tsModule;

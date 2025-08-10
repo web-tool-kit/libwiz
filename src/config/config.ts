@@ -62,8 +62,12 @@ function getInitialConfig(cliOptions?: CliOptions): NormalizedConfig {
     if (cliOptions.sourceMaps) {
       const sourceMaps = Boolean(cliOptions.sourceMaps);
       initialConfig.output.sourceMap = sourceMaps;
-      initialConfig.lib.esm.output.sourceMap = sourceMaps;
-      initialConfig.lib.cjs.output.sourceMap = sourceMaps;
+      if (initialConfig.lib?.esm?.output) {
+        initialConfig.lib.esm.output.sourceMap = sourceMaps;
+      }
+      if (initialConfig.lib?.cjs?.output) {
+        initialConfig.lib.cjs.output.sourceMap = sourceMaps;
+      }
     }
   }
 
@@ -81,7 +85,7 @@ function normalizeLibConfig(config: NormalizedConfig) {
   const outputSourceMap = Boolean(config.output.sourceMap);
   const outputComments = Boolean(config.output.comments);
   if (isPlainObject(config.lib)) {
-    if (isPlainObject(config.lib.esm)) {
+    if (isPlainObject(config.lib?.esm) && config.lib?.esm?.output) {
       if (!isBoolean(config.lib.esm.output.sourceMap)) {
         config.lib.esm.output.sourceMap = outputSourceMap;
       }
@@ -90,7 +94,7 @@ function normalizeLibConfig(config: NormalizedConfig) {
       }
     }
 
-    if (isPlainObject(config.lib.cjs)) {
+    if (isPlainObject(config.lib?.cjs) && config.lib?.cjs?.output) {
       if (!isBoolean(config.lib.cjs.output.sourceMap)) {
         config.lib.cjs.output.sourceMap = outputSourceMap;
       }
@@ -251,7 +255,7 @@ export async function initConfig(
       }
     }
   } catch (err) {
-    log.error(err.toString());
+    log.error(err instanceof Error ? err.message : String(err));
     console.error(err);
     process.exit(1);
   }
@@ -271,14 +275,18 @@ export async function initConfig(
   }
 
   // resolve output paths w.r.t output path with defaults
-  config.lib.esm.output.path = path.resolve(
-    config.output.dir,
-    config.lib.esm.output.path,
-  );
-  config.lib.cjs.output.path = path.resolve(
-    config.output.dir,
-    config.lib.cjs.output.path,
-  );
+  if (config.lib?.esm?.output?.path) {
+    config.lib.esm.output.path = path.resolve(
+      config.output.dir,
+      config.lib.esm.output.path,
+    );
+  }
+  if (config.lib?.cjs?.output?.path) {
+    config.lib.cjs.output.path = path.resolve(
+      config.output.dir,
+      config.lib.cjs.output.path,
+    );
+  }
 
   normalizeLibConfig(config);
 

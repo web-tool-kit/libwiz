@@ -15,9 +15,9 @@ export interface TranspileOutput {
 
 export interface ModuleConfig {
   output?: {
+    path: string;
     comments?: boolean;
     sourceMap?: boolean;
-    path?: string;
   };
 }
 
@@ -49,7 +49,7 @@ type CompilerOptions =
   | ((context: CompilerContext) => CompilerConfig);
 
 type OutputConfig = {
-  dir?: string;
+  dir: string;
   target?: Bundles | Bundles[];
   comments?: boolean;
   sourceMap?: boolean;

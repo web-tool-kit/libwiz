@@ -4,12 +4,12 @@ import fse from 'fs-extra';
 import pc from '@/utils/picocolors';
 import { log, clearLine, removeBuildInfoFiles, createTimer } from '@/utils';
 import { getConfig } from '@/config';
-import { getTypescript } from '@/typescript';
+import { getTypescript, TS } from '@/typescript';
 import type { ParsedCommandLine, ParseConfigHost } from '@/typescript';
 import { postProcessDTS, getFormatHost } from './utils';
 
 function getParsedTSConfig() {
-  const ts = getTypescript();
+  const ts = getTypescript() as TS;
   const { tsConfig, ignore } = getConfig();
   const configDir = path.dirname(tsConfig);
 
@@ -69,11 +69,11 @@ function getParsedTSConfig() {
 
 async function compileDTS(onlyTypeCheck = false) {
   const { srcPath, output, lib } = getConfig();
-  const ts = getTypescript();
+  const ts = getTypescript() as TS;
   const config = getParsedTSConfig();
 
-  const esmDistPath = lib?.esm?.output?.path;
-  const cjsDistPath = lib?.cjs?.output?.path;
+  const esmDistPath = lib?.esm?.output?.path as string;
+  const cjsDistPath = lib?.cjs?.output?.path as string;
 
   let outDir = output.dir;
   if (await fse.pathExists(esmDistPath)) {
@@ -120,7 +120,7 @@ async function compileDTS(onlyTypeCheck = false) {
     allDiagnostics.forEach(diagnostic => {
       if (diagnostic.file) {
         const { line } = diagnostic.file.getLineAndCharacterOfPosition(
-          diagnostic.start,
+          diagnostic.start as number,
         );
         const filePath = path.relative(process.cwd(), diagnostic.file.fileName);
         const fileKey = `${filePath}${pc.gray(`:${line + 1}`)}`;
@@ -139,7 +139,7 @@ async function compileDTS(onlyTypeCheck = false) {
     log.raw(`\nFound ${totalErrors} errors in ${totalFiles} files.\n\n`);
     log.raw(`Errors  Files`);
 
-    const detailFileErrorArr = [];
+    const detailFileErrorArr: string[] = [];
     fileErrorCount.forEach((count, fileKey) => {
       detailFileErrorArr.push(`${count.toString().padStart(6)}  ${fileKey}`);
     });

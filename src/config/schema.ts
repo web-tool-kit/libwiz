@@ -144,7 +144,7 @@ export const ConfigSchema = z
   })
   .strict();
 
-function printError(errMsg: string, stackTrace: string) {
+function printError(errMsg: string, stackTrace: string | undefined) {
   const msg = errMsg.trim();
   return `${msg}\n${pc.gray(
     stackTrace

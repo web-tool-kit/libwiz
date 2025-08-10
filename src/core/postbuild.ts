@@ -21,8 +21,8 @@ export async function copyRequiredFiles() {
   }
 
   // get custom paths from config or use defaults
-  const cjsPath = lib?.cjs?.output?.path;
-  const esmPath = lib?.esm?.output?.path;
+  const cjsPath = lib?.cjs?.output?.path as string;
+  const esmPath = lib?.esm?.output?.path as string;
 
   const [hasCJS, hasESM] = await Promise.all([
     fse.pathExists(cjsPath),
@@ -59,8 +59,8 @@ export async function unlinkFilesFormBuild(
   isDir: boolean = false,
 ) {
   const { srcPath, lib } = getConfig();
-  const cjsPath = lib?.cjs?.output?.path;
-  const esmPath = lib?.esm?.output?.path;
+  const cjsPath = lib?.cjs?.output?.path as string;
+  const esmPath = lib?.esm?.output?.path as string;
 
   const [hasCJS, hasESM] = await Promise.all([
     fse.pathExists(cjsPath),
@@ -122,8 +122,8 @@ export async function unlinkFilesFormBuild(
 async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
   const { root, srcPath, output, lib } = getConfig();
 
-  const cjsPath = lib?.cjs?.output?.path;
-  const esmPath = lib?.esm?.output?.path;
+  const cjsPath = lib?.cjs?.output?.path as string;
+  const esmPath = lib?.esm?.output?.path as string;
 
   const [hasCJS, hasESM] = await Promise.all([
     fse.pathExists(cjsPath),
@@ -207,13 +207,13 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
           ]);
 
         if (!moduleEntryExists) {
-          delete packageJson.module;
+          delete (packageJson as any).module;
         }
         if (!mainEntryExists) {
-          delete packageJson.main;
+          delete (packageJson as any).main;
         }
         if (!typingsEntryExist) {
-          delete packageJson.types;
+          delete (packageJson as any).types;
         }
         await fse.writeFile(
           packageJsonPath,

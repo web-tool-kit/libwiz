@@ -52,7 +52,7 @@ async function transpileFile(options: TranspileFileOptions) {
     comments: Boolean(moduleConfig?.output?.comments),
   };
 
-  let output: TranspileOutput;
+  let output: TranspileOutput | undefined;
 
   if (typeof customTranspiler === 'function') {
     const code = await fse.readFile(sourceFileAbsPath, 'utf8');
@@ -93,14 +93,10 @@ export const transformFilesAsync = async (
     return progress({ completed, target });
   }
 
-  let moduleConfig: ModuleConfig;
-  if (target === 'cjs') {
-    moduleConfig = lib.cjs as ModuleConfig;
-  } else if (target === 'esm') {
-    moduleConfig = lib.esm as ModuleConfig;
-  }
+  const moduleConfig: ModuleConfig =
+    target === 'cjs' ? (lib.cjs as ModuleConfig) : (lib.esm as ModuleConfig);
 
-  const outPath = moduleConfig?.output?.path;
+  const outPath = moduleConfig.output?.path as string;
 
   const outDir = path.resolve(
     output.dir,

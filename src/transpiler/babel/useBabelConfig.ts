@@ -54,7 +54,7 @@ const getDefaultBabelConfig = (target: Bundles): TransformOptions => {
     presetTypescript: [],
   };
 
-  let rootPresetConfig = [];
+  let rootPresetConfig: CompilerConfig['presets'] = [];
   let isTypescriptPresetEnabled = isTSEnabled(extensions);
 
   if (Array.isArray(compiler?.presets)) {

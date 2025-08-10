@@ -1,9 +1,9 @@
 import fse from 'fs-extra';
 import glob from 'fast-glob';
-import { getTypescript } from '@/typescript';
+import { getTypescript, TS } from '@/typescript';
 
 export const getFormatHost = () => {
-  const ts = getTypescript();
+  const ts = getTypescript() as TS;
   return {
     getCanonicalFileName: (path: string) => path,
     getCurrentDirectory: ts.sys.getCurrentDirectory,

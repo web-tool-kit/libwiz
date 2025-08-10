@@ -94,7 +94,7 @@ if (!isMainThread && parentPort) {
     if (type === 'build') {
       const { event, path, cliOptions } = data as BuildWorkerProps;
       actionOnWatch(event, path, cliOptions).catch(err => {
-        parentPort.postMessage({
+        parentPort?.postMessage({
           type: 'error',
           data: {
             message: err instanceof Error ? err.message : String(err),
