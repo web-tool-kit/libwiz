@@ -39,6 +39,15 @@ export interface CompilerContext {
   isCJS: boolean;
 }
 
+type CustomTranspiler = (
+  code: string,
+  option: TranspileOptions,
+) => Promise<TranspileOutput | void>;
+
+type CompilerOptions =
+  | CompilerConfig
+  | ((context: CompilerContext) => CompilerConfig);
+
 export type Config = Partial<{
   root: string;
   srcPath: string;
@@ -50,11 +59,6 @@ export type Config = Partial<{
   lib: LibConfig;
   target: Bundles | Bundles[];
   assets: string | string[] | null;
-  customTranspiler:
-    | ((
-        code: string,
-        option: TranspileOptions,
-      ) => Promise<TranspileOutput | void>)
-    | null;
-  compiler: CompilerConfig | ((context: CompilerContext) => CompilerConfig);
+  compiler: CompilerOptions;
+  customTranspiler: CustomTranspiler | null;
 }>;
