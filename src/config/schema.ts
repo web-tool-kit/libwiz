@@ -2,7 +2,6 @@ import { z } from 'zod';
 import pc from '@/utils/picocolors';
 import { log, isPlainObject } from '@/utils';
 import type { Config, NormalizedConfig } from '@/types';
-import { invalidTypeError, invalidValueTypeError } from './utils';
 
 const VALID_BUNDLE_ENUM = z.enum(['esm', 'cjs']).describe('Valid bundle types');
 
@@ -190,6 +189,7 @@ export function validateConfigSchema(config: Config) {
   return configResult.data as Config;
 }
 
+const boldYellow = (str: string) => pc.bold(pc.yellow(str));
 export function validateOutputTarget(config: NormalizedConfig) {
   function validateTarget(output: NormalizedConfig['output']) {
     if (isPlainObject(output) && output.target) {
@@ -197,26 +197,21 @@ export function validateOutputTarget(config: NormalizedConfig) {
       if (typeof target === 'string' || Array.isArray(target)) {
         if (typeof target === 'string') {
           if (target !== 'esm' && target !== 'cjs') {
-            return invalidTypeError(
-              'output.target',
-              target,
-              ['esm', 'cjs'],
-              target,
-            );
+            return `Invalid ${boldYellow('output.target')} value found expected to be 'esm' or 'cjs' but received ${boldYellow(target)}`;
           }
         } else {
           for (let i = 0; i < target.length; i++) {
             const t = target[i];
             if (typeof t !== 'string') {
-              return invalidValueTypeError('output.target', t, 'string');
+              return `Invalid ${boldYellow('output.target')} array element at index ${i}, expected string but received ${boldYellow(typeof t)}`;
             }
             if (t !== 'esm' && t !== 'cjs') {
-              return invalidTypeError('output.target', t, ['esm', 'cjs']);
+              return `Invalid ${boldYellow('output.target')} array element at index ${i}, expected 'esm' or 'cjs' but received ${boldYellow(t)}`;
             }
           }
         }
       } else {
-        return invalidTypeError('output.target', target, ['Array', 'String']);
+        return `Invalid ${boldYellow('output.target')} type, expected string or array but received ${boldYellow(typeof target)}`;
       }
     }
   }

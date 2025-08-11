@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import pc from '@/utils/picocolors';
 import type { Config } from '@/types';
 
 export const PACKAGE_NAME = 'libwiz';
@@ -62,37 +61,6 @@ export async function loadConfig(root: string): Promise<Config> {
   return JSON.parse(
     await fse.readFile(configPath, { encoding: 'utf8' }),
   ) as Config;
-}
-
-const boldYellow = (str: string) => pc.bold(pc.yellow(str));
-export const expectedTypeError = function (
-  value: unknown,
-  type: string,
-  got?: string,
-) {
-  return `expected type ${type} but got '${boldYellow(got || typeof value)}'`;
-};
-
-export function invalidTypeError(
-  key: string,
-  value: unknown,
-  type: string | string[],
-  got?: string,
-) {
-  const typ =
-    typeof type === 'string'
-      ? boldYellow(type)
-      : type.map(t => boldYellow(t)).join(' or ');
-  return `Invalid ${boldYellow(key)} passed, ${expectedTypeError(value, typ, got)}`;
-}
-
-export function invalidValueTypeError(
-  key: string,
-  value: unknown,
-  type: string,
-  got?: string,
-) {
-  return `Invalid ${boldYellow(key)} value found -> '${boldYellow(value as string)}', ${expectedTypeError(value, type, got)}`;
 }
 
 export async function getBrowserslistConfig(
