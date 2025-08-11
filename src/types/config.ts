@@ -22,8 +22,8 @@ export interface ModuleConfig {
 }
 
 export interface LibConfig {
-  esm?: ModuleConfig;
-  cjs?: ModuleConfig;
+  esm: ModuleConfig;
+  cjs: ModuleConfig;
 }
 
 export interface CompilerConfig {
@@ -66,10 +66,11 @@ export type Config = Partial<{
   lib: LibConfig;
   assets: string | string[] | null;
   compiler: CompilerOptions;
-  customTranspiler: CustomTranspiler | null;
+  customTranspiler?: CustomTranspiler | null;
 }>;
 
 // normalized config type where output is always an object
-export interface NormalizedConfig extends Omit<Config, 'output'> {
+export interface NormalizedConfig extends Config {
+  lib: NonNullable<Config['lib']>;
   output: OutputConfig;
 }

@@ -15,7 +15,7 @@ import store from './store';
 /**
  * Get the initial config from the cli props
  */
-function getInitialConfig(cliOptions?: CliOptions): NormalizedConfig {
+function getInitialConfig(cliOptions?: CliOptions) {
   const initialConfig: NormalizedConfig = {
     srcPath: './src',
     output: {
@@ -105,9 +105,7 @@ function normalizeLibConfig(config: NormalizedConfig) {
   }
 }
 
-export async function initConfig(
-  cliOptions?: CliOptions,
-): Promise<NormalizedConfig> {
+export async function initConfig(cliOptions?: CliOptions) {
   // if config is already initialized, return it
   if (store.hasConfig()) {
     return store.config() as NormalizedConfig;
