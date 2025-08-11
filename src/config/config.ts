@@ -1,15 +1,9 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 import { isPlainObject, isBoolean, log, mergeDeep } from '@/utils';
-import {
-  getTSConfigPath,
-  loadConfig,
-  invalidTypeError,
-  invalidValueTypeError,
-  getBrowserslistConfig,
-} from './utils';
+import { getTSConfigPath, loadConfig, getBrowserslistConfig } from './utils';
 import type { Config, CliOptions, NotPartial, NormalizedConfig } from '@/types';
-import { validateConfigSchema } from './schema';
+import { validateConfigSchema, validateOutputTarget } from './schema';
 import store from './store';
 
 /**
@@ -26,14 +20,10 @@ function getInitialConfig(cliOptions?: CliOptions) {
     },
     lib: {
       esm: {
-        output: {
-          path: './',
-        },
+        output: {},
       },
       cjs: {
-        output: {
-          path: './cjs',
-        },
+        output: {},
       },
     },
     ignore: [
@@ -118,6 +108,8 @@ export async function initConfig(cliOptions?: CliOptions) {
 
   const config = {
     ...initialConfig,
+    root: root,
+    workspace: root,
     customTranspiler: null,
     compiler: {
       plugins: [],
@@ -133,35 +125,27 @@ export async function initConfig(cliOptions?: CliOptions) {
   }
 
   try {
+    // handle libwiz config and merge that into main config
+    const rootConfig = (await loadConfig(root)) || {};
+    if (rootConfig) {
+      validateOutputTarget(rootConfig as NormalizedConfig);
+      validateConfigSchema(rootConfig);
+      normalizeConfig(rootConfig);
+      mergeDeep(config, rootConfig);
+    }
+
     // handle root path
     if (config.root) {
-      if (typeof config.root !== 'string') {
-        invalidTypeError('root', config.root, 'string');
-      }
       const rootPath = path.resolve(config.root);
       if (!fse.pathExistsSync(config.root)) {
         log.error('provided root path does not exist');
         process.exit(1);
       }
       config.root = rootPath;
-    } else {
-      config.root = root;
-    }
-
-    // handle libwiz config and merge that into main config
-    const rootConfig = (await loadConfig(root)) || {};
-    if (rootConfig) {
-      validateConfigSchema(rootConfig);
-      normalizeConfig(rootConfig);
-      mergeDeep(config, rootConfig);
     }
 
     // Handle workspace path
     if (config.workspace) {
-      if (typeof config.workspace !== 'string') {
-        invalidTypeError('workspace', config.workspace, 'string');
-      }
-
       const workspacePath = path.resolve(root, config.workspace);
       config.workspace = workspacePath;
 
@@ -169,17 +153,11 @@ export async function initConfig(cliOptions?: CliOptions) {
         log.error('provided workspace path does not exist');
         process.exit(1);
       }
-    } else {
-      config.workspace = root;
     }
 
     // Handle tsconfig path
     if (config.tsConfig) {
-      if (typeof config.tsConfig !== 'string') {
-        invalidTypeError('tsConfig', config.tsConfig, 'string');
-      }
-
-      const tsConfigPath = path.resolve(process.cwd(), config.tsConfig);
+      const tsConfigPath = path.resolve(config.root as string, config.tsConfig);
       config.tsConfig = tsConfigPath;
 
       if (!fse.pathExistsSync(config.tsConfig)) {
@@ -188,69 +166,23 @@ export async function initConfig(cliOptions?: CliOptions) {
       }
     } else {
       config.tsConfig = getTSConfigPath({
+        root: config.root as string,
         workspace: config.workspace,
-        root,
       });
     }
 
     // handle extensions
     if (config.extensions) {
-      if (!Array.isArray(config.extensions)) {
-        invalidTypeError('extensions', config.extensions, 'string');
-      }
-
       if (config.extensions.length === 0) {
         log.error(
           "extensions can't be empty Array either remove of pass with value",
         );
         process.exit(1);
       }
-
-      for (let i = 0; i < config.extensions.length; i++) {
-        if (typeof config.extensions[i] !== 'string') {
-          invalidValueTypeError('extensions', config.extensions[i], 'string');
-        }
-      }
     } else if (config.tsConfig) {
       config.extensions = ['.ts', '.tsx'];
     } else {
       config.extensions = ['.js', '.jsx'];
-    }
-
-    // Handle ignore
-    if (config.ignore) {
-      if (!Array.isArray(config.ignore)) {
-        invalidTypeError('ignore', config.ignore, 'Array');
-      }
-
-      for (let i = 0; i < config.ignore.length; i++) {
-        if (typeof config.ignore[i] !== 'string') {
-          invalidValueTypeError('ignore', config.ignore[i], 'string');
-        }
-      }
-    } else {
-      config.ignore = [
-        '**/*.test.js',
-        '**/*.test.ts',
-        '**/*.test.tsx',
-        '**/*.spec.ts',
-        '**/*.spec.tsx',
-      ];
-    }
-
-    if (typeof config.output === 'object' && config.output.target) {
-      const target = config.output.target;
-      if (typeof target !== 'string') {
-        if (!Array.isArray(target)) {
-          invalidTypeError('output.target', target, ['Array', 'String']);
-        }
-
-        for (let i = 0; i < target.length; i++) {
-          if (typeof target[i] !== 'string') {
-            invalidValueTypeError('output.target', target[i], 'string');
-          }
-        }
-      }
     }
   } catch (err) {
     log.error(err instanceof Error ? err.message : String(err));
@@ -258,32 +190,56 @@ export async function initConfig(cliOptions?: CliOptions) {
     process.exit(1);
   }
 
-  config.root = root;
-
   if (config.srcPath) {
-    config.srcPath = path.resolve(root, config.srcPath);
+    config.srcPath = path.isAbsolute(config.srcPath)
+      ? config.srcPath
+      : path.resolve(root, config.srcPath);
   } else {
     config.srcPath = path.resolve(root, './src');
   }
 
   if (config.output.dir) {
-    config.output.dir = path.resolve(root, config.output.dir);
+    config.output.dir = path.isAbsolute(config.output.dir)
+      ? config.output.dir
+      : path.resolve(root, config.output.dir);
   } else {
     config.output.dir = path.resolve(root, './dist');
   }
 
-  // resolve output paths w.r.t output path with defaults
-  if (config.lib?.esm?.output?.path) {
-    config.lib.esm.output.path = path.resolve(
-      config.output.dir,
-      config.lib.esm.output.path,
-    );
+  if (!config.lib?.esm?.output) {
+    config.lib.esm.output = {};
   }
-  if (config.lib?.cjs?.output?.path) {
-    config.lib.cjs.output.path = path.resolve(
-      config.output.dir,
-      config.lib.cjs.output.path,
-    );
+
+  if (!config.lib?.cjs?.output) {
+    config.lib.cjs.output = {};
+  }
+
+  if (config.lib.esm.output?.path) {
+    if (path.isAbsolute(config.lib.esm.output.path)) {
+      config.lib.esm.output.path = path.resolve(config.lib.esm.output.path);
+    } else {
+      config.lib.esm.output.path = path.resolve(
+        config.output.dir,
+        config.lib.esm.output.path,
+      );
+    }
+  } else {
+    // default esm output path dist/
+    config.lib.esm.output.path = config.output.dir;
+  }
+
+  if (config.lib.cjs.output?.path) {
+    if (path.isAbsolute(config.lib.cjs.output.path)) {
+      config.lib.cjs.output.path = path.resolve(config.lib.cjs.output.path);
+    } else {
+      config.lib.cjs.output.path = path.resolve(
+        config.output.dir,
+        config.lib.cjs.output.path,
+      );
+    }
+  } else {
+    // default cjs output path dist/cjs
+    config.lib.cjs.output.path = path.join(config.output.dir, 'cjs');
   }
 
   normalizeLibConfig(config);

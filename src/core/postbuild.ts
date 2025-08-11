@@ -3,7 +3,16 @@ import fse from 'fs-extra';
 import glob from 'fast-glob';
 import { getConfig } from '@/config';
 import pc from '@/utils/picocolors';
+import type { NormalizedConfig, Bundles } from '@/types';
 import { log, parallel, sequential, createTimer } from '@/utils';
+
+function isTarget(
+  target: NormalizedConfig['output']['target'],
+  value: Bundles,
+) {
+  if (!target) return false;
+  return target === value || (Array.isArray(target) && target.includes(value));
+}
 
 /**
  * Copy required files of module in there folder
@@ -58,13 +67,13 @@ export async function unlinkFilesFormBuild(
   files: string | string[],
   isDir: boolean = false,
 ) {
-  const { srcPath, lib } = getConfig();
+  const { srcPath, lib, output } = getConfig();
   const cjsPath = lib?.cjs?.output?.path as string;
   const esmPath = lib?.esm?.output?.path as string;
 
   const [hasCJS, hasESM] = await Promise.all([
-    fse.pathExists(cjsPath),
-    fse.pathExists(esmPath),
+    isTarget(output.target, 'cjs') && fse.pathExists(cjsPath),
+    isTarget(output.target, 'esm') && fse.pathExists(esmPath),
   ]);
 
   const tasks: Promise<void>[] = [];
@@ -126,8 +135,8 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
   const esmPath = lib?.esm?.output?.path as string;
 
   const [hasCJS, hasESM] = await Promise.all([
-    fse.pathExists(cjsPath),
-    fse.pathExists(esmPath),
+    isTarget(output.target, 'cjs') && fse.pathExists(cjsPath),
+    isTarget(output.target, 'esm') && fse.pathExists(esmPath),
   ]);
 
   /**
@@ -184,7 +193,7 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
         const esmDir = path.join(esmPath, directoryPackage);
         const cjsDir = path.join(cjsPath, directoryPackage);
 
-        const packageJson = {
+        const packageJson: Record<string, any> = {
           name: `${packageData.name}/${directoryPackage}`,
           version: packageData.version,
           sideEffects: false,
@@ -207,14 +216,20 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
           ]);
 
         if (!moduleEntryExists) {
-          delete (packageJson as any).module;
+          delete packageJson.module;
         }
         if (!mainEntryExists) {
-          delete (packageJson as any).main;
+          delete packageJson.main;
         }
         if (!typingsEntryExist) {
-          delete (packageJson as any).types;
+          delete packageJson.types;
         }
+
+        if (!packageJson.main && packageJson.module) {
+          packageJson.main = packageJson.module;
+          delete packageJson.module;
+        }
+
         await fse.writeFile(
           packageJsonPath,
           JSON.stringify(packageJson, null, 2),
@@ -266,24 +281,49 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     const newPackageData = {
       ...restPackageData,
       private: false,
-      main: (await fse.pathExists(path.join(cjsPath, 'index.js')))
-        ? `.${cjsDir ? `/${cjsDir}` : ''}/index.js`
-        : './index.js',
-      module: (await fse.pathExists(path.join(esmPath, 'index.js')))
-        ? `.${esmDir ? `/${esmDir}` : ''}/index.js`
-        : './index.js',
     };
 
-    const [moduleEntryExists, mainEntryExists] = await Promise.all([
-      fse.pathExists(path.resolve(output.dir, newPackageData.module)),
-      fse.pathExists(path.resolve(output.dir, newPackageData.main)),
-    ]);
+    // only add main field if CJS output exists
+    if (hasCJS) {
+      newPackageData.main = (await fse.pathExists(
+        path.join(cjsPath, 'index.js'),
+      ))
+        ? `.${cjsDir ? `/${cjsDir}` : ''}/index.js`
+        : './index.js';
+    }
 
-    if (!moduleEntryExists) {
+    // only add module field if ESM output exists
+    if (hasESM) {
+      newPackageData.module = (await fse.pathExists(
+        path.join(esmPath, 'index.js'),
+      ))
+        ? `.${esmDir ? `/${esmDir}` : ''}/index.js`
+        : './index.js';
+    }
+
+    // if only ESM output exists, use module as the main entry point
+    if (hasESM && !hasCJS) {
+      newPackageData.main = newPackageData.module;
       delete newPackageData.module;
     }
-    if (!mainEntryExists) {
-      delete newPackageData.main;
+
+    // verify that the specified entry points actually exist
+    if (newPackageData.main) {
+      const mainEntryExists = await fse.pathExists(
+        path.resolve(output.dir, newPackageData.main),
+      );
+      if (!mainEntryExists) {
+        delete newPackageData.main;
+      }
+    }
+
+    if (newPackageData.module) {
+      const moduleEntryExists = await fse.pathExists(
+        path.resolve(output.dir, newPackageData.module),
+      );
+      if (!moduleEntryExists) {
+        delete newPackageData.module;
+      }
     }
 
     // if esm path exists then by default types will be in esm path else in cjs path
@@ -299,10 +339,9 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
       'utf8',
     );
   }
-
+  await ensureBuildDirExists();
   try {
     await sequential([
-      ensureBuildDirExists(),
       typescriptCopy(),
       copyRequiredFiles(),
       parallel([createModulePackages(), createPackageFile()]),

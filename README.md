@@ -96,6 +96,7 @@ The configuration options allow you to customize or override the default flow. B
     - **`target`** (`string` or `array`): Build targets, such as `"esm"`, `"cjs"`, or an array with both
     - **`comments`** (`boolean`): Include comments in output for all targets
     - **`sourceMap`** (`boolean`): Generate source maps for all targets
+  - **Note**: If `output` or `output.dir` is not defined in your config, it will automatically default to `'./dist'` folder
 - **`tsConfig`** (`string`): Path to the TypeScript configuration file, such as `tsconfig.json`.
 - **`extensions`** (`array of strings`): List of file extensions to process, e.g., `['.ts', '.tsx']`.
 - **`ignore`** (`array of strings`): Glob patterns to exclude files from the build process. Defaults to:

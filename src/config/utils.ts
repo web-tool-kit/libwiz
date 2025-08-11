@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fse from 'fs-extra';
-import { log } from '@/utils';
+import pc from '@/utils/picocolors';
 import type { Config } from '@/types';
 
 export const PACKAGE_NAME = 'libwiz';
@@ -64,29 +64,35 @@ export async function loadConfig(root: string): Promise<Config> {
   ) as Config;
 }
 
-export const expectedTypeError = function (value: unknown, type: string) {
-  return `expected type '${type}' but got '${typeof value}'`;
+const boldYellow = (str: string) => pc.bold(pc.yellow(str));
+export const expectedTypeError = function (
+  value: unknown,
+  type: string,
+  got?: string,
+) {
+  return `expected type ${type} but got '${boldYellow(got || typeof value)}'`;
 };
 
 export function invalidTypeError(
   key: string,
   value: unknown,
   type: string | string[],
+  got?: string,
 ) {
-  let typ = typeof type === 'string' ? type : type.join(' or ');
-  log.error(`Invalid ${key} passed, ${expectedTypeError(value, typ)}`);
-  process.exit(1);
+  const typ =
+    typeof type === 'string'
+      ? boldYellow(type)
+      : type.map(t => boldYellow(t)).join(' or ');
+  return `Invalid ${boldYellow(key)} passed, ${expectedTypeError(value, typ, got)}`;
 }
 
 export function invalidValueTypeError(
   key: string,
   value: unknown,
   type: string,
+  got?: string,
 ) {
-  log.error(
-    `Invalid ${key} value found -> '${value}', ${expectedTypeError(value, type)}`,
-  );
-  process.exit(1);
+  return `Invalid ${boldYellow(key)} value found -> '${boldYellow(value as string)}', ${expectedTypeError(value, type, got)}`;
 }
 
 export async function getBrowserslistConfig(

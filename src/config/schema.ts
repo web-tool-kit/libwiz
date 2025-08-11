@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { log } from '@/utils';
 import pc from '@/utils/picocolors';
-import type { Config } from '@/types';
+import { log, isPlainObject } from '@/utils';
+import type { Config, NormalizedConfig } from '@/types';
+import { invalidTypeError, invalidValueTypeError } from './utils';
 
 const VALID_BUNDLE_ENUM = z.enum(['esm', 'cjs']).describe('Valid bundle types');
 
@@ -187,4 +188,43 @@ export function validateConfigSchema(config: Config) {
     process.exit(1);
   }
   return configResult.data as Config;
+}
+
+export function validateOutputTarget(config: NormalizedConfig) {
+  function validateTarget(output: NormalizedConfig['output']) {
+    if (isPlainObject(output) && output.target) {
+      const target = output.target;
+      if (typeof target === 'string' || Array.isArray(target)) {
+        if (typeof target === 'string') {
+          if (target !== 'esm' && target !== 'cjs') {
+            return invalidTypeError(
+              'output.target',
+              target,
+              ['esm', 'cjs'],
+              target,
+            );
+          }
+        } else {
+          for (let i = 0; i < target.length; i++) {
+            const t = target[i];
+            if (typeof t !== 'string') {
+              return invalidValueTypeError('output.target', t, 'string');
+            }
+            if (t !== 'esm' && t !== 'cjs') {
+              return invalidTypeError('output.target', t, ['esm', 'cjs']);
+            }
+          }
+        }
+      } else {
+        return invalidTypeError('output.target', target, ['Array', 'String']);
+      }
+    }
+  }
+
+  const stackTrace = new Error().stack;
+  const errMsg = validateTarget(config.output);
+  if (errMsg) {
+    log.error(printError(errMsg, stackTrace));
+    process.exit(1);
+  }
 }

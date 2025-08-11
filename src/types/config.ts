@@ -15,7 +15,7 @@ export interface TranspileOutput {
 
 export interface ModuleConfig {
   output?: {
-    path: string;
+    path?: string;
     comments?: boolean;
     sourceMap?: boolean;
   };
