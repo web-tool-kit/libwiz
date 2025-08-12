@@ -1,3 +1,4 @@
+import { boldYellow } from '@/utils/picocolors';
 import { hasTypescript, notifyTypescriptNotInstalled } from '@/typescript';
 import { getConfig } from '@/config';
 import log from '@/utils/log';
