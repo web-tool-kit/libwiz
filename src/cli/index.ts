@@ -10,7 +10,7 @@ process.env.BROWSERSLIST_IGNORE_OLD_DATA = '1';
 
 function printPackageIntro(version: string) {
   console.log(
-    pc.bold(`${pc.bold(pc.cyan('   Libwiz'))} ${pc.green(`v${version}`)}\n`),
+    pc.bold(`${pc.bold(pc.cyan('   Libwiz11'))} ${pc.green(`v${version}`)}\n`),
   );
 }
 
