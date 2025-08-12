@@ -2,26 +2,18 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
-import pc from '@/utils/picocolors';
 import type { CliOptions, CliTaskTypes } from '@/types';
 
-function getPackageVersion(): string | undefined {
+function getPackageVersion() {
   try {
     const packageJsonPath = resolve(__dirname, '../package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
-    return packageJson.version;
+    return packageJson.version as string;
   } catch {}
 }
 
-function printPackageIntro(version: string) {
-  console.log(
-    pc.bold(`${pc.bold(pc.cyan('   Libwiz'))} ${pc.green(`v${version}`)}\n`),
-  );
-}
-
 export function parseArgs() {
-  const version = getPackageVersion();
-  printPackageIntro(version || 'unknown');
+  const version = getPackageVersion() as string;
 
   const argv = yargs(hideBin(process.argv))
     .help()
@@ -94,5 +86,5 @@ export function parseArgs() {
     process.env.LIBWIZ_ENABLE_PROGRESS = 'true';
   }
 
-  return { cliOptions, task };
+  return { cliOptions, task, version };
 }
