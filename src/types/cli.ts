@@ -1,6 +1,6 @@
 import type { Bundles } from './config';
 
-export type CliTaskTypes = 'build' | 'dev' | 'types';
+export type CliTaskTypes = 'init' | 'build' | 'dev' | 'types';
 
 export interface CliOptions {
   types: boolean;

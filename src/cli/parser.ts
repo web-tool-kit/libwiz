@@ -74,16 +74,16 @@ export function parseArgs() {
     .demandCommand(
       1,
       1,
-      'Please specify the command: `build`, `dev`, or `types` (eg: libwiz build)',
+      'Please specify the command: `init`, `build`, `dev`, or `types` (eg: libwiz build)',
     )
     .parse();
 
   const task = (argv as any)['_'][0] as CliTaskTypes;
 
   // in case task is not valid of exist then throw error
-  if (!['build', 'dev', 'types'].includes(task)) {
+  if (!['init', 'build', 'dev', 'types'].includes(task)) {
     console.error(
-      'Please specify the correct command: `build`, `dev`, or `types` (eg: libwiz build)',
+      'Please specify the correct command: `init`, `build`, `dev`, or `types` (eg: libwiz build)',
     );
     process.exit(1);
   }

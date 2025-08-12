@@ -16,6 +16,7 @@
 - 🔄 **Dev Mode**: Automatically rebuild when files change.
 - 🗺 **Source Maps**: Generate source maps for easier debugging.
 - ⚙️ **Config File Support**: Customize the build with a configuration file (`libwiz.config.js`, `libwiz.config.json`, or `.libwizrc`).
+- 🚀 **Quick Setup**: Use `npx libwiz init` to generate a minimal configuration file and get started instantly.
 - 🔧 **Framework Agnostic**: No framework-specific dependencies included by default. Add React, Vue, or any other framework support as needed.
 - ✅ **Type Checking**: Built-in TypeScript type checking without file generation.
 
@@ -33,15 +34,19 @@ npm install --save-dev libwiz
 
 ### Commands
 
-`libwiz` provides three primary commands: `build`, `dev`, and `types`.
+`libwiz` provides four primary commands: `init`, `build`, `dev`, and `types`.
 
-1. **build**: Build the library in the desired format.
-2. **dev**: Run the build in watch mode for faster development.
-3. **types**: Generate TypeScript definition files only (without building the library).
+1. **init**: Create a sample configuration file to get started quickly.
+2. **build**: Build the library in the desired format.
+3. **dev**: Run the build in watch mode for faster development.
+4. **types**: Generate TypeScript definition files only (without building the library).
 
 ### Basic Usage
 
 ```bash
+# Initialize a new configuration file
+npx libwiz init
+
 # Build library
 libwiz build
 
@@ -62,6 +67,26 @@ libwiz build --target esm
 libwiz build --target cjs
 ```
 
+### Quick Start with `init`
+
+The `init` command creates a minimal `libwiz.config.js` file to get you started quickly:
+
+```bash
+# Quick start
+npx libwiz init
+
+# Or if you have libwiz installed globally
+libwiz init
+```
+
+This will create a `libwiz.config.js` file with:
+
+- Basic ESM and CJS build configuration
+- Source maps enabled
+- JSDoc type annotations for better IDE support
+
+The generated config is minimal and ready to use, but you can customize it further based on your needs.
+
 ### Options
 
 | Option          | Description                                                   | Default  |
@@ -79,6 +104,8 @@ libwiz build --target cjs
 ### Configuration
 
 `libwiz` supports configuration files to give you more control over your build process. You can create a config file named `libwiz.config.js`, `libwiz.config.json`, or `.libwizrc` in your project root.
+
+> **💡 Tip**: Use `npx libwiz init` to quickly create a minimal configuration file to get started!
 
 #### Config Schema Overview
 
@@ -374,6 +401,16 @@ module.exports = {
 ```
 
 ### Examples
+
+#### Getting started with a new project
+
+```bash
+# Quick start
+npx libwiz init
+
+# Or if you have libwiz installed globally
+libwiz init
+```
 
 #### Building for specific formats
 

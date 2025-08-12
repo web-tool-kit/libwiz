@@ -2,6 +2,7 @@ import { boldYellow } from '@/utils/picocolors';
 import { hasTypescript, notifyTypescriptNotInstalled } from '@/typescript';
 import { getConfig } from '@/config';
 import log from '@/utils/log';
+import initRun from '@/core/init';
 import prebuildRun from '@/core/prebuild';
 import buildRun from '@/core/build';
 import postBuild from '@/core/postbuild';
@@ -52,6 +53,12 @@ async function run(cliOptions: CliOptions, task: CliTaskTypes) {
         `no need to use ${boldYellow('--types')} flag with ${boldYellow('types')} command`,
       );
     }
+  }
+
+  // handle init command first (doesn't need config)
+  if (task === 'init') {
+    await initRun();
+    process.exit(0);
   }
 
   // if type actions will gonna be performed then we need to check if
