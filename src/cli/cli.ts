@@ -24,16 +24,38 @@ async function generateTypes(onlyTypeCheck: boolean, showTiming = true) {
 
 async function run(cliOptions: CliOptions, task: CliTaskTypes) {
   const config = getConfig();
-  const { types, watch, check } = cliOptions;
+  const { types, check } = cliOptions;
+  const watch = task === 'dev';
 
   // validate --check flag usage
   if (cliOptions.check) {
-    if (task !== 'types') {
+    // with types there is no sense to use --check flag
+    if (cliOptions.types) {
       log.error(
-        '--check flag is only valid with the "types" command (libwiz types --check)',
+        `${boldYellow('--types')} and ${boldYellow('--check')} cannot be used together`,
       );
       process.exit(1);
     }
+    if (task !== 'types') {
+      log.error(
+        `${boldYellow('--check')} flag is not valid with ${boldYellow(task)} command`,
+      );
+      process.exit(1);
+    }
+  }
+
+  // just warn the user that --types flag is not needed with types command
+  if (task === 'types') {
+    if (cliOptions.types) {
+      log.warn(
+        `no need to use ${boldYellow('--types')} flag with ${boldYellow('types')} command`,
+      );
+    }
+  }
+
+  // if type actions will gonna be performed then we need to check if
+  // tsconfig is present
+  if (task === 'types' || cliOptions.types) {
     if (!config.tsConfig) {
       log.error(
         'No tsconfig found. Type checking requires a TypeScript configuration file.',
@@ -54,7 +76,7 @@ async function run(cliOptions: CliOptions, task: CliTaskTypes) {
     }
   }
 
-  if (watch) {
+  if (task === 'dev') {
     const { default: watchRun } = require('@/core/watch');
     watchRun(cliOptions);
     return;

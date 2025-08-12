@@ -80,13 +80,8 @@ export function parseArgs() {
 
   const task = (argv as any)['_'][0] as CliTaskTypes;
 
-  if (task === 'build') {
-    (argv as any)['build'] = true;
-  } else if (task === 'dev') {
-    (argv as any)['watch'] = true;
-  } else if (task === 'types') {
-    (argv as any)['types'] = true;
-  } else {
+  // in case task is not valid of exist then throw error
+  if (!['build', 'dev', 'types'].includes(task)) {
     console.error(
       'Please specify the correct command: `build`, `dev`, or `types` (eg: libwiz build)',
     );

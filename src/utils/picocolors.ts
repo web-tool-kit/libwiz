@@ -42,4 +42,9 @@ const createColorProxy = () => {
 };
 
 export const isColorSupported = pc.isColorSupported;
-export default createColorProxy();
+
+const proxyPc = createColorProxy();
+
+export const boldYellow = (msg: string) => proxyPc.bold(proxyPc.yellow(msg));
+
+export default proxyPc;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import pc from '@/utils/picocolors';
+import pc, { boldYellow } from '@/utils/picocolors';
 import { log, isPlainObject } from '@/utils';
 import type { Config, NormalizedConfig } from '@/types';
 
@@ -189,7 +189,6 @@ export function validateConfigSchema(config: Config) {
   return configResult.data as Config;
 }
 
-const boldYellow = (str: string) => pc.bold(pc.yellow(str));
 export function validateOutputTarget(config: NormalizedConfig) {
   function validateTarget(output: NormalizedConfig['output']) {
     if (isPlainObject(output) && output.target) {
