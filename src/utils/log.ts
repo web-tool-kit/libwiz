@@ -1,8 +1,11 @@
 import { isMainThread, parentPort } from 'node:worker_threads';
 import pc from './picocolors';
-import { isTTY, isProgressDisabled } from './common';
+import { isTTY, isProgressDisabled, isLoggingDisabled } from './common';
 
 export function print(msg: string) {
+  // check if logging is disabled first
+  if (isLoggingDisabled()) return;
+
   if (isMainThread) {
     if (isTTY) {
       if (isProgressDisabled()) msg += '\n';
@@ -64,7 +67,7 @@ export const log = {
 };
 
 export function clearLine() {
-  if (isProgressDisabled()) return;
+  if (isProgressDisabled() || isLoggingDisabled()) return;
   if (isMainThread) {
     if (isTTY) {
       process.stdout.clearLine(0);

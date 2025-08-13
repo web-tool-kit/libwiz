@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
+import log from '@/utils/log';
 import type { CliOptions, CliTaskTypes } from '@/types';
 
 function getPackageVersion() {
@@ -17,6 +18,7 @@ export function parseArgs() {
 
   const argv = yargs(hideBin(process.argv))
     .help()
+    .version(version || 'unknown')
     .strict()
     .parserConfiguration({
       'boolean-negation': false,
@@ -60,13 +62,16 @@ export function parseArgs() {
       description:
         'Type check only without generating files (types command only)',
     })
-    .help()
-    .strict()
-    .version(version || 'unknown')
+
+    .option('quiet', {
+      default: false,
+      describe: 'To supress all logs',
+      type: 'boolean',
+    })
     .demandCommand(
       1,
       1,
-      'Please specify the command: `init`, `build`, `dev`, or `types` (eg: libwiz build)',
+      'Please specify the correct command: `init`, `build`, `dev`, or `types` (eg: libwiz build)',
     )
     .parse();
 
@@ -74,7 +79,7 @@ export function parseArgs() {
 
   // in case task is not valid of exist then throw error
   if (!['init', 'build', 'dev', 'types'].includes(task)) {
-    console.error(
+    log.error(
       'Please specify the correct command: `init`, `build`, `dev`, or `types` (eg: libwiz build)',
     );
     process.exit(1);
@@ -84,6 +89,10 @@ export function parseArgs() {
 
   if (cliOptions.progress === true) {
     process.env.LIBWIZ_ENABLE_PROGRESS = 'true';
+  }
+
+  if (cliOptions.quiet === true) {
+    process.env.LIBWIZ_QUIET = 'true';
   }
 
   return { cliOptions, task, version };

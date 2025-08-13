@@ -11,4 +11,5 @@ export interface CliOptions {
   progress: boolean;
   target: Bundles;
   sourceMaps: boolean;
+  quiet: boolean;
 }

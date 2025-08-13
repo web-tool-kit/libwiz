@@ -6,6 +6,9 @@ export const isTTY = process.stdout.isTTY || process.env.CI;
 export const isProgressDisabled = () =>
   process.env.LIBWIZ_ENABLE_PROGRESS !== 'true';
 
+// isLoggingDisabled function is used to check if all logs should be suppressed
+export const isLoggingDisabled = () => process.env.LIBWIZ_QUIET === 'true';
+
 export function parallel(promises: Promise<unknown>[]) {
   return Promise.all(promises);
 }

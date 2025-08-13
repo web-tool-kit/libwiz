@@ -100,6 +100,7 @@ The generated config is minimal and ready to use, but you can customize it furth
 | `--check`       | Type check only without generating files (types command only) | false    |
 | `--help`        | Show help for all commands and options.                       |          |
 | `--version`     | Show the installed version of `libwiz`.                       |          |
+| `--quiet`       | Suppress all logs and output (useful for CI/CD).              | false    |
 
 ### Configuration
 
@@ -545,6 +546,16 @@ When using `libwiz build --types` to generate TypeScript definition files, `libw
 ```
 
 > **Note**: If no or empty `exclude` patterns are specified in your tsconfig.json, libwiz will automatically use its own `ignore` configuration as exclude patterns for type generation.
+
+#### How to Suppress All Logs (Helpful for CI/CD)?
+
+```bash
+# CLI flag (recommended)
+libwiz build --quiet
+
+# Environment variable
+LIBWIZ_QUIET=true libwiz build
+```
 
 ### How to Enable Progress Bar?
 

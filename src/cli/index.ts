@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import '@/typescript';
 import pc from '@/utils/picocolors';
+import log from '@/utils/log';
 import { initCli } from '@/utils/common';
 import { initConfig } from '@/config';
 import { parseArgs } from './parser';
@@ -9,8 +10,8 @@ import { parseArgs } from './parser';
 process.env.BROWSERSLIST_IGNORE_OLD_DATA = '1';
 
 function printPackageIntro(version: string) {
-  console.log(
-    pc.bold(`${pc.bold(pc.cyan('   Libwiz11'))} ${pc.green(`v${version}`)}\n`),
+  log.raw(
+    pc.bold(`${pc.bold(pc.cyan('   Libwiz'))} ${pc.green(`v${version}`)}\n`),
   );
 }
 
