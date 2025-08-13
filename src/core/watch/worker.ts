@@ -73,7 +73,6 @@ const actionOnWatch = async (
     case 'unlink':
     case 'unlinkDir':
       await runBuildProcess();
-    default:
       break;
   }
 };
