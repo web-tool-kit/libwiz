@@ -8,6 +8,7 @@ const watchWorker = new WorkerNodes();
 
 async function watch(cliOptions: CliOptions) {
   const config = getConfig();
+  log.newline();
   log.info('Running in watch mode...');
 
   const watcher = chokidar.watch(`${config.srcPath}/**/*`, {

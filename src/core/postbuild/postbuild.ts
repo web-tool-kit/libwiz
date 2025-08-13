@@ -229,7 +229,6 @@ async function postbuild(getBuildTime: ReturnType<typeof createTimer>) {
     log.done(
       `Build completed successfully in ${pc.bold(buildTime.toFixed(1))}s`,
     );
-    log.newline();
   } catch (err) {
     console.error(err);
     process.exit(1);

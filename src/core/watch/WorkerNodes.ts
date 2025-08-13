@@ -54,7 +54,7 @@ class WorkerNodes {
 
     worker.on('exit', code => {
       if (code !== 0) {
-        console.error(`Worker stopped with exit code ${code}`);
+        console.error(`Build stopped with exit code ${code}`);
       }
     });
   }
@@ -68,13 +68,13 @@ class WorkerNodes {
     }
   }
 
+  // switch workers when needed usually when active worker
+  // need to terminated
   private switchWorkers() {
-    if (this.active) {
-      this.ready = false;
-      this.active = this.next;
-      this.next = this.createWorker();
-      this.ready = true;
-    }
+    this.ready = false;
+    this.active = this.next;
+    this.next = this.createWorker();
+    this.ready = true;
   }
 
   private manageRestart() {
