@@ -120,7 +120,7 @@ export const transformFilesAsync = async (
       customTranspiler,
     };
 
-    // dynamic batch size
+    // dynamic batch size when progress is enabled keep it 5
     const BATCH_SIZE = noprogress ? sourceFiles.length : 5;
 
     let completed = 0;

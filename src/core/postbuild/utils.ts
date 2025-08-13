@@ -62,7 +62,7 @@ export async function copyRequiredFiles() {
 // function to unlink files from build path, this expect files paths exist in src
 // this used when watch mode is enabled and we need to unlink files from build path
 // when file is deleted in src path
-export async function unlinkFilesFormBuild(
+export async function unlinkFilesFromBuild(
   files: string | string[],
   isDir: boolean = false,
 ) {

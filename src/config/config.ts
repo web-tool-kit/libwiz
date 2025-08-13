@@ -144,7 +144,7 @@ export async function initConfig(cliOptions?: CliOptions) {
       config.root = rootPath;
     }
 
-    // Handle workspace path
+    // handle workspace path
     if (config.workspace) {
       const workspacePath = path.resolve(root, config.workspace);
       config.workspace = workspacePath;
@@ -155,7 +155,7 @@ export async function initConfig(cliOptions?: CliOptions) {
       }
     }
 
-    // Handle tsconfig path
+    // handle tsconfig path
     if (config.tsConfig) {
       const tsConfigPath = path.resolve(config.root as string, config.tsConfig);
       config.tsConfig = tsConfigPath;

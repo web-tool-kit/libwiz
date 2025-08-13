@@ -2,7 +2,7 @@ import { parentPort, isMainThread } from 'node:worker_threads';
 import { log, createTimer, createFileHash, optimizeMemory } from '@/utils';
 import { initConfig } from '@/config';
 import build from '@/core/build';
-import runPostbuild, { unlinkFilesFormBuild } from '@/core/postbuild';
+import runPostbuild, { unlinkFilesFromBuild } from '@/core/postbuild';
 import type { CliOptions } from '@/types';
 
 const fileHashes = new Map<string, string>();
@@ -21,7 +21,7 @@ const actionOnWatch = async (
   // handle file hash management
   if (event === 'unlink') {
     fileHashes.delete(path);
-    await unlinkFilesFormBuild([path]);
+    await unlinkFilesFromBuild([path]);
   } else if (event === 'unlinkDir') {
     // iterate through fileHashes to find files that were in the deleted directory
     for (const [filePath] of Array.from(fileHashes.entries())) {
@@ -29,7 +29,7 @@ const actionOnWatch = async (
         fileHashes.delete(filePath);
       }
     }
-    await unlinkFilesFormBuild(path, true);
+    await unlinkFilesFromBuild(path, true);
   }
 
   async function runBuildProcess() {
